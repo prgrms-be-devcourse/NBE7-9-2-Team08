@@ -1,0 +1,34 @@
+spring:
+  profiles:
+    active: dev
+
+  output:
+    ansi:
+      enabled: always
+
+  datasource:
+    hikari:
+      auto-commit: false
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+    show-sql: true
+
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+springdoc:
+  default-produces-media-type: application/json
+
+logging:
+  level:
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.springframework.transaction.interceptor: TRACE
+    com.rest1: DEBUG
