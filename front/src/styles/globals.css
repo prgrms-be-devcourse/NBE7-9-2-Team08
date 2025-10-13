@@ -1,0 +1,13 @@
+:root { --foreground: #111; --background: #fff; }
+@media (prefers-color-scheme: dark) {
+  :root { --foreground: #fff; --background: #111; }
+}
+html, body { color: var(--foreground); background: var(--background); height: 100%; }
+* { box-sizing: border-box; }
+a { text-decoration: none; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+.button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; }
+input, select { padding: 8px; border: 1px solid #ccc; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+.toast { position: fixed; right: 16px; bottom: 16px; padding: 12px 16px; background: #222; color: #fff; border-radius: 8px; }

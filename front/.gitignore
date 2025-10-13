@@ -1,0 +1,22 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+.vercel/
+.eslintcache
+
+# Env(민감정보) - 실제 값은 커밋 X, 대신 .env.example 만 커밋 O
+.env
+.env.local
+.env.*.local
+
+# 빌드/커버리지
+coverage/
+dist/
+
+# 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
