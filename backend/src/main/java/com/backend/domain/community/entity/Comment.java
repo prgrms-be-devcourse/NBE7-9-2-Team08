@@ -12,7 +12,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 분서결과 id
+    // 분석결과 id
     @ManyToOne
     @JoinColumn(name = "analysis_result_id")
     private AnalysisResult analysisResultId;

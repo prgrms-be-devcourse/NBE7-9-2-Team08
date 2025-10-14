@@ -16,3 +16,14 @@ show column from analysis_result [42000-232]
 2025-10-14 15:17:34.068605+09:00 jdbc[13]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]column from ANALYSIS_RESULT"; SQL statement:
 show column from ANALYSIS_RESULT [42000-232]
+2025-10-14 15:28:27.669853+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show columns from ANALYSIS_RESULT\000d\000a\000d\000a[*]show columns from ANALYSIS_RESULT_LANGUAGE\000d\000a\000d\000ashow columns from COMMENT \000d\000a\000d\000ashow columns from LANGUAGE \000d\000a\000d\000ashow columns from MEMBER"; SQL statement:
+show columns from ANALYSIS_RESULT
+
+show columns from ANALYSIS_RESULT_LANGUAGE
+
+show columns from COMMENT 
+
+show columns from LANGUAGE 
+
+show columns from MEMBER [42000-232]

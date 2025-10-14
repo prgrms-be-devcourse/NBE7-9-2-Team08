@@ -5,8 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/backend/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/backend/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/global/security/SecurityConfig.java" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/repository/CommentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/entity/Comment.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/entity/Comment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/repository/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_dev.mv.db" beforeDir="false" afterPath="$PROJECT_DIR$/db_dev.mv.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_dev.trace.db" beforeDir="false" afterPath="$PROJECT_DIR$/db_dev.trace.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,7 +80,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feature/analysis__history",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -120,7 +124,7 @@
       <workItem from="1760403530863" duration="456000" />
       <workItem from="1760404005546" duration="6485000" />
       <workItem from="1760410922241" duration="1778000" />
-      <workItem from="1760412731063" duration="7269000" />
+      <workItem from="1760412731063" duration="8261000" />
     </task>
     <servers />
   </component>
