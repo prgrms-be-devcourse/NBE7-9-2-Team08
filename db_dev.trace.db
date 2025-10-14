@@ -1,0 +1,18 @@
+2025-10-14 15:16:07.970770+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]analysis_result"; SQL statement:
+show analysis_result [42000-232]
+2025-10-14 15:16:14.798859+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show columns [*]analysis_result"; expected "FROM"; SQL statement:
+show columns analysis_result [42001-232]
+2025-10-14 15:16:18.445082+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]column analysis_result"; SQL statement:
+show column analysis_result [42000-232]
+2025-10-14 15:16:34.874429+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]column from analysis_result"; SQL statement:
+show column from analysis_result [42000-232]
+2025-10-14 15:17:25.968556+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]column from analysis_result"; SQL statement:
+show column from analysis_result [42000-232]
+2025-10-14 15:17:34.068605+09:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "show [*]column from ANALYSIS_RESULT"; SQL statement:
+show column from ANALYSIS_RESULT [42000-232]
