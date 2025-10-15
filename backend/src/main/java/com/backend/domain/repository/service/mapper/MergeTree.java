@@ -1,4 +1,4 @@
 package com.backend.domain.repository.service.mapper;
 
-public class mergeReadme {
+public class MergeTree {
 }

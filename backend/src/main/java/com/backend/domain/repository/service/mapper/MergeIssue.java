@@ -1,4 +1,4 @@
 package com.backend.domain.repository.service.mapper;
 
-public class mergeIssue {
+public class MergeIssue {
 }
