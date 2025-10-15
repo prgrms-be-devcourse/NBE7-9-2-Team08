@@ -3,6 +3,7 @@ package com.backend.domain.repository.entity;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "repository")
+@Table(name = "repositories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Repository extends BaseEntity {
@@ -31,15 +32,37 @@ public class Repository extends BaseEntity {
     @Column(nullable = false)
     private String htmlUrl;
 
-    @Column(nullable = false)
-    private String defaultBranch;
-
-    @Column(name = "is_public")
-    private boolean isPublic;
+    @Column(name = "public_repository")
+    private boolean publicRepository;
 
     @Column(name = "main_branch")
     private String mainBranch;
 
     @OneToMany(mappedBy = "repository", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RepositoryLanguage> languages = new ArrayList<>();
+
+    @Builder
+    public Repository(
+            String name,
+            String description,
+            String htmlUrl,
+            boolean publicRepository,
+            String mainBranch,
+            List<RepositoryLanguage> languages
+    ) {
+        this.name = name;
+        this.description = description;
+        this.htmlUrl = htmlUrl;
+        this.publicRepository = publicRepository;
+        this.mainBranch = mainBranch;
+
+        if (languages != null) {
+            languages.forEach(this::addLanguage);
+        }
+    }
+
+    public void addLanguage(RepositoryLanguage language) {
+        this.languages.add(language);
+        language.setRepository(this);
+    }
 }

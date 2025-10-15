@@ -2,7 +2,6 @@ package com.backend.global.config;
 
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
