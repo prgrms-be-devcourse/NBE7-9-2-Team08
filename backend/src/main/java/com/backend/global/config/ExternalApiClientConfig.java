@@ -24,7 +24,7 @@ public class ExternalApiClientConfig {
                 .baseUrl(githubBaseUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PortpolioIQ-App")
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + githubToken)
                 .build();
     };
 
