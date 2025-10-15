@@ -7,8 +7,6 @@
     <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/controller/AnalysisResultController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/controller/AnalysisResultController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/GitRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/GitRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application-dev.yml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application-dev.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db_dev.mv.db" beforeDir="false" afterPath="$PROJECT_DIR$/db_dev.mv.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db_dev.trace.db" beforeDir="false" afterPath="$PROJECT_DIR$/db_dev.trace.db" afterDir="false" />
     </list>
@@ -127,7 +125,7 @@
       <workItem from="1760410922241" duration="1778000" />
       <workItem from="1760412731063" duration="15432000" />
       <workItem from="1760485371963" duration="5989000" />
-      <workItem from="1760491976830" duration="17270000" />
+      <workItem from="1760491976830" duration="18552000" />
     </task>
     <servers />
   </component>

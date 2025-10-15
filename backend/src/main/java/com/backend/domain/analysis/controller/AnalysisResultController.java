@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -21,12 +22,13 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @Transactional
+@RequestMapping("/history")
 public class AnalysisResultController {
 
     private final GitRepositoryService gitRepositoryService;
     private final AnalysisResultService analysisResultService;
 
-    @GetMapping("/member/{memberId}")
+    @GetMapping("/user/{memberId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<HistoryResponseDto>> getMemberHistory(@PathVariable Long memberId){
         List<GitRepository> repositories = gitRepositoryService.findRepositoryByMember(memberId);
