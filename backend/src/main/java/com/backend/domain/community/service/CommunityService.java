@@ -17,10 +17,4 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommunityService {
-    private final RepositoryRepository repositoryRepository;
-
-    // 내 분석 히스토리 : 회원 Id로 조회
-    public Optional<AnalysisResult> getMyRepository (Long memberId){
-        return repositoryRepository.findById(memberId);
-    }
 }

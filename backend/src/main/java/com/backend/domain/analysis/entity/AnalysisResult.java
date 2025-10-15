@@ -46,4 +46,7 @@ public class AnalysisResult extends BaseEntity {
     // CI/CD 점수
     @Column(name = "cicd_score")
     private int ciCdScore = 0;
+
+    // 종합 점수 - 우선 위 개별 분석 점수를 전체 합하는 방식
+    private int totalScore = readmeScore + testScore + commitScore + ciCdScore;
 }

@@ -5,9 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/HistoryResponseDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/AnalysisResultService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommentService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/controller/dummy" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/RepositoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/RepositoryRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/service/AnalysisResultService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/service/dummy" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +130,7 @@
       <workItem from="1760410922241" duration="1778000" />
       <workItem from="1760412731063" duration="15432000" />
       <workItem from="1760485371963" duration="5989000" />
-      <workItem from="1760491976830" duration="2116000" />
+      <workItem from="1760491976830" duration="5111000" />
     </task>
     <servers />
   </component>
