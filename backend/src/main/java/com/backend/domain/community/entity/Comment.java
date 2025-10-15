@@ -1,6 +1,6 @@
 package com.backend.domain.community.entity;
 
-import com.backend.domain.repository.entity.AnalysisResult;
+import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,15 +14,15 @@ public class Comment extends BaseEntity {
     private Long id;
 
     // 분석결과 id
-    @ManyToOne
-    @JoinColumn(name = "analysis_result_id")
+    @ManyToOne(optional= false)
+    @JoinColumn(name = "analysis_result_id",  nullable = false)
     private AnalysisResult analysisResultId;
 
     // 회원 id
-    @Column(name = "member_id")
+    @Column(name = "member_id", nullable = false)
     private Long memberId;
 
     // 댓글 내용
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 }

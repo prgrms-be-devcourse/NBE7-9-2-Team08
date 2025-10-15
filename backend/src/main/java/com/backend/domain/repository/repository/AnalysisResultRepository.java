@@ -1,6 +1,6 @@
 package com.backend.domain.repository.repository;
 
-import com.backend.domain.repository.entity.AnalysisResult;
+import com.backend.domain.analysis.entity.AnalysisResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

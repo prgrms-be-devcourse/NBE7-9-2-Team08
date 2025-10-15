@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="" />
+    <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/Repository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/repository/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/entity/Comment.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/entity/Comment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/AnalysisResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/repository/AnalysisResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/AnalysisResultLanguage.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/RepositoryLanguage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/AnalysisResultLanguageRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/AnalysisResultLanguageRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/AnalysisResultRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/AnalysisResultRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_dev.mv.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_dev.trace.db" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -73,7 +85,7 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
     &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/analysis__history&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/modify__entity&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -118,7 +130,7 @@
       <workItem from="1760404005546" duration="6485000" />
       <workItem from="1760410922241" duration="1778000" />
       <workItem from="1760412731063" duration="15432000" />
-      <workItem from="1760485371963" duration="2074000" />
+      <workItem from="1760485371963" duration="5989000" />
     </task>
     <servers />
   </component>

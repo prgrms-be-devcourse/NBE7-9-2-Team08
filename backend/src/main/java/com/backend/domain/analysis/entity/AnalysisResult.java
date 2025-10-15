@@ -1,6 +1,6 @@
-package com.backend.domain.repository.entity;
+package com.backend.domain.analysis.entity;
 
-import com.backend.domain.user.entity.Member;
+import com.backend.domain.repository.entity.Repository;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,25 +14,21 @@ public class AnalysisResult extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 회원 id
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private Member memberId;
-
-    // 리포지토리 이름
-    @Column(name = "resptoty_name")
-    private String repositoryName;
+    // 리포지토리 id
+    @OneToOne(optional = false)
+    @JoinColumn(name = "repository_id", nullable = false)
+    private Repository repository;
 
     // 개요 varchar(225) 기본 길이
-    @Column
+    @Column(nullable = false)
     private String summery;
 
     // 장점 varchar(225) 기본 길이
-    @Column
+    @Column(nullable = false)
     private String strengths;
 
     // 개선점 varchar(225) 기본 길이
-    @Column
+    @Column(nullable = false)
     private String improvements;
 
     // README 점수
