@@ -1,12 +1,13 @@
 package com.backend.domain.community.entity;
 
 import com.backend.domain.repository.entity.AnalysisResult;
+import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
 @Getter
-public class Comment {
+public class Comment extends BaseEntity {
     // 댓글 id
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

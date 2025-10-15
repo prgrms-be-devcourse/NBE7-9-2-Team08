@@ -1,11 +1,12 @@
 package com.backend.domain.user.entity;
 
+import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
 @Getter
-public class Member {
+public class Member extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
