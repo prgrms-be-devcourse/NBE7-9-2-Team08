@@ -13,7 +13,7 @@ public class RepositoryLanguage {
     // 리포지토리
     @ManyToOne(optional = false)
     @JoinColumn(name = "repository_id", nullable = false)
-    private Repository repository;
+    private GitRepository gitRepository;
 
     // 언어 id
     @ManyToOne(optional = false)

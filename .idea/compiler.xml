@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
@@ -16,6 +17,7 @@
       <module name="backend" options="-parameters" />
       <module name="backend.main" options="-parameters" />
       <module name="backend.test" options="-parameters" />
+      <module name="com.backend" options="-parameters" />
     </option>
   </component>
 </project>

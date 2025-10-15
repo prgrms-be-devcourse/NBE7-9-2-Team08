@@ -1,6 +1,6 @@
 package com.backend.domain.analysis.entity;
 
-import com.backend.domain.repository.entity.Repository;
+import com.backend.domain.repository.entity.GitRepository;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,11 +17,11 @@ public class AnalysisResult extends BaseEntity {
     // 리포지토리 id
     @OneToOne(optional = false)
     @JoinColumn(name = "repository_id", nullable = false)
-    private Repository repository;
+    private GitRepository gitRepository;
 
     // 개요 varchar(225) 기본 길이
     @Column(nullable = false)
-    private String summery;
+    private String summary;
 
     // 장점 varchar(225) 기본 길이
     @Column(nullable = false)
@@ -47,6 +47,9 @@ public class AnalysisResult extends BaseEntity {
     @Column(name = "cicd_score")
     private int ciCdScore = 0;
 
-    // 종합 점수 - 우선 위 개별 분석 점수를 전체 합하는 방식
-    private int totalScore = readmeScore + testScore + commitScore + ciCdScore;
+    // 종합 점수
+    @Transient
+    public int getTotalScore() {
+        return readmeScore + testScore + commitScore + ciCdScore;
+    }
 }

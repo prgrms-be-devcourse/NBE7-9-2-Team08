@@ -7,7 +7,8 @@ import lombok.Getter;
 // open api 전달 내용 포함 된 entity pr 올라가 있음 -> 추후 수정 필요
 @Entity
 @Getter
-public class Repository {
+@Table(name = "git_epository")
+public class GitRepository {
     // 리포지토리 id
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

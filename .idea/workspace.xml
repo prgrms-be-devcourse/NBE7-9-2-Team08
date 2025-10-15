@@ -5,16 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0a83506f-d4ad-4280-a322-32987a8e1b70" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/HistoryResponseDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/AnalysisResultService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/service/GitRepositoryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules/backend.main.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/dummy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/dummy" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/controller/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/controller/AnalysisResultController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/controller/AnalysisResultController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/controller/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/HistoryResponseDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/dto/HistoryResponseDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/entity/AnalysisResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/entity/AnalysisResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/repository/AnalysisResultRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/repository/AnalysisResultRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/AnalysisResultService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/analysis/service/AnalysisResultService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/community/service/CommunityService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/RepositoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/RepositoryRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/service/AnalysisResultService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/service/dummy" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/Repository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/GitRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/RepositoryLanguage.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/entity/RepositoryLanguage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/RepositoryRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/backend/domain/repository/repository/GitRepositoryRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_dev.mv.db" beforeDir="false" afterPath="$PROJECT_DIR$/db_dev.mv.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,6 +98,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.importing",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -130,7 +138,7 @@
       <workItem from="1760410922241" duration="1778000" />
       <workItem from="1760412731063" duration="15432000" />
       <workItem from="1760485371963" duration="5989000" />
-      <workItem from="1760491976830" duration="5111000" />
+      <workItem from="1760491976830" duration="15901000" />
     </task>
     <servers />
   </component>

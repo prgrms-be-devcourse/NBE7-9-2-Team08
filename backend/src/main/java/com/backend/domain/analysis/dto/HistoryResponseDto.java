@@ -1,7 +1,7 @@
 package com.backend.domain.analysis.dto;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
-import com.backend.domain.repository.entity.Repository;
+import com.backend.domain.repository.entity.GitRepository;
 
 import java.time.LocalDateTime;
 
@@ -11,12 +11,12 @@ public record HistoryResponseDto(
     int totalScore,
     boolean publicStatus
 ) {
-   public HistoryResponseDto(Repository repository, AnalysisResult analysisResult){
+   public HistoryResponseDto(GitRepository gitRepository, AnalysisResult analysisResult){
        this(
-               repository.getName(),
+               gitRepository.getName(),
                analysisResult.getCreateDate(),
                analysisResult.getTotalScore(),
-               repository.isPublicStatus()
+               gitRepository.isPublicStatus()
        );
    }
 }
