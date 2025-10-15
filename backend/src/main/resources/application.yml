@@ -35,3 +35,8 @@ logging:
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.rest1: DEBUG
+
+github:
+  api:
+    base-url: https://api.github.com
+    token: ${GITHUB_TOKEN}
