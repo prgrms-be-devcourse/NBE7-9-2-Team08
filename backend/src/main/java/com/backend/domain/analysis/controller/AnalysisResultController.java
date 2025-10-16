@@ -32,18 +32,20 @@ public class AnalysisResultController {
     @Transactional(readOnly = true)
     public ResponseEntity<List<HistoryResponseDto>> getMemberHistory(@PathVariable Long memberId){
         List<GitRepository> repositories = gitRepositoryService.findRepositoryByMember(memberId);
-
         List<HistoryResponseDto> historyList = new ArrayList<>();
 
         for (GitRepository repo : repositories) {
             Optional<AnalysisResult> optionalAnalysis = analysisResultService.findAnalysisResultByRepositoryId(repo.getId());
 
-            if (optionalAnalysis.isPresent()) {
+            if (optionalAnalysis.isPresent()) { // 존재하는지 확인
                 AnalysisResult ar = optionalAnalysis.get();
                 HistoryResponseDto dto = new HistoryResponseDto(repo, ar);
                 historyList.add(dto);
             }
         }
+
+        // 최신순 정렬
+        historyList.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
         return ResponseEntity.ok(historyList);
     }
