@@ -1,55 +1,38 @@
 package com.backend.domain.analysis.entity;
 
-import com.backend.domain.repository.entity.GitRepository;
-import com.backend.global.entity.BaseEntity;
+import com.backend.domain.repository.entity.Repositories;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 
 @Entity
+@Table (name = "analysis_result")
 @Getter
-public class AnalysisResult extends BaseEntity {
-    // 분석결과 id
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class AnalysisResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 리포지토리 id
-    @OneToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "repository_id", nullable = false)
-    private GitRepository gitRepository;
+    private Repositories repositories;
 
-    // 개요 varchar(225) 기본 길이
     @Column(nullable = false)
     private String summary;
 
-    // 장점 varchar(225) 기본 길이
     @Column(nullable = false)
     private String strengths;
 
-    // 개선점 varchar(225) 기본 길이
     @Column(nullable = false)
     private String improvements;
 
-    // README 점수
-    @Column(name = "readme_score")
-    private int readmeScore = 0;
+    @Column(nullable = false, name = "createData")
+    private LocalDateTime createDate;
 
-    // TEST 점수
-    @Column(name = "test_score")
-    private int testScore = 0;
-
-    // COMMIT 점수
-    @Column(name = "commit_score")
-    private int commitScore = 0;
-
-    // CI/CD 점수
-    @Column(name = "cicd_score")
-    private int ciCdScore = 0;
-
-    // 종합 점수
-    @Transient
-    public int getTotalScore() {
-        return readmeScore + testScore + commitScore + ciCdScore;
-    }
+    @OneToOne(mappedBy = "analysisResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Score score;
 }
