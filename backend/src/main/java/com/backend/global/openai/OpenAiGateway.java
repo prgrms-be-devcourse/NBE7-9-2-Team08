@@ -42,7 +42,7 @@ public class OpenAiGateway implements AiGateway {
         );
 
         var params = ResponseCreateParams.builder()
-                .model(ChatModel.GPT_4_1)
+                .model(ChatModel.GPT_5_NANO)
                 .input(input)
                 .build();
 
