@@ -6,7 +6,8 @@ import lombok.Getter;
 
 @Entity
 @Getter
-public class Member extends BaseEntity {
+@Table(name = "Member")
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

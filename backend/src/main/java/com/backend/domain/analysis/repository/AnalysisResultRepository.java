@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface AnalysisResultRepository extends JpaRepository <AnalysisResult, Long>{
-    Optional<AnalysisResult> findByGitRepository_Id(Long repositoryId);
+    Optional<AnalysisResult> findByRepositories_Id(Long repositoryId);
 }

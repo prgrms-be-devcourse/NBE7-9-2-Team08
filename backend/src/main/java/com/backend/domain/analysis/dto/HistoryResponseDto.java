@@ -1,8 +1,9 @@
 package com.backend.domain.analysis.dto;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
-import com.backend.domain.repository.entity.GitRepository;
-import com.backend.domain.repository.entity.Language;
+import com.backend.domain.analysis.entity.Score;
+import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.repository.entity.RepositoryLanguage;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,13 +15,13 @@ public record HistoryResponseDto(
     int totalScore,
     boolean publicStatus
 ) {
-   public HistoryResponseDto(GitRepository gitRepository, AnalysisResult analysisResult, List<Language> langs){
+   public HistoryResponseDto(Repositories repositories, AnalysisResult analysisResult, Score score, List<String> languages){
        this(
-               gitRepository.getName(),
+               repositories.getName(),
                analysisResult.getCreateDate(),
-               langs.stream().map(Language::getLanguage).toList(),
-               analysisResult.getTotalScore(),
-               gitRepository.isPublicStatus()
+               languages,
+               score.getTotalScore(),
+               repositories.isPublicRepository()
        );
    }
 }
