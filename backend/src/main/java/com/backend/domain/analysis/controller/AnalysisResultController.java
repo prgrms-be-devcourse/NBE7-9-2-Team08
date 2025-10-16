@@ -4,6 +4,7 @@ import com.backend.domain.analysis.dto.HistoryResponseDto;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.service.AnalysisResultService;
 import com.backend.domain.repository.entity.GitRepository;
+import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.service.GitRepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,8 @@ public class AnalysisResultController {
 
             if (optionalAnalysis.isPresent()) { // 존재하는지 확인
                 AnalysisResult ar = optionalAnalysis.get();
-                HistoryResponseDto dto = new HistoryResponseDto(repo, ar);
+                List<Language> languages = gitRepositoryService.findLanguagesByRepisotryId(repo.getId());
+                HistoryResponseDto dto = new HistoryResponseDto(repo, ar, languages);
                 historyList.add(dto);
             }
         }
