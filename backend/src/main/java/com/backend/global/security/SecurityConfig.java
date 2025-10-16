@@ -30,7 +30,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/api/analysis/**",
-                                "/api/repositories/**"
+                                "/api/repositories/**",
+                                "/api/ai/complete/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
