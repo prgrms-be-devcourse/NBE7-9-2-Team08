@@ -6,7 +6,8 @@ import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.fetcher.FetcherRepository;
-import com.backend.domain.repository.service.mapper.MapperRepository;
+import com.backend.domain.repository.service.mapper.MapperRepositories;
+import com.backend.domain.repository.service.mapper.MapperRepositoryData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,14 +21,15 @@ import java.util.List;
 public class RepositoryService {
 
     private final FetcherRepository fetcherRepository;
-    private final MapperRepository mapperRepository;
+    private final MapperRepositories mapperRepositories;
+    private final MapperRepositoryData mapperRepositoryData;
     private final RepositoryJpaRepository repositoryJpaRepository;
 
     @Transactional
     public RepositoryData fetchAndSaveRepository(String owner, String repo) {
         RepoResponse response = fetcherRepository.fetchRepositoryInfo(owner, repo);
 
-        Repositories entity = mapperRepository.toEntity(response);
+        Repositories entity = mapperRepositories.toEntity(response);
         Repositories repositories = repositoryJpaRepository
                 .findByHtmlUrl(entity.getHtmlUrl())
                 .map(existing -> {
@@ -36,7 +38,7 @@ public class RepositoryService {
                 })
                 .orElseGet(() -> repositoryJpaRepository.save(entity));
 
-        RepositoryData data = mapperRepository.toRepositoryData(response);
+        RepositoryData data = mapperRepositoryData.toRepositoryData(response);
         log.info("RepositoryData 결과: {}", data);
 
         return data;
