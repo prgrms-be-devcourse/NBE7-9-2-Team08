@@ -6,8 +6,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -15,10 +13,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // H2 콘솔은 CSRF 예외로 설정
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**")
-                )
+                .csrf(csrf -> csrf.disable())
+
                 // H2 콘솔은 frameOptions 해제 필요 (iframe으로 동작)
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.disable())
@@ -31,9 +27,14 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/h2-console/**" // H2 콘솔 허용
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/analysis/**",
+                                "/api/repositories/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(withDefaults()); // 기본 로그인 폼 활성화
+                .formLogin(login -> login.disable())
+                .httpBasic(basic -> basic.disable());
 
         return http.build();
     }

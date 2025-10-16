@@ -1,4 +1,4 @@
 package com.backend.domain.repository.service.mapper;
 
-public class MergeReadme {
+public class MapperIssue {
 }

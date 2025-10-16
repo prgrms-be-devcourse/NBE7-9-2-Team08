@@ -16,19 +16,19 @@ public class RepositoryLanguage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "repository_id", nullable = false)
-    private Repository repository;
+    private Repositories repositories;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Language language;
 
-    public void setRepository(Repository repository) {
-        this.repository = repository;
+    public void setRepositories(Repositories repositories) {
+        this.repositories = repositories;
     }
 
-    private RepositoryLanguage(Long id, Repository repository, Language language) {
+    private RepositoryLanguage(Long id, Repositories repositories, Language language) {
         this.id = id;
-        this.repository = repository;
+        this.repositories = repositories;
         this.language = language;
     }
 }

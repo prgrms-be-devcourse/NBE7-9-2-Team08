@@ -14,7 +14,7 @@ import java.util.List;
 @Table(name = "repositories")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Repository extends BaseEntity {
+public class Repositories extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,11 +38,11 @@ public class Repository extends BaseEntity {
     @Column(name = "main_branch")
     private String mainBranch;
 
-    @OneToMany(mappedBy = "repository", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "repositories", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RepositoryLanguage> languages = new ArrayList<>();
 
     @Builder
-    public Repository(
+    public Repositories(
             String name,
             String description,
             String htmlUrl,
@@ -63,6 +63,13 @@ public class Repository extends BaseEntity {
 
     public void addLanguage(RepositoryLanguage language) {
         this.languages.add(language);
-        language.setRepository(this);
+        language.setRepositories(this);
+    }
+
+    public void updateFrom(Repositories other) {
+        this.name = other.name;
+        this.description = other.description;
+        this.mainBranch = other.mainBranch;
+        this.publicRepository = other.publicRepository;
     }
 }

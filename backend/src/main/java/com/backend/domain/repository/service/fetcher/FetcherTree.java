@@ -1,4 +1,4 @@
 package com.backend.domain.repository.service.fetcher;
 
-public class TreeFetcher {
+public class FetcherTree {
 }

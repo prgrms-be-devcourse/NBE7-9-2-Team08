@@ -14,7 +14,7 @@ public class ExternalApiClientConfig {
     @Value("${github.api.base-url}")
     private String githubBaseUrl;
 
-    @Value("${github.api.token")
+    @Value("${github.api.token}")
     private String githubToken;
 
     @Bean

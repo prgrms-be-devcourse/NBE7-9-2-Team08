@@ -38,5 +38,5 @@ logging:
 
 github:
   api:
-    base-url: https://api.github.com
+    base-url: https://api.github.com/
     token: ${GITHUB_TOKEN}
