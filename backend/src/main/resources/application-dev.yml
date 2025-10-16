@@ -9,8 +9,8 @@ spring:
   mail:
     host: smtp.gmail.com         # ✅ Gmail SMTP 서버 주소 (고정)
     port: 587                    # ✅ TLS/STARTTLS를 위한 포트 (고정)
-    username: dlaqudtn107@gmail.com    # 👈 이메일 인증 코드를 보낼 발신자 Gmail 주소
-    password: kybpyshvnghaycpo # 👈 16자리 앱 비밀번호를 여기에 입력
+    username: ${MAIL_ID}    # 👈 이메일 인증 코드를 보낼 발신자 Gmail 주소
+    password: ${MAIL_PASSWORD} # 👈 16자리 앱 비밀번호를 여기에 입력
     properties:
       mail:
         smtp:

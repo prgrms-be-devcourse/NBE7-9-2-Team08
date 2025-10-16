@@ -163,10 +163,10 @@ public class UserController {
         return ApiResponse.success(new RestoreResponse(new UserDto(user)));
     }
 
-
-    /**
+/*
+    *//**
      * 로그인
-     */
+     *//*
     record LoginRequest(
         @NotBlank(message = "이메일은 필수 입력값 입니다.")
         @Email(message = "이메일 형식이 아닙니다.")
@@ -184,7 +184,7 @@ public class UserController {
 
     }
 
-  /*  @PostMapping("/api/user/login")
+    @PostMapping("/api/user/login")
     public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest loginRequest
     ){
