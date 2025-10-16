@@ -19,17 +19,23 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.disable())
                 )
+                // H2 콘솔은 CSRF 예외로 설정
+                .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/api/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/h2-console/**" // H2 콘솔 허용
+                                "/h2-console/**", // H2 콘솔 허용
+                                "/api/ai/complete/"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/analysis/**",
-                                "/api/repositories/**"
+                                "/api/repositories/**",
+                                "/api/ai/complete/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
