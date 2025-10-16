@@ -1,9 +1,7 @@
 spring:
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+  config:
+    activate:
+      on-profile: dev
 
-  jpa:
-    hibernate:
-      ddl-auto: update
+# dev에서만 쓰는 추가 설정이 있으면 여기에
+# ex) logging.level.root: INFO
