@@ -71,6 +71,11 @@ public class RepositoryData {
         private String state;
         private LocalDateTime createdAt;
         private LocalDateTime closedAt;
+
+        @Override
+        public String toString() {
+            return "(title=" + title + ", state=" + state + ", createdAt=" + createdAt + ", closedAt=" + closedAt + ")";
+        }
     }
 
     @Data
@@ -79,5 +84,9 @@ public class RepositoryData {
         private String state;
         private LocalDateTime createdAt;
         private LocalDateTime mergedAt;
+
+        @Override
+        public String toString() {
+            return "(title=" + title + ", state=" + state + ", createdAt=" + createdAt + ", mergedAt=" + mergedAt + ")";        }
     }
 }

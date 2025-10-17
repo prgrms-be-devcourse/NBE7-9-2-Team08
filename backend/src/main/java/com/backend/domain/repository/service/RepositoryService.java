@@ -1,9 +1,7 @@
 package com.backend.domain.repository.service;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
-import com.backend.domain.repository.dto.response.github.CommitResponse;
-import com.backend.domain.repository.dto.response.github.RepoResponse;
-import com.backend.domain.repository.dto.response.github.TreeResponse;
+import com.backend.domain.repository.dto.response.github.*;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
@@ -14,7 +12,6 @@ import com.backend.domain.user.repository.UserRepository;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +22,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RepositoryService {
@@ -41,6 +37,8 @@ public class RepositoryService {
     private final SecurityInfoMapper securityInfoMapper;
     private final TestInfoMapper testInfoMapper;
     private final CicdInfoMapper cicdInfoMapper;
+    private final IssueInfoMapper issueInfoMapper;
+    private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
 
     @Transactional
@@ -49,12 +47,8 @@ public class RepositoryService {
             return fetchCompleteRepositoryData(owner, repo);
         } catch (BusinessException e) {
             String errorCode = (e.getErrorCode() != null) ? e.getErrorCode().getCode() : "UNKNOWN";
-            log.error("Repository analysis failed for {}/{}: {} - {}",
-                    owner, repo, errorCode, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Unexpected error during repository analysis for {}/{}: {}",
-                    owner, repo, e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
     }
@@ -81,20 +75,24 @@ public class RepositoryService {
         TreeResponse securityInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
         securityInfoMapper.mapSecurityInfo(data, securityInfo);
 
-        // TODO: 테스트 데이터 수집 및 매핑
+        // 5. 테스트 데이터 수집 및 매핑
         TreeResponse testInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
         testInfoMapper.mapTestInfo(data, testInfo);
 
-        // TODO: CI/CD 데이터 수집 및 매핑
+        // 6. CI/CD 데이터 수집 및 매핑
         TreeResponse cicdInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
         cicdInfoMapper.mapCicdInfo(data, cicdInfo);
 
-        // TODO: 커뮤니티 활성도 데이터 수집 및 매핑
+        // 7. 커뮤니티 활성도 데이터 수집 및 매핑
+        List<IssueResponse> issueInfo = gitHubDataFetcher.fetchIssueInfo(owner, repo);
+        issueInfoMapper.mapIssueInfo(data, issueInfo);
+
+        List<PullRequestResponse> pullRequestInfo = gitHubDataFetcher.fetchPullRequestInfo(owner, repo);
+        pullRequestInfoMapper.mapPullRequestInfo(data, pullRequestInfo);
 
         // Entity 저장 로직
         saveRepositoryEntity(repoInfo);
 
-        log.info("✅ RepositoryData: {}", data);
         return data;
     }
 
@@ -114,8 +112,6 @@ public class RepositoryService {
                     Repositories newEntity = repositoriesMapper.toEntity(repoInfo, defaultUser);
                     return repositoryJpaRepository.save(newEntity);
                 });
-
-        log.info("✅ Repositories: {}", entity);
     }
 
     // Repository에서 member로 리포지토리 찾기
