@@ -44,6 +44,7 @@ public class Repositories extends BaseEntity {
 
     @Builder
     public Repositories(
+            User user,
             String name,
             String description,
             String htmlUrl,
@@ -51,6 +52,7 @@ public class Repositories extends BaseEntity {
             String mainBranch,
             List<RepositoryLanguage> languages
     ) {
+        this.user = user;
         this.name = name;
         this.description = description;
         this.htmlUrl = htmlUrl;
@@ -71,6 +73,9 @@ public class Repositories extends BaseEntity {
         this.name = other.name;
         this.description = other.description;
         this.mainBranch = other.mainBranch;
+    }
+
+    public void updatePublicFrom(Repositories other) {
         this.publicRepository = other.publicRepository;
     }
 }

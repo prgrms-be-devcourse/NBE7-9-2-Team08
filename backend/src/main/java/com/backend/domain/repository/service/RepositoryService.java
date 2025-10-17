@@ -9,6 +9,8 @@ import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
 import com.backend.domain.repository.service.mapper.ReadmeInfoMapper;
 import com.backend.domain.repository.service.mapper.RepositoriesMapper;
 import com.backend.domain.repository.service.mapper.RepositoryInfoMapper;
+import com.backend.domain.user.entity.User;
+import com.backend.domain.user.repository.UserRepository;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RepositoryService {
+
+    // 임시
+    private final UserRepository userRepository;
 
     private final GitHubDataFetcher gitHubDataFetcher;
     private final RepositoriesMapper repositoriesMapper;
@@ -79,14 +84,21 @@ public class RepositoryService {
     }
 
     private void saveRepositoryEntity(RepoResponse repoInfo) {
-        Repositories entity = repositoriesMapper.toEntity(repoInfo);
+        User defaultUser = userRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
+
+        Repositories entity = repositoriesMapper.toEntity(repoInfo, defaultUser);
         repositoryJpaRepository
                 .findByHtmlUrl(entity.getHtmlUrl())
                 .map(existing -> {
-                    existing.updateFrom(entity);
+                    existing.updateFrom(repositoriesMapper.toEntity(repoInfo, defaultUser));
                     return existing;
                 })
-                .orElseGet(() -> repositoryJpaRepository.save(entity));
+                .orElseGet(() -> {
+                    Repositories newEntity = repositoriesMapper.toEntity(repoInfo, defaultUser);
+                    return repositoryJpaRepository.save(newEntity);
+                });
 
         log.info("✅ Repositories: {}", entity);
     }
