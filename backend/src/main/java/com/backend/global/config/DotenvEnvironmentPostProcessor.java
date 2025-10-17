@@ -1,3 +1,4 @@
+// src/main/java/com/backend/global/config/DotenvEnvironmentPostProcessor.java
 package com.backend.global.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
@@ -11,45 +12,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
-
     @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        // 루트 .env 로드 (없으면 무시)
-        Dotenv dotenv = Dotenv.configure()
-                .ignoreIfMissing()
-                .filename(".env")
-                .systemProperties() // System.setProperty에도 주입 → OpenAI fromEnv()도 읽음
-                .load();
+    public void postProcessEnvironment(ConfigurableEnvironment env, SpringApplication app) {
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().filename(".env").load();
 
-        Map<String, Object> map = new HashMap<>();
-        putIfPresent(dotenv, map, "DB_URL");
-        putIfPresent(dotenv, map, "DB_USERNAME");
-        putIfPresent(dotenv, map, "DB_PASSWORD");
-        putIfPresent(dotenv, map, "OPENAI_API_KEY");
-
-        // spring.datasource.* 기본 매핑(이미 yml에 있으면 yml이 이깁니다)
-        if (!environment.containsProperty("spring.datasource.url") && dotenv.get("DB_URL") != null)
-            map.put("spring.datasource.url", dotenv.get("DB_URL"));
-        if (!environment.containsProperty("spring.datasource.username") && dotenv.get("DB_USERNAME") != null)
-            map.put("spring.datasource.username", dotenv.get("DB_USERNAME"));
-        if (!environment.containsProperty("spring.datasource.password") && dotenv.get("DB_PASSWORD") != null)
-            map.put("spring.datasource.password", dotenv.get("DB_PASSWORD"));
-        if (!environment.containsProperty("spring.datasource.driver-class-name"))
-            map.put("spring.datasource.driver-class-name", "org.h2.Driver");
+        Map<String,Object> map = new HashMap<>();
+        // 원본 env 노출
+        put(dotenv, map, "OPENAI_API_KEY");
+        // yml에서 쓸 별칭 프로퍼티도 같이 제공
+        if (dotenv.get("OPENAI_API_KEY") != null) {
+            map.put("openai.api.key", dotenv.get("OPENAI_API_KEY"));
+        }
+        // 이미 있는 다른 DB/GitHub 등도 여기서 같이 올려도 됨
 
         if (!map.isEmpty()) {
-            // 가장 높은 우선순위로 추가(=다른 소스보다 먼저 조회)
-            environment.getPropertySources().addFirst(new MapPropertySource("dotenv", map));
+            env.getPropertySources().addFirst(new MapPropertySource("dotenv", map));
         }
     }
-
-    private static void putIfPresent(Dotenv dotenv, Map<String, Object> map, String key) {
-        String v = dotenv.get(key);
-        if (v != null) map.put(key, v);
-    }
-
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+    private static void put(Dotenv d, Map<String,Object> m, String k) { if (d.get(k) != null) m.put(k, d.get(k)); }
+    @Override public int getOrder() { return Ordered.HIGHEST_PRECEDENCE; }
 }

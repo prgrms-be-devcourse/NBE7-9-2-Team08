@@ -1,7 +1,7 @@
 package com.backend.domain.evaluation.service;
 
 import com.backend.domain.evaluation.dto.AiDto;
-import com.backend.domain.evaluation.port.outbound.AiGateway;
+import com.backend.domain.evaluation.service.AiGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
