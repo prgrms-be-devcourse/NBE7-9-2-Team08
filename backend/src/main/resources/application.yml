@@ -40,3 +40,7 @@ github:
   api:
     base-url: https://api.github.com/
     token: ${GITHUB_TOKEN}
+
+jwt:
+  secret: ${SECRET_KEY}
+  access-token-expiration-in-milliseconds: 600000
