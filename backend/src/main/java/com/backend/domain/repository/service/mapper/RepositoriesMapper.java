@@ -5,7 +5,7 @@ import com.backend.domain.repository.entity.Repositories;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MapperRepositories {
+public class RepositoriesMapper {
 
     public Repositories toEntity(RepoResponse response) {
         return Repositories.builder()

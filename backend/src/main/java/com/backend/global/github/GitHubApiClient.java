@@ -23,6 +23,7 @@ public class GitHubApiClient {
     private static final int RATE_LIMIT_WARNING_THRESHOLD = 100;
     private static final int RATE_LIMIT_CRITICAL_THRESHOLD = 10;
 
+    // GitHub API GET 요청 - 기본 JSON 응답
     public <T> T get(String uri, Class<T> responseType, Object... uriVariables) {
         return executeRequest(() ->
                 githubWebClient.get()
@@ -36,12 +37,58 @@ public class GitHubApiClient {
         );
     }
 
+    // GitHub API GET 요청 - 커스텀 Accept 헤더
+    public <T> T getWithAcceptHeader(String uri, Class<T> responseType, String acceptHeader, Object... uriVariables) {
+        return executeRequest(() ->
+                githubWebClient.get()
+                        .uri(uri, uriVariables)
+                        .header("Accept", acceptHeader)
+                        .retrieve()
+                        .toEntity(responseType)
+                        .map(response -> {
+                            checkRateLimit(response.getHeaders());
+                            return response.getBody();
+                        })
+        );
+    }
+
+    // GitHub API GET 요청 - Base64 디코딩 (Readme)
+    public String getRaw(String uri, Object... uriVariables) {
+        return executeRequest(() ->
+                githubWebClient.get()
+                        .uri(uri, uriVariables)
+                        .header("Accept", "application/vnd.github.raw")
+                        .retrieve()
+                        .toEntity(String.class)
+                        .map(response -> {
+                            checkRateLimit(response.getHeaders());
+                            return response.getBody();
+                        })
+        );
+    }
+
+    // GitHub API List 응답 처리 - 배열 형태 데이터
+    public <T> List<T> getList(String uri, Class<T> elementType, Object... uriVariables) {
+        return executeRequest(() ->
+                githubWebClient.get()
+                        .uri(uri, uriVariables)
+                        .retrieve()
+                        .toEntityList(elementType)
+                        .map(response -> {
+                            checkRateLimit(response.getHeaders());
+                            return response.getBody();
+                        })
+        );
+    }
+
+    // GitHub API 요청 실행 및 공통 예외 처리
     private <T> T executeRequest(Supplier<Mono<T>> requestSupplier) {
         return requestSupplier.get()
                 .onErrorResume(WebClientResponseException.class, this::handleWebClientError)
                 .block();
     }
 
+    // WebClient 응답 예외를 비즈니스 예외로 변환
     private <T> Mono<T> handleWebClientError(WebClientResponseException ex) {
         log.error("GitHub API 호출 실패: {}", ex.getMessage());
 
@@ -54,6 +101,7 @@ public class GitHubApiClient {
         return Mono.error(new BusinessException(ErrorCode.GITHUB_API_FAILED));
     }
 
+    // GitHub API Rate Limit 상태 확인 및 로깅
     private void checkRateLimit(HttpHeaders headers) {
         try {
             String remainingStr = getHeaderValue(headers, "X-RateLimit-Remaining");
@@ -87,6 +135,7 @@ public class GitHubApiClient {
         }
     }
 
+    // HTTP 헤더에서 특정 값 추출
     private String getHeaderValue(HttpHeaders headers, String headerName) {
         List<String> values = headers.get(headerName);
         return (values != null && !values.isEmpty()) ? values.get(0) : null;

@@ -8,10 +8,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Component
-public class MapperRepositoryData {
+public class RepositoryInfoMapper {
 
-    public RepositoryData toRepositoryData(RepoResponse response) {
-        RepositoryData data = new RepositoryData();
+    public void mapBasicInfo(RepositoryData data, RepoResponse response) {
         data.setRepositoryName(response.fullName());
         data.setRepositoryUrl(response.htmlUrl());
         data.setDescription(response.description());
@@ -22,8 +21,5 @@ public class MapperRepositoryData {
                 .atZoneSameInstant(kst)
                 .toLocalDateTime();
         data.setRepositoryCreatedAt(createdAtKST);
-
-        return data;
     }
-
 }
