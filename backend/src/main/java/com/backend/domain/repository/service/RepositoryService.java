@@ -77,12 +77,13 @@ public class RepositoryService {
         String readmeInfo = gitHubDataFetcher.fetchReadmeContent(owner, repo);
         readmeInfoMapper.mapReadmeInfo(data, readmeInfo);
 
-        // TODO: 보안 관리 데이터 수집 및 매핑
-        TreeResponse treeInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
-        securityInfoMapper.mapSecurityInfo(data, treeInfo);
+        // 4. 보안 관리 데이터 수집 및 매핑
+        TreeResponse securityInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        securityInfoMapper.mapSecurityInfo(data, securityInfo);
 
         // TODO: 테스트 데이터 수집 및 매핑
-
+        TreeResponse testInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        testInfoMapper.mapTestInfo(data, testInfo);
 
         // TODO: CI/CD 데이터 수집 및 매핑
 
