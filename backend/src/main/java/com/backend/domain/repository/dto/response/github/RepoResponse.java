@@ -7,7 +7,7 @@ import java.time.OffsetDateTime;
 public record RepoResponse(
         String name,
         @JsonProperty("full_name") String fullName,
-        boolean _private,
+        @JsonProperty("private") boolean _private,
         String description,
         @JsonProperty("html_url") String htmlUrl,
         String language,
