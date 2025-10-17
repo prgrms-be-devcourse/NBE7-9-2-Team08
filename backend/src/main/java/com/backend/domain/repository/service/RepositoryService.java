@@ -3,14 +3,12 @@ package com.backend.domain.repository.service;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.github.CommitResponse;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
+import com.backend.domain.repository.dto.response.github.TreeResponse;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
-import com.backend.domain.repository.service.mapper.CommitInfoMapper;
-import com.backend.domain.repository.service.mapper.ReadmeInfoMapper;
-import com.backend.domain.repository.service.mapper.RepositoriesMapper;
-import com.backend.domain.repository.service.mapper.RepositoryInfoMapper;
+import com.backend.domain.repository.service.mapper.*;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
 import com.backend.global.exception.BusinessException;
@@ -40,6 +38,9 @@ public class RepositoryService {
     private final RepositoryInfoMapper repositoryInfoMapper;
     private final CommitInfoMapper commitInfoMapper;
     private final ReadmeInfoMapper readmeInfoMapper;
+    private final SecurityInfoMapper securityInfoMapper;
+    private final TestInfoMapper testInfoMapper;
+    private final CicdInfoMapper cicdInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
 
     @Transactional
@@ -77,7 +78,8 @@ public class RepositoryService {
         readmeInfoMapper.mapReadmeInfo(data, readmeInfo);
 
         // TODO: 보안 관리 데이터 수집 및 매핑
-
+        TreeResponse treeInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        securityInfoMapper.mapSecurityInfo(data, treeInfo);
 
         // TODO: 테스트 데이터 수집 및 매핑
 

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 @Component
 public class ReadmeInfoMapper {
     // ResponseData 문서화 품질 [README 관련]
-    public void mapReadmeInfo(RepositoryData data, String readmeContent) {  // String으로 변경
+    public void mapReadmeInfo(RepositoryData data, String readmeContent) {
         if (readmeContent == null || readmeContent.trim().isEmpty()) {
             setEmptyReadmeData(data);
             return;
