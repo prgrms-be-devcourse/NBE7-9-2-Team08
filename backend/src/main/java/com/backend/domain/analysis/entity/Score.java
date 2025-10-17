@@ -34,4 +34,10 @@ public class Score {
 
     @Column(nullable = false)
     private int cicdScore;
+
+    // 종합 점수
+    @Transient
+    public int getTotalScore() {
+        return readmeScore + testScore + commitScore + cicdScore;
+    }
 }

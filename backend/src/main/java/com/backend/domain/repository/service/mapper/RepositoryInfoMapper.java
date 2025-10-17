@@ -2,27 +2,15 @@ package com.backend.domain.repository.service.mapper;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
-import com.backend.domain.repository.entity.Repositories;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Component
-public class MapperRepository {
+public class RepositoryInfoMapper {
 
-    public Repositories toEntity(RepoResponse response) {
-        return Repositories.builder()
-                .name(response.name())
-                .description(response.description())
-                .htmlUrl(response.htmlUrl())
-                .publicRepository(!response._private())
-                .mainBranch(response.defaultBranch())
-                .build();
-    }
-
-    public RepositoryData toRepositoryData(RepoResponse response) {
-        RepositoryData data = new RepositoryData();
+    public void mapBasicInfo(RepositoryData data, RepoResponse response) {
         data.setRepositoryName(response.fullName());
         data.setRepositoryUrl(response.htmlUrl());
         data.setDescription(response.description());
@@ -33,7 +21,5 @@ public class MapperRepository {
                 .atZoneSameInstant(kst)
                 .toLocalDateTime();
         data.setRepositoryCreatedAt(createdAtKST);
-
-        return data;
     }
 }

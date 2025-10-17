@@ -1,5 +1,7 @@
 package com.backend.domain.repository.entity;
 
+import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -19,9 +21,12 @@ public class Repositories extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "user_id", nullable = false)
-//    private Users users;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "repositories", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnalysisResult> analysisResults = new ArrayList<>();
 
     @Column(nullable = false)
     private String name;
@@ -43,6 +48,7 @@ public class Repositories extends BaseEntity {
 
     @Builder
     public Repositories(
+            User user,
             String name,
             String description,
             String htmlUrl,
@@ -50,6 +56,7 @@ public class Repositories extends BaseEntity {
             String mainBranch,
             List<RepositoryLanguage> languages
     ) {
+        this.user = user;
         this.name = name;
         this.description = description;
         this.htmlUrl = htmlUrl;
@@ -70,6 +77,9 @@ public class Repositories extends BaseEntity {
         this.name = other.name;
         this.description = other.description;
         this.mainBranch = other.mainBranch;
+    }
+
+    public void updatePublicFrom(Repositories other) {
         this.publicRepository = other.publicRepository;
     }
 }

@@ -1,9 +1,28 @@
 spring:
   datasource:
+    #url: jdbc:mysql://localhost:3306/my_project_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #username: user
+    #password: 1234
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  mail:
+    host: smtp.gmail.com         # ✅ Gmail SMTP 서버 주소 (고정)
+    port: 587                    # ✅ TLS/STARTTLS를 위한 포트 (고정)
+    username: ${MAIL_ID}    # 👈 이메일 인증 코드를 보낼 발신자 Gmail 주소
+    password: ${MAIL_PASSWORD} # 👈 16자리 앱 비밀번호를 여기에 입력
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true         # 보안 통신 활성화 (권장)
+          timeout: 5000          # 타임아웃 설정 (선택 사항)
+  data:
+    redis:
+      host: localhost # Docker로 띄웠으므로 localhost
+      port: 6379      # Docker의 6379 포트와 연결됨
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
