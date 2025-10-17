@@ -86,7 +86,8 @@ public class RepositoryService {
         testInfoMapper.mapTestInfo(data, testInfo);
 
         // TODO: CI/CD 데이터 수집 및 매핑
-
+        TreeResponse cicdInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        cicdInfoMapper.mapCicdInfo(data, cicdInfo);
 
         // TODO: 커뮤니티 활성도 데이터 수집 및 매핑
 

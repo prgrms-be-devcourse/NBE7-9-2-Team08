@@ -44,31 +44,6 @@ public class TestInfoMapper {
         List<String> allPaths = extractAllPaths(response);
         List<String> filePaths = extractFilePaths(response);
 
-        // 🔍 디버깅을 위한 로깅 추가
-        log.debug("=== 테스트 분석 디버깅 ===");
-        log.debug("전체 경로 수: {}", allPaths.size());
-        log.debug("파일 경로 수: {}", filePaths.size());
-
-        // 테스트 디렉터리 체크 로깅
-        List<String> foundTestDirs = TEST_DIRECTORY_PATTERNS.stream()
-                .filter(testDir -> allPaths.stream().anyMatch(path ->
-                        path.startsWith(testDir) || path.equals(testDir)))
-                .collect(Collectors.toList());
-        log.debug("발견된 테스트 디렉터리: {}", foundTestDirs);
-
-        // 테스트 파일 체크 로깅
-        List<String> detectedTestFiles = filePaths.stream()
-                .filter(this::isTestFile)
-                .collect(Collectors.toList());
-        log.debug("감지된 테스트 파일들: {}", detectedTestFiles);
-
-        // 소스 파일 체크 로깅
-        List<String> detectedSourceFiles = filePaths.stream()
-                .filter(this::isSourceFile)
-                .filter(path -> !isTestFile(path))
-                .collect(Collectors.toList());
-        log.debug("감지된 소스 파일 수: {}", detectedSourceFiles.size());
-
         // 1. 테스트 디렉터리 존재 여부
         boolean hasTestDirectory = checkTestDirectoryExists(allPaths);
         data.setHasTestDirectory(hasTestDirectory);

@@ -35,7 +35,6 @@ logging:
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.rest1: DEBUG
-    com.backend.domain.repository.service.mapper.TestInfoMapper: DEBUG
 
 github:
   api:
