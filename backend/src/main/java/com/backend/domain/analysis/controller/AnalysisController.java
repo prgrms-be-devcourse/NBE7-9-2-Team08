@@ -60,7 +60,7 @@ public class AnalysisController {
         return ResponseEntity.ok(historyList);
     }
 
-    @GetMapping("reposotiry/{repositoriesId}")
+    @GetMapping("repository/{repositoriesId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
         Optional<AnalysisResult> optionalResult = analysisService.findByRepositoryId(repoId);
@@ -70,6 +70,7 @@ public class AnalysisController {
            Score score = result.getScore();
            AnalysisResultResponseDto dto = new AnalysisResultResponseDto(result, score);
            resultList.add(dto);
+           System.out.println(resultList.size());
         });
 
         return ResponseEntity.ok(resultList);
