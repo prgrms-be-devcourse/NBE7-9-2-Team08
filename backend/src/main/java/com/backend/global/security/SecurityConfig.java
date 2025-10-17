@@ -25,8 +25,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/h2-console/**", // H2 콘솔 허용
-                                "/api/ai/complete/"
+                                "/h2-console/**" // H2 콘솔 허용
                         ).permitAll()
                         .requestMatchers(
                                 "/api/analysis/**",
