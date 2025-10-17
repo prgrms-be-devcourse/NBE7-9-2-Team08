@@ -7,12 +7,17 @@ import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.fetcher.FetcherRepository;
 import com.backend.domain.repository.service.mapper.MapperRepository;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+
+import static com.backend.global.exception.ErrorCode.GITHUB_REPO_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -53,7 +58,13 @@ public class RepositoryService {
     }
 
     // repostiroy 삭제
-    public void delete(Repositories gitRepository){
-        repositoryJpaRepository.delete(gitRepository);
+    public void delete(Long repositoriesId){
+        Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
+        if(optionalRepository.isPresent()){
+            Repositories targetRepository = optionalRepository.get();
+            repositoryJpaRepository.delete(targetRepository);
+        }else{
+            throw new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
+        }
     }
 }
