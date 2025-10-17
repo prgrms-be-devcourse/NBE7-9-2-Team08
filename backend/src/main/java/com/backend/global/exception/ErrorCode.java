@@ -16,6 +16,7 @@ public enum ErrorCode {
     // ========== analysis 도메인 에러 ==========
     INVALID_GITHUB_URL("A001", HttpStatus.BAD_REQUEST, "올바른 GitHub 저장소 URL이 아닙니다."),
     INVALID_REPOSITORY_PATH("A002", HttpStatus.BAD_REQUEST, "저장소 URL 형식이 잘못되었습니다. 예: https://github.com/{owner}/{repo}"),
+    ANALYSIS_NOT_FOUND("A003", HttpStatus.BAD_REQUEST, "분석 결과를 찾을 수 없습니다."),
 
     // ========== repository 도메인 에러 ==========
     GITHUB_REPO_NOT_FOUND("G001", HttpStatus.BAD_REQUEST, "GitHub 저장소를 찾을 수 없습니다."),
