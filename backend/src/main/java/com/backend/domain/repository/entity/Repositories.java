@@ -1,5 +1,6 @@
 package com.backend.domain.repository.entity;
 
+import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -23,6 +24,9 @@ public class Repositories extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "repositories", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnalysisResult> analysisResults = new ArrayList<>();
 
     @Column(nullable = false)
     private String name;
