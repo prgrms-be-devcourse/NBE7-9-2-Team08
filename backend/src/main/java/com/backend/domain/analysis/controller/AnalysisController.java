@@ -63,15 +63,15 @@ public class AnalysisController {
     @GetMapping("repository/{repositoriesId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
-        Optional<AnalysisResult> optionalResult = analysisService.findByRepositoryId(repoId);
+        List<AnalysisResult> optionalResult = analysisService.getAnalysisResultList(repoId);
         List<AnalysisResultResponseDto> resultList = new ArrayList<>();
 
-        optionalResult.stream().forEach(result -> {
-           Score score = result.getScore();
-           AnalysisResultResponseDto dto = new AnalysisResultResponseDto(result, score);
-           resultList.add(dto);
-           System.out.println(resultList.size());
-        });
+
+        for(AnalysisResult result : optionalResult){
+            Score score = result.getScore();
+            AnalysisResultResponseDto dto = new AnalysisResultResponseDto(result, score);
+            resultList.add(dto);
+        }
 
         return ResponseEntity.ok(resultList);
     }
