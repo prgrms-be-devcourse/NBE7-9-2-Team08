@@ -1,9 +1,12 @@
 package com.backend.domain.repository.service.fetcher;
 
+import com.backend.domain.repository.dto.response.github.CommitResponse;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
 import com.backend.global.github.GitHubApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -15,6 +18,12 @@ public class GitHubDataFetcher {
     }
 
     public String fetchReadmeContent(String owner, String repoName) {
-        return gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);  // 메서드명 수정
+        return gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);
+    }
+
+    public List<CommitResponse> fetchCommitInfo(String owner, String repoName, String since) {
+        return gitHubApiClient.getList(
+                "/repos/{owner}/{repo}/commits?since=" + since + "&per_page=100",
+                CommitResponse.class, owner, repoName);
     }
 }

@@ -57,8 +57,12 @@ public class RepositoryData {
     @Data
     public static class CommitInfo {
         private String message;
-        private String author;
         private LocalDateTime committedDate;
+
+        @Override
+        public String toString() {
+            return "(message=" + message + ", committedDate=" + committedDate + ")";
+        }
     }
 
     @Data

@@ -1,27 +1,31 @@
 package com.backend.domain.repository.service;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
+import com.backend.domain.repository.dto.response.github.CommitResponse;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
+import com.backend.domain.repository.service.mapper.CommitInfoMapper;
 import com.backend.domain.repository.service.mapper.ReadmeInfoMapper;
 import com.backend.domain.repository.service.mapper.RepositoriesMapper;
 import com.backend.domain.repository.service.mapper.RepositoryInfoMapper;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-
-import static com.backend.global.exception.ErrorCode.GITHUB_REPO_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -34,6 +38,7 @@ public class RepositoryService {
     private final GitHubDataFetcher gitHubDataFetcher;
     private final RepositoriesMapper repositoriesMapper;
     private final RepositoryInfoMapper repositoryInfoMapper;
+    private final CommitInfoMapper commitInfoMapper;
     private final ReadmeInfoMapper readmeInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
 
@@ -61,10 +66,13 @@ public class RepositoryService {
         RepoResponse repoInfo = gitHubDataFetcher.fetchRepositoryInfo(owner, repo);
         repositoryInfoMapper.mapBasicInfo(data, repoInfo);
 
-        // TODO: 커밋 데이터 수집 및 매핑
+        // 2. 커밋 데이터 수집 및 매핑
+        ZonedDateTime ninetyDaysAgoUtc = ZonedDateTime.now(ZoneOffset.UTC).minus(90, ChronoUnit.DAYS);
+        String sinceParam = ninetyDaysAgoUtc.format(DateTimeFormatter.ISO_INSTANT);
+        List<CommitResponse> commitInfo = gitHubDataFetcher.fetchCommitInfo(owner, repo, sinceParam);
+        commitInfoMapper.mapCommitInfo(data, commitInfo);
 
-
-        // TODO: README 데이터 수집 및 매핑
+        // 3. README 데이터 수집 및 매핑
         String readmeInfo = gitHubDataFetcher.fetchReadmeContent(owner, repo);
         readmeInfoMapper.mapReadmeInfo(data, readmeInfo);
 
