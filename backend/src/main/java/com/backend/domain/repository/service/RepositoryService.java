@@ -5,20 +5,23 @@ import com.backend.domain.repository.dto.response.github.RepoResponse;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
 import com.backend.domain.repository.service.mapper.ReadmeInfoMapper;
 import com.backend.domain.repository.service.mapper.RepositoriesMapper;
 import com.backend.domain.repository.service.mapper.RepositoryInfoMapper;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+
+import static com.backend.global.exception.ErrorCode.GITHUB_REPO_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -114,7 +117,13 @@ public class RepositoryService {
     }
 
     // repostiroy 삭제
-    public void delete(Repositories gitRepository){
-        repositoryJpaRepository.delete(gitRepository);
+    public void delete(Long repositoriesId){
+        Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
+        if(optionalRepository.isPresent()){
+            Repositories targetRepository = optionalRepository.get();
+            repositoryJpaRepository.delete(targetRepository);
+        }else{
+            throw new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
+        }
     }
 }
