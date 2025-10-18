@@ -24,6 +24,9 @@ public class ExternalApiClientConfig {
                 .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.github+json")
                 .defaultHeader(HttpHeaders.USER_AGENT, "PortpolioIQ-App")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + githubToken)
+                .codecs(configurer -> {
+                    configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024);
+                })
                 .build();
     };
 
