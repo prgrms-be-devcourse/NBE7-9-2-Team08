@@ -3,6 +3,7 @@ package com.backend.domain.repository.service.fetcher;
 import com.backend.domain.repository.dto.response.github.*;
 import com.backend.global.github.GitHubApiClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GitHubDataFetcher {
@@ -32,9 +34,19 @@ public class GitHubDataFetcher {
     }
 
     public TreeResponse fetchRepositoryTreeInfo(String owner, String repoName, String defaultBranch) {
-        return gitHubApiClient.get(
-                "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1", TreeResponse.class, owner, repoName, defaultBranch
+        TreeResponse response = gitHubApiClient.get(
+                "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1",
+                TreeResponse.class, owner, repoName, defaultBranch
         );
+
+        log.info("GitHub Tree API Response - Owner: {}, Repo: {}, Branch: {}, Truncated: {}, Tree Count: {}",
+                owner, repoName, defaultBranch,
+                response.truncated(),
+                response.tree() != null ? response.tree().size() : 0);
+
+        log.info("GitHub Tree API Response 2 - response: {}", response);
+
+        return response;
     }
 
     public List<IssueResponse> fetchIssueInfo(String owner, String repoName) {

@@ -11,33 +11,36 @@ import java.util.stream.Collectors;
 @Component
 public class SecurityInfoMapper {
     // ResponseData 보안 [민감 파일, 빌드 파일 여부]
-
-    // 민감 파일 패턴 정의
-    private static final List<String> SENSITIVE_PATTERNS = List.of(
-            "\\.env$",                    // .env 파일
-            "\\.(pem|key|p12|pfx)$",     // 인증서/키 파일
-            "id_rsa$",                   // SSH 개인키
-            "authorized_keys$",          // SSH 인증키
-            "credentials\\."             // credentials.* 파일
+    private static final List<String> SENSITIVE_FILE_PATTERNS = List.of(
+            ".*\\.env$", ".*\\.(pem|key|p12|pfx|crt|cer)$", ".*/id_rsa$|^id_rsa$", ".*/id_dsa$|^id_dsa$",
+            ".*/authorized_keys$|^authorized_keys$", ".*credentials\\.(json|xml|yml|yaml|properties)$", ".*secret.*\\.(json|xml|yml|yaml|properties)$",
+            ".*\\.(keystore|jks|p12)$", ".*/\\.aws/credentials$", ".*/\\.ssh/.*$", ".*\\.env\\..*$",
+            ".*\\.aws/.*credentials.*", ".*\\.gcp/.*(key|credential).*", ".*service-account.*\\.json$", ".*firebase.*\\.json$",
+            ".*google.*credentials.*\\.json$", ".*config\\.json$", ".*application(-secret|-prod)?\\.ya?ml$", ".*token.*(\\.txt|\\.json|\\.yml|\\.yaml)$",
+            ".*apikey.*(\\.txt|\\.json|\\.env|\\.yml)$", ".*password.*(\\.txt|\\.json|\\.env|\\.yml)$", ".*oauth.*(\\.json|\\.yml|\\.yaml)$",
+            ".*client_secret.*(\\.json|\\.yml|\\.yaml)$", ".*private.*(\\.json|\\.pem|\\.key)$", ".*jwt.*(\\.json|\\.pem|\\.key)$",
+            ".*vault.*", ".*id_ecdsa$", ".*pgpass$", ".*\\.npmrc$", ".*\\.netrc$", ".*\\.bash_history$", ".*\\.zsh_history$",
+            ".*\\.docker/config\\.json$", ".*terraform.*\\.tfstate.*", ".*secrets?\\.json$", ".*\\.p8$", ".*\\.bak$", ".*\\.old$", ".*\\.swp$", ".*\\.DS_Store$"
     );
 
-    // 민감 파일 예외 패턴
-    private static final List<String> SAFE_PATTERNS = List.of(
-            "\\.env\\.(example|template|sample)$",
-            "credentials\\.(example|sample|template)$"
+    private static final List<String> SAFE_FILE_PATTERNS = List.of(
+            ".*\\.env\\.(example|template|sample|dist)$", ".*credentials\\.(example|sample|template|dist)$",
+            ".*secret.*\\.(example|sample|template|dist)$", ".*\\.env\\.(example|sample|template|dist|local|dev|prod|staging)$",
+            ".*example.*credentials.*", ".*dummy.*(json|yaml|yml|env|properties)$",
+            ".*mock.*(json|yaml|yml|env|properties)$", ".*test.*(json|yaml|yml|env|properties)$",
+            ".*\\.example$", ".*\\.sample$", ".*\\.template$", ".*\\.default$", ".*/fixtures/.*", ".*/samples?/.*"
+
     );
 
-    // 빌드 파일 정의
-    private static final List<String> BUILD_FILES = List.of(
-            "pom.xml",
-            "build.gradle",
-            "build.gradle.kts",
-            "package.json",
-            "Cargo.toml",
-            "go.mod",
-            "requirements.txt",
-            "setup.py",
-            "Dockerfile"
+    private static final List<String> BUILD_FILE_NAMES = List.of(
+            "pom.xml", "build.gradle", "build.gradle.kts", "package.json", "Cargo.toml",
+            "go.mod", "requirements.txt", "setup.py", "CMakeLists.txt", "Makefile", "Dockerfile",
+            "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "Gemfile", "Gemfile.lock", "composer.json", "composer.lock",
+            "yarn.lock", "pnpm-lock.yaml", "package-lock.json", "mix.exs", "rebar.config",
+            "build.sbt", "build.xml", "setup.cfg", "pyproject.toml", "environment.yml", "Procfile", "runtime.txt",
+            "Vagrantfile", "Docker-compose.yml", "docker-compose.yml", "Chart.yaml", "values.yaml", "Makefile.am",
+            "Brewfile", "Podfile", "Podfile.lock", "Fastfile", "Taskfile.yml", "taskfile.yml", "Justfile"
+
     );
 
     public void mapSecurityInfo(RepositoryData data, TreeResponse response) {
@@ -84,19 +87,17 @@ public class SecurityInfoMapper {
     }
 
     private boolean isSensitiveFile(String filePath) {
-        String fileName = extractFileName(filePath);
-
-        if (isSafeFile(fileName)) {
+        if (isSafeFile(filePath)) {
             return false;
         }
 
-        return SENSITIVE_PATTERNS.stream()
-                .anyMatch(pattern -> fileName.matches(pattern));
+        return SENSITIVE_FILE_PATTERNS.stream()
+                .anyMatch(filePath::matches);
     }
 
-    private boolean isSafeFile(String fileName) {
-        return SAFE_PATTERNS.stream()
-                .anyMatch(pattern -> fileName.matches(pattern));
+    private boolean isSafeFile(String filePath) {
+        return SAFE_FILE_PATTERNS.stream()
+                .anyMatch(filePath::matches);
     }
 
     private List<String> findBuildFiles(List<String> filePaths) {
@@ -107,7 +108,7 @@ public class SecurityInfoMapper {
 
     private boolean isBuildFile(String filePath) {
         String fileName = extractFileName(filePath);
-        return BUILD_FILES.contains(fileName);
+        return BUILD_FILE_NAMES.contains(fileName);
     }
 
     private String extractFileName(String filePath) {

@@ -11,24 +11,38 @@ import java.util.stream.Collectors;
 @Component
 public class CicdInfoMapper {
     // ResponseData CI/CD 관련 [CI/CD 존재 여부 관련]
+    private static final String GITHUB_WORKFLOWS_PATTERN = "^\\.github/workflows/.*\\.(yml|yaml)$";
+
     private static final List<String> CICD_FILE_PATTERNS = List.of(
-            ".*\\.github/workflows/.*\\.ya?ml$",
-            ".*/Jenkinsfile$",
-            ".*\\.gitlab-ci\\.ya?ml$",
-            ".*\\.circleci/config\\.ya?ml$",
-            ".*\\.travis\\.ya?ml$",
-            ".*/azure-pipelines\\.ya?ml$"
+            "^\\.gitlab-ci\\.(yml|yaml)$", "^\\.travis\\.(yml|yaml)$", "^azure-pipelines\\.(yml|yaml)$",
+            "^circle\\.(yml|yaml)$", "^\\.circleci/config\\.(yml|yaml)$", "^\\.drone\\.(yml|yaml)$",
+            "^\\.bitbucket-pipelines\\.(yml|yaml)$", "^\\.buildkite\\/(pipeline\\.)?(yml|yaml)$", "^\\.teamcity\\.(settings|config)\\.(xml|kts|yaml)$",
+            "^\\.appveyor\\.(yml|yaml)$", "^\\.github/actions/.*\\.(yml|yaml)$", "^\\.buddy/.*\\.(yml|yaml)$", "^\\.codefresh/.*\\.(yml|yaml)$",
+            "^\\.bitrise\\.yml$", "^\\.wercker/.*\\.(yml|yaml)$", "^\\.buildkite/pipeline\\.(yml|yaml)$", "^\\.concourse/.*\\.(yml|yaml)$",
+            "^\\.semaphore/.*\\.(yml|yaml)$", "^\\.harness/.*\\.(yml|yaml)$"
     );
 
+    private static final List<String> JENKINSFILE_PATTERNS = List.of(".*/Jenkinsfile$|^Jenkinsfile$", ".*/Jenkinsfile(\\..*)?$|^Jenkinsfile(\\..*)?$");
+
     private static final List<String> BUILD_FILE_PATTERNS = List.of(
-            ".*/pom\\.xml$",
-            ".*/build\\.gradle(\\.kts)?$",
-            ".*/package\\.json$",
-            ".*/Cargo\\.toml$",
-            ".*/go\\.mod$",
-            ".*/requirements\\.txt$",
-            ".*/setup\\.py$",
-            ".*/Dockerfile$"
+            "^pom\\.xml$|.*/pom\\.xml$",
+            "^build\\.gradle(\\.kts)?$|.*/build\\.gradle(\\.kts)?$", "^package\\.json$|.*/package\\.json$",
+            "^Cargo\\.toml$|.*/Cargo\\.toml$", "^go\\.mod$|.*/go\\.mod$", "^requirements\\.txt$|.*/requirements\\.txt$",
+            "^setup\\.py$|.*/setup\\.py$", "^CMakeLists\\.txt$|.*/CMakeLists\\.txt$", "^Makefile$|.*/Makefile$",
+            "^gradlew(\\.bat)?$|.*/gradlew(\\.bat)?$", "^mvnw(\\.cmd)?$|.*/mvnw(\\.cmd)?$", "^Gemfile(\\.lock)?$|.*/Gemfile(\\.lock)?$",
+            "^composer\\.(json|lock)$|.*/composer\\.(json|lock)$", "^yarn\\.lock$|.*/yarn\\.lock$", "^pnpm-lock\\.yaml$|.*/pnpm-lock\\.yaml$",
+            "^package-lock\\.json$|.*/package-lock\\.json$", "^pyproject\\.toml$|.*/pyproject\\.toml$", "^setup\\.cfg$|.*/setup\\.cfg$",
+            "^environment\\.yml$|.*/environment\\.yml$", "^mix\\.exs$|.*/mix\\.exs$", "^build\\.sbt$|.*/build\\.sbt$",
+            "^Vagrantfile$|.*/Vagrantfile$", "^Chart\\.yaml$|.*/Chart\\.yaml$", "^values\\.yaml$|.*/values\\.yaml$",
+            "^Taskfile\\.ya?ml$|.*/Taskfile\\.ya?ml$", "^Justfile$|.*/Justfile$", "^Brewfile$|.*/Brewfile$",
+            "^Podfile(\\.lock)?$|.*/Podfile(\\.lock)?$", "^Fastfile$|.*/Fastfile$", "^Makefile\\.am$|.*/Makefile\\.am$", "^CMakeCache\\.txt$|.*/CMakeCache\\.txt$"
+    );
+
+    private static final List<String> DOCKERFILE_PATTERNS = List.of(
+            "^Dockerfile.*$|.*/Dockerfile.*$",
+            "^Dockerfile.*$|.*/Dockerfile.*$|.*\\.dockerfile$",
+            "^docker-compose\\.ya?ml$|.*/docker-compose\\.ya?ml$",
+            "^compose\\.ya?ml$|.*/compose\\.ya?ml$"
     );
 
     public void mapCicdInfo(RepositoryData data, TreeResponse response) {
@@ -40,20 +54,17 @@ public class CicdInfoMapper {
         List<String> filePaths = extractFilePaths(response);
 
         // CI/CD 설정 확인
-        boolean hasCICD = checkCICDConfiguration(filePaths);
-        List<String> cicdFiles = getCICDFiles(filePaths);
-        data.setHasCICD(hasCICD);
+        List<String> cicdFiles = findCicdFiles(filePaths);
+        data.setHasCICD(!cicdFiles.isEmpty());
         data.setCicdFiles(cicdFiles);
 
         // 빌드 스크립트 확인
-        boolean hasBuildFile = checkBuildConfiguration(filePaths);
-        List<String> buildFiles = getBuildFiles(filePaths);
-        data.setHasBuildFile(hasBuildFile);
+        List<String> buildFiles = findBuildFiles(filePaths);
+        data.setHasBuildFile(!buildFiles.isEmpty());
         data.setBuildFiles(buildFiles);
 
         // Dockerfile 별도 확인
-        boolean hasDockerfile = filePaths.stream()
-                .anyMatch(path -> path.matches(".*/Dockerfile$"));
+        boolean hasDockerfile = hasDockerFiles(filePaths);
         data.setHasDockerfile(hasDockerfile);
     }
 
@@ -74,36 +85,39 @@ public class CicdInfoMapper {
                 .collect(Collectors.toList());
     }
 
-    private boolean checkCICDConfiguration(List<String> filePaths) {
+    private List<String> findCicdFiles(List<String> filePaths) {
+        return filePaths.stream()
+                .filter(this::isCicdFile)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isCicdFile(String filePath) {
+        if (filePath.matches(GITHUB_WORKFLOWS_PATTERN)) {
+            return true;
+        }
+
+        if (JENKINSFILE_PATTERNS.stream().anyMatch(filePath::matches)) {
+            return true;
+        }
+
         return CICD_FILE_PATTERNS.stream()
-                .anyMatch(pattern -> filePaths.stream().anyMatch(path ->
-                        path.matches(pattern)));
+                .anyMatch(filePath::matches);
     }
 
-    private boolean checkBuildConfiguration(List<String> filePaths) {
-        boolean hasRequirementsTxt = filePaths.stream()
-                .anyMatch(path -> path.matches(".*/requirements\\.txt$"));
-        boolean hasSetupPy = filePaths.stream()
-                .anyMatch(path -> path.matches(".*/setup\\.py$"));
-        boolean hasPythonBuild = hasRequirementsTxt && hasSetupPy;
-
-        boolean hasOtherBuildFile = BUILD_FILE_PATTERNS.stream()
-                .filter(pattern -> !pattern.contains("requirements") && !pattern.contains("setup"))
-                .anyMatch(pattern -> filePaths.stream().anyMatch(path ->
-                        path.matches(pattern)));
-
-        return hasOtherBuildFile || hasPythonBuild;
-    }
-
-    private List<String> getCICDFiles(List<String> filePaths) {
+    private List<String> findBuildFiles(List<String> filePaths) {
         return filePaths.stream()
-                .filter(path -> CICD_FILE_PATTERNS.stream().anyMatch(path::matches))
+                .filter(this::isBuildFile)
                 .collect(Collectors.toList());
     }
 
-    private List<String> getBuildFiles(List<String> filePaths) {
+    private boolean isBuildFile(String filePath) {
+        return BUILD_FILE_PATTERNS.stream()
+                .anyMatch(filePath::matches);
+    }
+
+    private boolean hasDockerFiles(List<String> filePaths) {
         return filePaths.stream()
-                .filter(path -> BUILD_FILE_PATTERNS.stream().anyMatch(path::matches))
-                .collect(Collectors.toList());
+                .anyMatch(path -> DOCKERFILE_PATTERNS.stream()
+                        .anyMatch(path::matches));
     }
 }
