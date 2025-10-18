@@ -12,35 +12,79 @@ import java.util.stream.Collectors;
 public class SecurityInfoMapper {
     // ResponseData 보안 [민감 파일, 빌드 파일 여부]
     private static final List<String> SENSITIVE_FILE_PATTERNS = List.of(
-            ".*\\.env$", ".*\\.(pem|key|p12|pfx|crt|cer)$", ".*/id_rsa$|^id_rsa$", ".*/id_dsa$|^id_dsa$",
-            ".*/authorized_keys$|^authorized_keys$", ".*credentials\\.(json|xml|yml|yaml|properties)$", ".*secret.*\\.(json|xml|yml|yaml|properties)$",
-            ".*\\.(keystore|jks|p12)$", ".*/\\.aws/credentials$", ".*/\\.ssh/.*$", ".*\\.env\\..*$",
-            ".*\\.aws/.*credentials.*", ".*\\.gcp/.*(key|credential).*", ".*service-account.*\\.json$", ".*firebase.*\\.json$",
-            ".*google.*credentials.*\\.json$", ".*config\\.json$", ".*application(-secret|-prod)?\\.ya?ml$", ".*token.*(\\.txt|\\.json|\\.yml|\\.yaml)$",
-            ".*apikey.*(\\.txt|\\.json|\\.env|\\.yml)$", ".*password.*(\\.txt|\\.json|\\.env|\\.yml)$", ".*oauth.*(\\.json|\\.yml|\\.yaml)$",
-            ".*client_secret.*(\\.json|\\.yml|\\.yaml)$", ".*private.*(\\.json|\\.pem|\\.key)$", ".*jwt.*(\\.json|\\.pem|\\.key)$",
-            ".*vault.*", ".*id_ecdsa$", ".*pgpass$", ".*\\.npmrc$", ".*\\.netrc$", ".*\\.bash_history$", ".*\\.zsh_history$",
-            ".*\\.docker/config\\.json$", ".*terraform.*\\.tfstate.*", ".*secrets?\\.json$", ".*\\.p8$", ".*\\.bak$", ".*\\.old$", ".*\\.swp$", ".*\\.DS_Store$"
+            // 환경 변수 파일
+            ".*\\.env$",
+            ".*\\.env\\.prod(uction)?$",
+            ".*\\.env\\.local$",
+
+            // 인증서 및 키
+            ".*\\.(pem|key|p12|pfx|crt|cer|p8)$",
+            ".*/id_rsa$|^id_rsa$",
+            ".*/id_dsa$|^id_dsa$",
+            ".*/id_ecdsa$|^id_ecdsa$",
+            ".*/authorized_keys$|^authorized_keys$",
+            ".*\\.(keystore|jks)$",
+
+            // 민감한 설정
+            ".*application-secret\\.ya?ml$",
+            ".*application-prod\\.ya?ml$",
+            ".*credentials\\.(json|xml|yml|yaml|properties)$",
+            ".*secret.*\\.(json|xml|yml|yaml|properties)$",
+            ".*secrets?\\.json$",
+
+            // 클라우드 인증
+            ".*/\\.aws/credentials$",
+            ".*service-account.*\\.json$",
+            ".*firebase.*\\.json$",
+            ".*google.*credentials.*\\.json$",
+
+            // 토큰 / API 키
+            ".*token.*\\.txt$",
+            ".*apikey.*\\.txt$",
+            ".*password.*\\.txt$",
+            ".*client_secret.*\\.(json|yml|yaml)$",
+            ".*oauth.*\\.json$",
+
+            // SSH 관련
+            ".*/\\.ssh/id_.*$",
+            ".*/\\.ssh/config$",
+
+            // 기타 확실한 민감 파일
+            ".*pgpass$",
+            ".*\\.netrc$"
     );
 
     private static final List<String> SAFE_FILE_PATTERNS = List.of(
-            ".*\\.env\\.(example|template|sample|dist)$", ".*credentials\\.(example|sample|template|dist)$",
-            ".*secret.*\\.(example|sample|template|dist)$", ".*\\.env\\.(example|sample|template|dist|local|dev|prod|staging)$",
-            ".*example.*credentials.*", ".*dummy.*(json|yaml|yml|env|properties)$",
-            ".*mock.*(json|yaml|yml|env|properties)$", ".*test.*(json|yaml|yml|env|properties)$",
-            ".*\\.example$", ".*\\.sample$", ".*\\.template$", ".*\\.default$", ".*/fixtures/.*", ".*/samples?/.*"
+            // 예시/템플릿 파일들
+            ".*\\.(example|template|sample|dist|default)$",
+            ".*\\.env\\.(example|template|sample|dist)$",
+            ".*credentials\\.(example|sample|template)$",
+            ".*secret.*\\.(example|sample|template)$",
 
+            // 테스트/더미 데이터
+            ".*test.*\\.(json|yaml|yml|env|properties)$",
+            ".*mock.*\\.(json|yaml|yml|env|properties)$",
+            ".*dummy.*\\.(json|yaml|yml|env|properties)$",
+
+            // 예시 디렉토리들
+            ".*/fixtures/.*",
+            ".*/samples?/.*",
+            ".*/examples?/.*"
     );
 
     private static final List<String> BUILD_FILE_NAMES = List.of(
-            "pom.xml", "build.gradle", "build.gradle.kts", "package.json", "Cargo.toml",
-            "go.mod", "requirements.txt", "setup.py", "CMakeLists.txt", "Makefile", "Dockerfile",
-            "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd", "Gemfile", "Gemfile.lock", "composer.json", "composer.lock",
-            "yarn.lock", "pnpm-lock.yaml", "package-lock.json", "mix.exs", "rebar.config",
-            "build.sbt", "build.xml", "setup.cfg", "pyproject.toml", "environment.yml", "Procfile", "runtime.txt",
-            "Vagrantfile", "Docker-compose.yml", "docker-compose.yml", "Chart.yaml", "values.yaml", "Makefile.am",
-            "Brewfile", "Podfile", "Podfile.lock", "Fastfile", "Taskfile.yml", "taskfile.yml", "Justfile"
+            // 주요 빌드 파일들
+            "pom.xml", "build.gradle", "build.gradle.kts",
+            "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+            "Cargo.toml", "go.mod", "requirements.txt", "pyproject.toml", "setup.py",
+            "CMakeLists.txt", "Makefile", "Dockerfile",
 
+            // 빌드 스크립트들
+            "gradlew", "gradlew.bat", "mvnw", "mvnw.cmd",
+
+            // 언어별 의존성 파일들
+            "Gemfile", "Gemfile.lock", "composer.json", "composer.lock",
+            "mix.exs", "build.sbt"
     );
 
     public void mapSecurityInfo(RepositoryData data, TreeResponse response) {

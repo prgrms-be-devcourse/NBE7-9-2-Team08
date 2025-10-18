@@ -14,35 +14,56 @@ public class CicdInfoMapper {
     private static final String GITHUB_WORKFLOWS_PATTERN = "^\\.github/workflows/.*\\.(yml|yaml)$";
 
     private static final List<String> CICD_FILE_PATTERNS = List.of(
-            "^\\.gitlab-ci\\.(yml|yaml)$", "^\\.travis\\.(yml|yaml)$", "^azure-pipelines\\.(yml|yaml)$",
-            "^circle\\.(yml|yaml)$", "^\\.circleci/config\\.(yml|yaml)$", "^\\.drone\\.(yml|yaml)$",
-            "^\\.bitbucket-pipelines\\.(yml|yaml)$", "^\\.buildkite\\/(pipeline\\.)?(yml|yaml)$", "^\\.teamcity\\.(settings|config)\\.(xml|kts|yaml)$",
-            "^\\.appveyor\\.(yml|yaml)$", "^\\.github/actions/.*\\.(yml|yaml)$", "^\\.buddy/.*\\.(yml|yaml)$", "^\\.codefresh/.*\\.(yml|yaml)$",
-            "^\\.bitrise\\.yml$", "^\\.wercker/.*\\.(yml|yaml)$", "^\\.buildkite/pipeline\\.(yml|yaml)$", "^\\.concourse/.*\\.(yml|yaml)$",
-            "^\\.semaphore/.*\\.(yml|yaml)$", "^\\.harness/.*\\.(yml|yaml)$"
+            // 주요 CI/CD 플랫폼
+            "^\\.gitlab-ci\\.(yml|yaml)$",
+            "^\\.travis\\.(yml|yaml)$",
+            "^azure-pipelines\\.(yml|yaml)$",
+            "^\\.circleci/config\\.(yml|yaml)$",
+            "^\\.github/actions/.*\\.(yml|yaml)$",
+            "^\\.bitbucket-pipelines\\.(yml|yaml)$",
+            "^\\.appveyor\\.(yml|yaml)$"
     );
 
-    private static final List<String> JENKINSFILE_PATTERNS = List.of(".*/Jenkinsfile$|^Jenkinsfile$", ".*/Jenkinsfile(\\..*)?$|^Jenkinsfile(\\..*)?$");
+    private static final List<String> JENKINSFILE_PATTERNS = List.of(
+            ".*/[Jj]enkinsfile$",
+            "^[Jj]enkinsfile$",
+            ".*/[Jj]enkinsfile\\..+$",
+            "^[Jj]enkinsfile\\..+$"
+    );
 
     private static final List<String> BUILD_FILE_PATTERNS = List.of(
-            "^pom\\.xml$|.*/pom\\.xml$",
-            "^build\\.gradle(\\.kts)?$|.*/build\\.gradle(\\.kts)?$", "^package\\.json$|.*/package\\.json$",
-            "^Cargo\\.toml$|.*/Cargo\\.toml$", "^go\\.mod$|.*/go\\.mod$", "^requirements\\.txt$|.*/requirements\\.txt$",
-            "^setup\\.py$|.*/setup\\.py$", "^CMakeLists\\.txt$|.*/CMakeLists\\.txt$", "^Makefile$|.*/Makefile$",
-            "^gradlew(\\.bat)?$|.*/gradlew(\\.bat)?$", "^mvnw(\\.cmd)?$|.*/mvnw(\\.cmd)?$", "^Gemfile(\\.lock)?$|.*/Gemfile(\\.lock)?$",
-            "^composer\\.(json|lock)$|.*/composer\\.(json|lock)$", "^yarn\\.lock$|.*/yarn\\.lock$", "^pnpm-lock\\.yaml$|.*/pnpm-lock\\.yaml$",
-            "^package-lock\\.json$|.*/package-lock\\.json$", "^pyproject\\.toml$|.*/pyproject\\.toml$", "^setup\\.cfg$|.*/setup\\.cfg$",
-            "^environment\\.yml$|.*/environment\\.yml$", "^mix\\.exs$|.*/mix\\.exs$", "^build\\.sbt$|.*/build\\.sbt$",
-            "^Vagrantfile$|.*/Vagrantfile$", "^Chart\\.yaml$|.*/Chart\\.yaml$", "^values\\.yaml$|.*/values\\.yaml$",
-            "^Taskfile\\.ya?ml$|.*/Taskfile\\.ya?ml$", "^Justfile$|.*/Justfile$", "^Brewfile$|.*/Brewfile$",
-            "^Podfile(\\.lock)?$|.*/Podfile(\\.lock)?$", "^Fastfile$|.*/Fastfile$", "^Makefile\\.am$|.*/Makefile\\.am$", "^CMakeCache\\.txt$|.*/CMakeCache\\.txt$"
+            // Java 빌드 도구
+            ".*pom\\.xml$",
+            ".*build\\.gradle(\\.kts)?$",
+            ".*gradlew(\\.bat)?$",
+            ".*mvnw(\\.cmd)?$",
+
+            // JavaScript/Node.js
+            ".*package\\.json$",
+            ".*(yarn\\.lock|pnpm-lock\\.yaml|package-lock\\.json)$",
+
+            // Python
+            ".*requirements\\.txt$",
+            ".*setup\\.py$",
+            ".*pyproject\\.toml$",
+            ".*setup\\.cfg$",
+
+            // 기타 주요 언어
+            ".*Cargo\\.toml$",
+            ".*go\\.mod$",
+            ".*Gemfile(\\.lock)?$",
+            ".*composer\\.(json|lock)$",
+
+            // C/C++ 및 범용
+            ".*CMakeLists\\.txt$",
+            ".*Makefile$",
+            ".*build\\.xml$"
     );
 
     private static final List<String> DOCKERFILE_PATTERNS = List.of(
-            "^Dockerfile.*$|.*/Dockerfile.*$",
-            "^Dockerfile.*$|.*/Dockerfile.*$|.*\\.dockerfile$",
-            "^docker-compose\\.ya?ml$|.*/docker-compose\\.ya?ml$",
-            "^compose\\.ya?ml$|.*/compose\\.ya?ml$"
+            ".*(?i)dockerfile.*$",
+            ".*(?i)docker-compose.*\\.(yml|yaml)$",
+            ".*(?i)compose.*\\.(yml|yaml)$"
     );
 
     public void mapCicdInfo(RepositoryData data, TreeResponse response) {

@@ -2,7 +2,6 @@ package com.backend.domain.repository.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
-import com.backend.domain.repository.service.mapper.RepositoriesMapper;
 import com.backend.domain.repository.util.LanguageUtils;
 import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
@@ -12,7 +11,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
@@ -86,35 +88,25 @@ public class Repositories extends BaseEntity {
         this.publicRepository = other.publicRepository;
     }
 
-    public static Repositories createOrUpdateRepositories(Optional<Repositories> existing,
-                                                   RepoResponse repoInfo,
-                                                   User user,
-                                                   RepositoriesMapper mapper) {
-        return existing
-                .map(repo -> {
-                    repo.updateFrom(repoInfo);
-                    return repo;
-                })
-                .orElseGet(() -> mapper.toEntity(repoInfo, user));
-    }
-
     public void updateLanguagesFrom(Map<String, Integer> newLanguagesData) {
-        Set<String> newLanguageNames = newLanguagesData.keySet();
-        Set<String> existingLanguageNames = this.languages.stream()
-                .map(rl -> rl.getLanguage().name())
+        Set<Language> newLanguages = newLanguagesData.keySet().stream()
+                .map(LanguageUtils::fromGitHubName)
                 .collect(Collectors.toSet());
 
-        if (newLanguageNames.equals(existingLanguageNames)) {
+        Set<Language> existingLanguages = this.languages.stream()
+                .map(RepositoryLanguage::getLanguage)
+                .collect(Collectors.toSet());
+
+        if (newLanguages.equals(existingLanguages)) {
             return;
         }
 
         this.languages.removeIf(repoLang ->
-                !newLanguageNames.contains(repoLang.getLanguage().name()));
+                !newLanguages.contains(repoLang.getLanguage()));
 
-        newLanguageNames.stream()
-                .filter(langName -> !existingLanguageNames.contains(langName))
-                .forEach(langName -> {
-                    Language language = LanguageUtils.fromGitHubName(langName);
+        newLanguages.stream()
+                .filter(language -> !existingLanguages.contains(language))
+                .forEach(language -> {
                     RepositoryLanguage repositoryLanguage = RepositoryLanguage.builder()
                             .repositories(this)
                             .language(language)

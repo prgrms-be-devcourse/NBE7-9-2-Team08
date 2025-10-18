@@ -11,42 +11,56 @@ import java.util.stream.Collectors;
 @Component
 public class TestInfoMapper {
     // ResponseData 테스트 구성 [test 파일 여부 관련]
+// 테스트 디렉토리
     private static final List<String> TEST_DIRECTORY_PATTERNS = List.of(
             "^src/test/.*",
-            "^test/.*",
-            "^tests/.*",
-            ".*/__tests__/.*",
-            ".*/test/.*",
-            ".*/tests/.*",
-            ".*/spec/.*"
+            ".*/(test|tests|spec|specs|__tests__)/.*",
+            ".*/(integration-tests?|functional-tests?|acceptance-tests?|e2e|qa|itest|utest)/.*"
     );
 
-    // 테스트 파일 확장자 패턴
+    // 테스트 파일
     private static final List<String> TEST_FILE_PATTERNS = List.of(
-            ".*Test\\.(java|kt|js|ts|py|rb|go|rs)$",
-            ".*Tests\\.(java|kt|js|ts|py|rb|go|rs)$", ".*TestCase\\.(java|kt|js|ts|py|rb|go|rs)$", ".*\\.test\\.(js|ts|jsx|tsx)$",
-            ".*\\.spec\\.(js|ts|jsx|tsx)$", ".*_test\\.(py|go|rs|rb)$", "^test_.*\\.py$",
-            ".*_spec\\.rb$", ".*IT\\.(java|kt)$", ".*[Tt]est.*\\.(c|cpp|cc|cxx)$",
-            ".*Integration.*Test\\.(java|kt)$", ".*End.*To.*End.*Test\\.(java|kt)$", ".*E2E.*Test\\.(java|kt)$",
-            ".*Unit.*Test\\.(java|kt)$", ".*Functional.*Test\\.(java|kt)$", ".*Contract.*Test\\.(java|kt)$",
-            ".*Performance.*Test\\.(java|kt)$", ".*Load.*Test\\.(java|kt)$", ".*Smoke.*Test\\.(java|kt)$",
-            ".*Acceptance.*Test\\.(java|kt)$", ".*TestBase\\.(java|kt)$", ".*TestUtils?\\.(java|kt)$",
-            ".*TestHelper\\.(java|kt)$", ".*TestData\\.(java|kt)$", ".*TestConfig\\.(java|kt)$",
-            ".*TestSuite\\.(java|kt)$", ".*ApplicationTests\\.(java|kt)$", ".*ContextTest\\.(java|kt)$",
-            ".*SliceTest\\.(java|kt)$", ".*\\.e2e-spec\\.(js|ts)$", ".*\\.integration\\.(js|ts)$",
-            ".*\\.unit\\.(js|ts)$", "^test.*\\.py$", ".*test.*\\.py$",
-            ".*_integration_test\\.go$", ".*_unit_test\\.go$", ".*_integration_test\\.rs$",
-            ".*/tests\\.rs$", ".*_feature_spec\\.rb$", ".*_integration_spec\\.rb$", ".*Test\\.(php)$", ".*_test\\.(php)$",
-            ".*Spec\\.(java|kt)$", ".*Specification\\.(java|kt)$", ".*Scenario\\.(java|kt|py|ts)$",
-            ".*Feature\\.(java|kt|py|rb)$", ".*Example\\.(java|kt|py)$", ".*Benchmark\\.(go|rs|py)$",
-            ".*MockTest\\.(java|kt|ts|py)$", ".*ValidatorTest\\.(java|kt|ts|py)$", ".*ControllerTest\\.(java|kt|ts)$",
-            ".*ServiceTest\\.(java|kt|ts)$", ".*RepositoryTest\\.(java|kt)$", ".*APITest\\.(java|kt|ts|py)$",
-            ".*UITest\\.(java|kt|ts)$", ".*BrowserTest\\.(js|ts|py)$", ".*Acceptance\\.(java|kt|py)$", ".*RegressionTest\\.(java|kt|py)$"
+            // Java/Kotlin
+            ".*(Test|Tests|TestCase|IT|Spec|Feature|Scenario)\\.(java|kt)$",
+            ".*(Integration|Application|Unit|Functional|E2E|Performance|Load|Smoke|Acceptance|Regression|UITest).*Test\\.(java|kt)$",
+            ".*(TestBase|TestUtils?|TestHelper|TestData|TestConfig|TestSuite)\\.(java|kt)$",
+
+            // JavaScript/TypeScript
+            ".*\\.(test|spec|e2e-spec|integration|unit|browser)\\.(js|ts|jsx|tsx)$",
+
+            // Python
+            "^test_.*\\.py$",
+            ".*_test\\.py$",
+
+            // Go
+            ".*_test\\.go$",
+            ".*_(integration|unit)_test\\.go$",
+
+            // Ruby
+            ".*_spec\\.rb$",
+
+            // Rust
+            ".*_test\\.rs$",
+            ".*/tests\\.rs$",
+
+            // C/C++
+            ".*[Tt]est.*\\.(c|cpp|cc|cxx|h|hpp)$",
+
+            // Dart
+            ".*_test\\.dart$",
+
+            // PHP / Swift / C#
+            ".*Test\\.(php|swift|cs)$",
+
+            // 기타 패턴
+            ".*(Mock|Validator|Controller|Service|Repository|API|UI)Test\\.(java|kt|ts|py|cs|php|swift)$"
     );
 
     // 소스 파일 확장자
     private static final List<String> SOURCE_FILE_EXTENSIONS = List.of(
-            ".java", ".kt", ".js", ".ts", ".jsx", ".tsx", ".py", ".rb", ".go", ".rs", ".cpp", ".c", ".cs", ".php", ".swift"
+            ".java", ".kt", ".scala", ".js", ".ts", ".jsx", ".tsx",
+            ".py", ".rb", ".go", ".rs", ".cpp", ".c", ".cs",
+            ".php", ".swift", ".m", ".mm", ".dart", ".h", ".hpp"
     );
 
     public void mapTestInfo(RepositoryData data, TreeResponse response) {
