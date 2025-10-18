@@ -221,9 +221,6 @@ public class BaseInitData {
                     .build();
 
             scoreRepository.save(score);
-
-            System.out.println("분석 결과 생성 완료: " + repo.getName() +
-                    " (총점: " + score.getTotalScore() + "/100)");
         }
 
         System.out.println("분석 결과 및 점수 데이터 생성 완료");

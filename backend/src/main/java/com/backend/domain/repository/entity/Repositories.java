@@ -1,6 +1,8 @@
 package com.backend.domain.repository.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.repository.dto.response.github.RepoResponse;
+import com.backend.domain.repository.util.LanguageUtils;
 import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -11,6 +13,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "repositories")
@@ -73,13 +78,40 @@ public class Repositories extends BaseEntity {
         language.setRepositories(this);
     }
 
-    public void updateFrom(Repositories other) {
-        this.name = other.name;
-        this.description = other.description;
-        this.mainBranch = other.mainBranch;
+    public void updateFrom(RepoResponse repoInfo) {
+        this.name = repoInfo.name();
+        this.description = repoInfo.description();
+        this.mainBranch = repoInfo.defaultBranch();
     }
 
     public void updatePublicFrom(Repositories other) {
         this.publicRepository = other.publicRepository;
+    }
+
+    public void updateLanguagesFrom(Map<String, Integer> newLanguagesData) {
+        Set<Language> newLanguages = newLanguagesData.keySet().stream()
+                .map(LanguageUtils::fromGitHubName)
+                .collect(Collectors.toSet());
+
+        Set<Language> existingLanguages = this.languages.stream()
+                .map(RepositoryLanguage::getLanguage)
+                .collect(Collectors.toSet());
+
+        if (newLanguages.equals(existingLanguages)) {
+            return;
+        }
+
+        this.languages.removeIf(repoLang ->
+                !newLanguages.contains(repoLang.getLanguage()));
+
+        newLanguages.stream()
+                .filter(language -> !existingLanguages.contains(language))
+                .forEach(language -> {
+                    RepositoryLanguage repositoryLanguage = RepositoryLanguage.builder()
+                            .repositories(this)
+                            .language(language)
+                            .build();
+                    this.addLanguage(repositoryLanguage);
+                });
     }
 }

@@ -57,8 +57,12 @@ public class RepositoryData {
     @Data
     public static class CommitInfo {
         private String message;
-        private String author;
         private LocalDateTime committedDate;
+
+        @Override
+        public String toString() {
+            return "(message=" + message + ", committedDate=" + committedDate + ")";
+        }
     }
 
     @Data
@@ -67,6 +71,11 @@ public class RepositoryData {
         private String state;
         private LocalDateTime createdAt;
         private LocalDateTime closedAt;
+
+        @Override
+        public String toString() {
+            return "(title=" + title + ", state=" + state + ", createdAt=" + createdAt + ", closedAt=" + closedAt + ")";
+        }
     }
 
     @Data
@@ -75,5 +84,9 @@ public class RepositoryData {
         private String state;
         private LocalDateTime createdAt;
         private LocalDateTime mergedAt;
+
+        @Override
+        public String toString() {
+            return "(title=" + title + ", state=" + state + ", createdAt=" + createdAt + ", mergedAt=" + mergedAt + ")";        }
     }
 }

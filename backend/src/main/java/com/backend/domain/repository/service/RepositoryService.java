@@ -1,29 +1,28 @@
 package com.backend.domain.repository.service;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
-import com.backend.domain.repository.dto.response.github.RepoResponse;
+import com.backend.domain.repository.dto.response.github.*;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
-import com.backend.domain.repository.service.mapper.ReadmeInfoMapper;
-import com.backend.domain.repository.service.mapper.RepositoriesMapper;
-import com.backend.domain.repository.service.mapper.RepositoryInfoMapper;
+import com.backend.domain.repository.service.mapper.*;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static com.backend.global.exception.ErrorCode.GITHUB_REPO_NOT_FOUND;
-
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RepositoryService {
@@ -34,7 +33,13 @@ public class RepositoryService {
     private final GitHubDataFetcher gitHubDataFetcher;
     private final RepositoriesMapper repositoriesMapper;
     private final RepositoryInfoMapper repositoryInfoMapper;
+    private final CommitInfoMapper commitInfoMapper;
     private final ReadmeInfoMapper readmeInfoMapper;
+    private final SecurityInfoMapper securityInfoMapper;
+    private final TestInfoMapper testInfoMapper;
+    private final CicdInfoMapper cicdInfoMapper;
+    private final IssueInfoMapper issueInfoMapper;
+    private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
 
     @Transactional
@@ -43,12 +48,8 @@ public class RepositoryService {
             return fetchCompleteRepositoryData(owner, repo);
         } catch (BusinessException e) {
             String errorCode = (e.getErrorCode() != null) ? e.getErrorCode().getCode() : "UNKNOWN";
-            log.error("Repository analysis failed for {}/{}: {} - {}",
-                    owner, repo, errorCode, e.getMessage());
             throw e;
         } catch (Exception e) {
-            log.error("Unexpected error during repository analysis for {}/{}: {}",
-                    owner, repo, e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
     }
@@ -61,49 +62,60 @@ public class RepositoryService {
         RepoResponse repoInfo = gitHubDataFetcher.fetchRepositoryInfo(owner, repo);
         repositoryInfoMapper.mapBasicInfo(data, repoInfo);
 
-        // TODO: 커밋 데이터 수집 및 매핑
+        // 2. 커밋 데이터 수집 및 매핑
+        ZonedDateTime ninetyDaysAgoUtc = ZonedDateTime.now(ZoneOffset.UTC).minus(90, ChronoUnit.DAYS);
+        String sinceParam = ninetyDaysAgoUtc.format(DateTimeFormatter.ISO_INSTANT);
+        List<CommitResponse> commitInfo = gitHubDataFetcher.fetchCommitInfo(owner, repo, sinceParam);
+        commitInfoMapper.mapCommitInfo(data, commitInfo);
 
-
-        // TODO: README 데이터 수집 및 매핑
+        // 3. README 데이터 수집 및 매핑
         String readmeInfo = gitHubDataFetcher.fetchReadmeContent(owner, repo);
         readmeInfoMapper.mapReadmeInfo(data, readmeInfo);
 
-        // TODO: 보안 관리 데이터 수집 및 매핑
+        // 4. 보안 관리 데이터 수집 및 매핑
+        TreeResponse securityInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        securityInfoMapper.mapSecurityInfo(data, securityInfo);
 
+        // 5. 테스트 데이터 수집 및 매핑
+        TreeResponse testInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        testInfoMapper.mapTestInfo(data, testInfo);
 
-        // TODO: 테스트 데이터 수집 및 매핑
+        // 6. CI/CD 데이터 수집 및 매핑
+        TreeResponse cicdInfo = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+        cicdInfoMapper.mapCicdInfo(data, cicdInfo);
 
+        // 7. 커뮤니티 활성도 데이터 수집 및 매핑
+        List<IssueResponse> issueInfo = gitHubDataFetcher.fetchIssueInfo(owner, repo);
+        issueInfoMapper.mapIssueInfo(data, issueInfo);
 
-        // TODO: CI/CD 데이터 수집 및 매핑
-
-
-        // TODO: 커뮤니티 활성도 데이터 수집 및 매핑
+        List<PullRequestResponse> pullRequestInfo = gitHubDataFetcher.fetchPullRequestInfo(owner, repo);
+        pullRequestInfoMapper.mapPullRequestInfo(data, pullRequestInfo);
 
         // Entity 저장 로직
-        saveRepositoryEntity(repoInfo);
+        Repositories savedRepository = saveOrUpdateRepository(repoInfo, owner, repo);
 
-        log.info("✅ RepositoryData: {}", data);
+
         return data;
     }
 
-    private void saveRepositoryEntity(RepoResponse repoInfo) {
+    private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo) {
         User defaultUser = userRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
 
-        Repositories entity = repositoriesMapper.toEntity(repoInfo, defaultUser);
-        repositoryJpaRepository
-                .findByHtmlUrl(entity.getHtmlUrl())
+        Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
+
+        return repositoryJpaRepository.findByHtmlUrl(repoInfo.htmlUrl())
                 .map(existing -> {
-                    existing.updateFrom(repositoriesMapper.toEntity(repoInfo, defaultUser));
+                    existing.updateFrom(repoInfo);
+                    existing.updateLanguagesFrom(languagesData);
                     return existing;
                 })
                 .orElseGet(() -> {
-                    Repositories newEntity = repositoriesMapper.toEntity(repoInfo, defaultUser);
-                    return repositoryJpaRepository.save(newEntity);
+                    Repositories newRepo = repositoriesMapper.toEntity(repoInfo, defaultUser);
+                    newRepo.updateLanguagesFrom(languagesData);
+                    return repositoryJpaRepository.save(newRepo);
                 });
-
-        log.info("✅ Repositories: {}", entity);
     }
 
     // Repository에서 member로 리포지토리 찾기
@@ -116,7 +128,7 @@ public class RepositoryService {
         return repositoryJpaRepository.findLanguagesByRepositoryId(gitRepositoryId);
     }
 
-    // repostiroy 삭제
+    // repository 삭제
     public void delete(Long repositoriesId){
         Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
         if(optionalRepository.isPresent()){
