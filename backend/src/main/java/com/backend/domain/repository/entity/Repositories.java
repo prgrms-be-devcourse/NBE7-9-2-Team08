@@ -1,6 +1,7 @@
 package com.backend.domain.repository.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.repository.util.LanguageUtils;
 import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -11,6 +12,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "repositories")
@@ -81,5 +85,30 @@ public class Repositories extends BaseEntity {
 
     public void updatePublicFrom(Repositories other) {
         this.publicRepository = other.publicRepository;
+    }
+
+    public void updateLanguagesFrom(Map<String, Integer> newLanguagesData) {
+        Set<String> newLanguageNames = newLanguagesData.keySet();
+        Set<String> existingLanguageNames = this.languages.stream()
+                .map(rl -> rl.getLanguage().name())
+                .collect(Collectors.toSet());
+
+        if (newLanguageNames.equals(existingLanguageNames)) {
+            return;
+        }
+
+        this.languages.removeIf(repoLang ->
+                !newLanguageNames.contains(repoLang.getLanguage().name()));
+
+        newLanguageNames.stream()
+                .filter(langName -> !existingLanguageNames.contains(langName))
+                .forEach(langName -> {
+                    Language language = LanguageUtils.fromGitHubName(langName);
+                    RepositoryLanguage repositoryLanguage = RepositoryLanguage.builder()
+                            .repositories(this)
+                            .language(language)
+                            .build();
+                    this.addLanguage(repositoryLanguage);
+                });
     }
 }

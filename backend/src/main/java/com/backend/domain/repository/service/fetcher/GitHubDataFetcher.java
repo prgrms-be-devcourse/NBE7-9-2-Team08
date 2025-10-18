@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -57,6 +58,10 @@ public class GitHubDataFetcher {
                 .collect(Collectors.toList());
     }
 
+    public Map<String, Integer> fetchLanguages(String owner, String repoName) {
+        return gitHubApiClient.get("/repos/{owner}/{repo}/languages", Map.class, owner, repoName);
+    }
+
     private LocalDateTime getSixMonthsAgo() {
         return LocalDateTime.now().minusMonths(COMMUNITY_ANALYSIS_MONTHS);
     }
@@ -64,5 +69,4 @@ public class GitHubDataFetcher {
     private LocalDateTime parseGitHubDate(String dateString) {
         return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
-
 }

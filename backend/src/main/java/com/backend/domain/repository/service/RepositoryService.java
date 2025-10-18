@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -91,27 +92,31 @@ public class RepositoryService {
         pullRequestInfoMapper.mapPullRequestInfo(data, pullRequestInfo);
 
         // Entity 저장 로직
-        saveRepositoryEntity(repoInfo);
+        Repositories savedRepository = saveRepositoryEntity(repoInfo);
+        updateRepositoryLanguages(savedRepository, owner, repo);
 
         return data;
     }
 
-    private void saveRepositoryEntity(RepoResponse repoInfo) {
+    private Repositories saveRepositoryEntity(RepoResponse repoInfo) {
         User defaultUser = userRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
 
         Repositories entity = repositoriesMapper.toEntity(repoInfo, defaultUser);
-        repositoryJpaRepository
+
+        return repositoryJpaRepository
                 .findByHtmlUrl(entity.getHtmlUrl())
                 .map(existing -> {
-                    existing.updateFrom(repositoriesMapper.toEntity(repoInfo, defaultUser));
-                    return existing;
+                    existing.updateFrom(entity);
+                    return repositoryJpaRepository.save(existing);
                 })
-                .orElseGet(() -> {
-                    Repositories newEntity = repositoriesMapper.toEntity(repoInfo, defaultUser);
-                    return repositoryJpaRepository.save(newEntity);
-                });
+                .orElseGet(() -> repositoryJpaRepository.save(entity));
+    }
+
+    private void updateRepositoryLanguages(Repositories repository, String owner, String repo) {
+        Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
+        repository.updateLanguagesFrom(languagesData);
     }
 
     // Repository에서 member로 리포지토리 찾기
@@ -124,7 +129,7 @@ public class RepositoryService {
         return repositoryJpaRepository.findLanguagesByRepositoryId(gitRepositoryId);
     }
 
-    // repostiroy 삭제
+    // repository 삭제
     public void delete(Long repositoriesId){
         Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
         if(optionalRepository.isPresent()){
