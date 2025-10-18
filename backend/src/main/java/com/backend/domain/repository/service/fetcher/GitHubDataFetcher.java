@@ -34,19 +34,9 @@ public class GitHubDataFetcher {
     }
 
     public TreeResponse fetchRepositoryTreeInfo(String owner, String repoName, String defaultBranch) {
-        TreeResponse response = gitHubApiClient.get(
-                "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1",
-                TreeResponse.class, owner, repoName, defaultBranch
+        return gitHubApiClient.get(
+                "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1", TreeResponse.class, owner, repoName, defaultBranch
         );
-
-        log.info("GitHub Tree API Response - Owner: {}, Repo: {}, Branch: {}, Truncated: {}, Tree Count: {}",
-                owner, repoName, defaultBranch,
-                response.truncated(),
-                response.tree() != null ? response.tree().size() : 0);
-
-        log.info("GitHub Tree API Response 2 - response: {}", response);
-
-        return response;
     }
 
     public List<IssueResponse> fetchIssueInfo(String owner, String repoName) {
