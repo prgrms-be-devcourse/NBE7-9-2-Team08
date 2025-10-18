@@ -92,8 +92,8 @@ public class RepositoryService {
         pullRequestInfoMapper.mapPullRequestInfo(data, pullRequestInfo);
 
         // Entity 저장 로직
-        Repositories savedRepository = saveRepositoryEntity(repoInfo);
-        updateRepositoryLanguages(savedRepository, owner, repo);
+        Repositories savedRepository = saveOrUpdateRepository(repoInfo, owner, repo);
+
 
         return data;
     }
@@ -116,28 +116,6 @@ public class RepositoryService {
                     newRepo.updateLanguagesFrom(languagesData);
                     return repositoryJpaRepository.save(newRepo);
                 });
-    }
-
-    private Repositories saveRepositoryEntity(RepoResponse repoInfo) {
-        User defaultUser = userRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
-
-        Optional<Repositories> existing = repositoryJpaRepository.findByHtmlUrl(repoInfo.htmlUrl());
-
-        Repositories repository = Repositories.createOrUpdateRepositories(
-                existing,
-                repoInfo,
-                defaultUser,
-                repositoriesMapper
-        );
-
-        return repositoryJpaRepository.save(repository);
-    }
-
-    private void updateRepositoryLanguages(Repositories repository, String owner, String repo) {
-        Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
-        repository.updateLanguagesFrom(languagesData);
     }
 
     // Repository에서 member로 리포지토리 찾기
