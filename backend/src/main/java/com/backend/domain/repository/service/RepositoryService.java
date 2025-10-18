@@ -98,20 +98,41 @@ public class RepositoryService {
         return data;
     }
 
+    private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo) {
+        User defaultUser = userRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
+
+        Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
+
+        return repositoryJpaRepository.findByHtmlUrl(repoInfo.htmlUrl())
+                .map(existing -> {
+                    existing.updateFrom(repoInfo);
+                    existing.updateLanguagesFrom(languagesData);
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    Repositories newRepo = repositoriesMapper.toEntity(repoInfo, defaultUser);
+                    newRepo.updateLanguagesFrom(languagesData);
+                    return repositoryJpaRepository.save(newRepo);
+                });
+    }
+
     private Repositories saveRepositoryEntity(RepoResponse repoInfo) {
         User defaultUser = userRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
 
-        Repositories entity = repositoriesMapper.toEntity(repoInfo, defaultUser);
+        Optional<Repositories> existing = repositoryJpaRepository.findByHtmlUrl(repoInfo.htmlUrl());
 
-        return repositoryJpaRepository
-                .findByHtmlUrl(entity.getHtmlUrl())
-                .map(existing -> {
-                    existing.updateFrom(entity);
-                    return repositoryJpaRepository.save(existing);
-                })
-                .orElseGet(() -> repositoryJpaRepository.save(entity));
+        Repositories repository = Repositories.createOrUpdateRepositories(
+                existing,
+                repoInfo,
+                defaultUser,
+                repositoriesMapper
+        );
+
+        return repositoryJpaRepository.save(repository);
     }
 
     private void updateRepositoryLanguages(Repositories repository, String owner, String repo) {

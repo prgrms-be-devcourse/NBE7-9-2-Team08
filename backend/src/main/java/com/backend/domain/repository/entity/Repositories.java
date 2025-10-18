@@ -1,6 +1,8 @@
 package com.backend.domain.repository.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.repository.dto.response.github.RepoResponse;
+import com.backend.domain.repository.service.mapper.RepositoriesMapper;
 import com.backend.domain.repository.util.LanguageUtils;
 import com.backend.domain.user.entity.User;
 import com.backend.global.entity.BaseEntity;
@@ -10,10 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -77,14 +76,26 @@ public class Repositories extends BaseEntity {
         language.setRepositories(this);
     }
 
-    public void updateFrom(Repositories other) {
-        this.name = other.name;
-        this.description = other.description;
-        this.mainBranch = other.mainBranch;
+    public void updateFrom(RepoResponse repoInfo) {
+        this.name = repoInfo.name();
+        this.description = repoInfo.description();
+        this.mainBranch = repoInfo.defaultBranch();
     }
 
     public void updatePublicFrom(Repositories other) {
         this.publicRepository = other.publicRepository;
+    }
+
+    public static Repositories createOrUpdateRepositories(Optional<Repositories> existing,
+                                                   RepoResponse repoInfo,
+                                                   User user,
+                                                   RepositoriesMapper mapper) {
+        return existing
+                .map(repo -> {
+                    repo.updateFrom(repoInfo);
+                    return repo;
+                })
+                .orElseGet(() -> mapper.toEntity(repoInfo, user));
     }
 
     public void updateLanguagesFrom(Map<String, Integer> newLanguagesData) {
