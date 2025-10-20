@@ -41,7 +41,6 @@ github:
     base-url: https://api.github.com/
     token: ${GITHUB_TOKEN}
 
-openai:
-  api:
-    key: ${OPENAI_API_KEY:}
-
+jwt:
+  secret: ${SECRET_KEY}
+  access-token-expiration-in-milliseconds: 600000 # 600 * 1000

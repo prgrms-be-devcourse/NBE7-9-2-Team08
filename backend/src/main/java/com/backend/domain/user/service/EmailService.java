@@ -46,7 +46,7 @@ public class EmailService {
         helper.setSubject("[임시 서비스 이름] 회원가입 인증 코드입니다.");
 
         // 이메일 본문 (HTML 형식으로 보냄)
-        String content = "<h2>안녕하세요. [임시 서비스 이름]입니다.</h2>"
+        String content = "<h2>안녕하세요. [PortfolioIQ]입니다.</h2>"
                 + "<p>아래 6자리 인증 코드를 인증 창에 입력해 주세요.</p>"
                 + "<div style='font-size: 24px; font-weight: bold; color: #1e88e5;'>"
                 + authCode
