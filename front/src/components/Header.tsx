@@ -2,11 +2,23 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/Button"
+import { useAuth } from "@/hooks/auth/useAuth"
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+  const { isAuthed } = useAuth()
+
+  const guardNav = (path: string) => () => {
+    if (!isAuthed) {
+      alert("로그인해주세요")
+      return
+    }
+    router.push(path)
+  }
 
   return (
     <nav className="border-b border-gray-200 bg-background/80 backdrop-blur-xl">
@@ -28,15 +40,15 @@ export default function Header() {
           <div className="flex items-center gap-6">
             {isLoggedIn ? (
               <>
-                <Link href="/history" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={guardNav("/history")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   히스토리
-                </Link>
-                <Link href="/community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                </button>
+                <button onClick={guardNav("/community")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
-                </Link>
-                <Link href="/settings" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                </button>
+                <button onClick={guardNav("/settings")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   마이페이지
-                </Link>
+                </button>
                 {/* 로그아웃 구현 필요요 */}
                 <Button
                   variant="ghost"
@@ -49,9 +61,9 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link href="/community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={guardNav("/community")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
-                </Link>
+                </button>
 
                 <div className="flex items-center gap-3">
                   {/* 현재는 로그인 누르면 바로 로그인 상태로 변경 중 */}
@@ -59,10 +71,8 @@ export default function Header() {
                   <Button variant="ghost" size="sm" onClick={() => setIsLoggedIn(true)}>
                     로그인
                   </Button>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-                    <Link href="/signup">
-                      시작하기
-                    </Link>
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={guardNav("/signup")}>
+                    시작하기
                   </Button>
                 </div>
               </>
