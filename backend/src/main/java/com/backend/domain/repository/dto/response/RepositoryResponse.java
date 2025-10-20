@@ -5,6 +5,10 @@ import com.backend.domain.repository.entity.Repositories;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Repository 기본 정보 응답 DTO
+ * 사용자의 Repository 목록 조회 시 사용
+ */
 public record RepositoryResponse(
         Long id,
         String name,

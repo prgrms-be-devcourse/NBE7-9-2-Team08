@@ -1,6 +1,5 @@
 package com.backend.domain.repository.controller;
 
-import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.service.RepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -8,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/repository")
-public class RepositoriseController {
+public class RepositoryController {
     private final RepositoryService repositoryService;
 
     // 리포지토리 삭제

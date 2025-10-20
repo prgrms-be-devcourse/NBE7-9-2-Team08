@@ -2,7 +2,6 @@ package com.backend.domain.repository.service;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.github.*;
-import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
@@ -27,7 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RepositoryService {
 
-    // 임시
+    // TODO: 임시 - 인증/인가 기능 구현 후 실제 로그인한 사용자로 대체 필요
     private final UserRepository userRepository;
 
     private final GitHubDataFetcher gitHubDataFetcher;
@@ -47,13 +46,13 @@ public class RepositoryService {
         try {
             return fetchCompleteRepositoryData(owner, repo);
         } catch (BusinessException e) {
-            String errorCode = (e.getErrorCode() != null) ? e.getErrorCode().getCode() : "UNKNOWN";
             throw e;
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
     }
 
+    // Github 저장소 데이터를 수집하고 DB에 저장 및 RepositoryData로 매핑
     @Transactional
     public RepositoryData fetchCompleteRepositoryData(String owner, String repo) {
         RepositoryData data = new RepositoryData();
@@ -98,6 +97,8 @@ public class RepositoryService {
         return data;
     }
 
+    /* Repository Entity를 DB에 저장하거나 기존 데이터 업데이트
+    * 같은 htmlUrl이 존재하면 업데이트, 없으면 신규 데이터 저장 */
     private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo) {
         User defaultUser = userRepository.findAll().stream()
                 .findFirst()
@@ -118,25 +119,27 @@ public class RepositoryService {
                 });
     }
 
-    // Repository에서 member로 리포지토리 찾기
+    // 특정 사용자의 모든 Repository 조회
     public List<Repositories> findRepositoryByMember(Long userId){
         return repositoryJpaRepository.findByUserId(userId);
     }
 
-    // GitRepository ID로 언어 조회
-    public List<Language> findLanguagesByRepisotryId(Long gitRepositoryId){
-        return repositoryJpaRepository.findLanguagesByRepositoryId(gitRepositoryId);
+    // Repository ID로 단건 조회
+    public Optional<Repositories> findById(Long repositoriesId) {
+        return repositoryJpaRepository.findById(repositoriesId);
     }
 
-    // repository 삭제
+    // Repository 삭제
+    @Transactional
     public void delete(Long repositoriesId){
-        Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
-        if(optionalRepository.isPresent()){
-            Repositories targetRepository = optionalRepository.get();
-            repositoryJpaRepository.delete(targetRepository);
-        }else{
-            throw new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
+        if (repositoriesId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+
+        Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        repositoryJpaRepository.delete(targetRepository);
     }
 
 
