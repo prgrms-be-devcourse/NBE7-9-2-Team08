@@ -1,15 +1,19 @@
 package com.backend.domain.community.controller;
 
 import com.backend.domain.analysis.dto.response.AnalysisResultResponseDto;
+import com.backend.domain.analysis.dto.response.HistoryResponseDto;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
 import com.backend.domain.community.dto.CommunityResponseDto;
 import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.service.UserService;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,38 +26,37 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/communtiy")
+@RequestMapping("/api/community")
 public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
-    private final UserService userService;
 
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
-    @GetMapping("/reposioties")
+    @GetMapping("/repositories")
     public ResponseEntity<List<CommunityResponseDto>> getPublicRepositories(){
-        List<Repositories> repositories = communityService.getCommunityRepository();
-        List<CommunityResponseDto> publicRepositories = new ArrayList<>();
+        // publicRepository가 true인 리포지토리 조회
+        List<Repositories> publicRepository = communityService.getRepositoriesPublicTrue();
+        List<CommunityResponseDto> communityRepositories = new ArrayList<>();
 
-        for(Repositories repo : repositories) {
-            Optional<AnalysisResult> optionalAnalysis = analysisService.findByRepositoryId(repo.getId());
-            if (optionalAnalysis.isPresent()) {
-                AnalysisResult analysisResult = optionalAnalysis.get();
+        for(Repositories repo : publicRepository){
+            List <AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
+
+            if(!(publicRepository.isEmpty())){ // 비어있지 않으면
+
+                // 가장 첫번째 값만 사용 : List가 정렬되어서 반환되기 때문에 가장 최신값 사용
+                AnalysisResult analysisResult = analysisList.get(0);
                 Score score = analysisResult.getScore();
-
                 List<String> languages = repositoryService.findLanguagesByRepisotryId(repo.getId())
                         .stream()
                         .map(Enum::name) // RepositoryLanguage -> Language enum
                         .toList();
 
-                User user = repositoryService.findUserByRepositoriesId(repo.getId());
-
-                CommunityResponseDto dto = new CommunityResponseDto(user.getName(), repo.getName(), analysisResult.getSummary(), languages, score.getTotalScore());
-                publicRepositories.add(dto);
+                CommunityResponseDto dto = new CommunityResponseDto(repo, analysisResult, score);
+                communityRepositories.add(dto);
             }
-
         }
 
-        return ResponseEntity.ok(publicRepositories);
+        return ResponseEntity.ok(communityRepositories);
     }
 }

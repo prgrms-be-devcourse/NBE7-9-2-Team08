@@ -65,6 +65,9 @@ public class AnalysisService {
 
     // AnalysisResult를 list로 반환
     public List<AnalysisResult> getAnalysisResultList(Long RepositoriesId){
-        return analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
+        List<AnalysisResult> resultsList = analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
+        // 정렬해서 반환
+        resultsList.sort((a, b) -> b.getCreateDate().compareTo(a.getCreateDate()));
+        return resultsList;
     }
 }

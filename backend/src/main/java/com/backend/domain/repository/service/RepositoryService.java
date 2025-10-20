@@ -139,7 +139,5 @@ public class RepositoryService {
         }
     }
 
-    public User findUserByRepositoriesId(Long repositoriesId) {
-        return repositoryJpaRepository.findUserById(repositoriesId);
-    }
+
 }

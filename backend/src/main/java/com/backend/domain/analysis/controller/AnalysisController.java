@@ -53,7 +53,6 @@ public class AnalysisController {
                 historyList.add(dto);
             }
         }
-
         // 최신순 정렬
         historyList.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
@@ -65,7 +64,6 @@ public class AnalysisController {
     public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
         List<AnalysisResult> optionalResult = analysisService.getAnalysisResultList(repoId);
         List<AnalysisResultResponseDto> resultList = new ArrayList<>();
-
 
         for(AnalysisResult result : optionalResult){
             Score score = result.getScore();

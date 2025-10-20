@@ -20,5 +20,5 @@ public interface RepositoryJpaRepository extends JpaRepository<Repositories, Lon
     @Query("SELECT rl.language FROM RepositoryLanguage rl WHERE rl.repositories.id = :repositoryId")
     List<Language> findLanguagesByRepositoryId(@Param("repositoryId") Long repositoryId);
 
-    User findUserById(Long repositoriesId);
+    List<Repositories> findByPublicRepository(boolean b);
 }

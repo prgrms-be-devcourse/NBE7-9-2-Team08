@@ -9,21 +9,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record CommunityResponseDto(
-    String userName,
-    String repositoryName,
-    String summary,
-    List<String> language,
-    int totalScore
+        String userName,
+        String repositoryName,
+        String summary,
+        List<String> language,
+        int totalScore,
+        boolean vewingStatus
 ) {
-    public CommunityResponseDto(User user, Repositories repositories, AnalysisResult analysis, Score score){
+    public CommunityResponseDto(Repositories repositories, AnalysisResult analysis, Score score) {
         this(
-                user.getName(),
+                repositories.getUser().getName(),
                 repositories.getName(),
                 analysis.getSummary(),
                 repositories.getLanguages().stream()
                         .map(language -> language.getLanguage().name())
                         .collect(Collectors.toList()),
-                score.getTotalScore()
+                score.getTotalScore(),
+                repositories.isPublicRepository()
         );
     }
 }
