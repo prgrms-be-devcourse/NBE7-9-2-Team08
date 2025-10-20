@@ -54,7 +54,7 @@ public class CommunityController {
     }
 
     // 댓글 작성
-    @PostMapping("/{analysisResultId}/comments")
+    @PostMapping("/{analysisResultId}/write")
     public ResponseEntity<CommentResponseDto> addComment(
             @PathVariable Long analysisResultId,
             @RequestBody CommentRequestDto requestDto
@@ -78,5 +78,24 @@ public class CommunityController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/delete/{commentId}")
+    public ResponseEntity<String> deleteCommnt(
+            @PathVariable Long commentId
+    ){
+        communityService.deleteComment(commentId);
+        return ResponseEntity.ok("댓글 삭제 완료");
+    }
+
+    // 댓글 수정
+    @PatchMapping("/modify/{commentId}/comment")
+    public ResponseEntity<String> modifyComment(
+            @PathVariable Long commentId,
+            @RequestBody String newComment
+    ){
+        communityService.modifyComment(commentId, newComment);
+        return ResponseEntity.ok("댓글 수정 완료");
     }
 }

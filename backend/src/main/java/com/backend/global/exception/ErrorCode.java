@@ -24,7 +24,10 @@ public enum ErrorCode {
     GITHUB_RATE_LIMIT_EXCEEDED("G003", HttpStatus.TOO_MANY_REQUESTS, "GitHub API 호출 제한을 초과했습니다."),
     GITHUB_INVALID_TOKEN("G004", HttpStatus.UNAUTHORIZED, "GitHub 인증 토큰이 유효하지 않습니다."),
     GITHUB_RESPONSE_PARSE_ERROR("G005", HttpStatus.INTERNAL_SERVER_ERROR, "GitHub 응답 데이터를 처리하는 중 오류가 발생했습니다."),
-    GITHUB_API_FAILED("G006", HttpStatus.BAD_REQUEST, "GitHub API 응답에 실패했습니다.");
+    GITHUB_API_FAILED("G006", HttpStatus.BAD_REQUEST, "GitHub API 응답에 실패했습니다."),
+
+    // ========== comment 도메인 에러 ==========
+    COMMENT_NOT_FOUND("R001", HttpStatus.BAD_REQUEST, "댓글을 찾을 수 없습니다.");
 
 
     private final String code;

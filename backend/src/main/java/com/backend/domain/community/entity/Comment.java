@@ -2,6 +2,8 @@ package com.backend.domain.community.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.global.entity.BaseEntity;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,8 +31,9 @@ public class Comment extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String comment;
 
-    public void setAnalysisResult(AnalysisResult analysisResult) {
-        this.analysisResult = analysisResult;
-        analysisResult.getComments().add(this);
-    }
-}
+    public void updateComment(String newContent) {
+        if (newContent == null || newContent.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.comment = newContent;
+    }}

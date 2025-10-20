@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -49,4 +50,24 @@ public class CommunityService {
         return commentRepository.findByAnalysisResult_Id(analysisResultId);
     }
 
+    // 댓글 삭제
+    public void deleteComment(Long commentId){
+        if(commentId == null){
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Comment targetComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        commentRepository.delete(targetComment);
+    }
+
+    // 댓글 수정
+    public void modifyComment(Long commentId, String newContent){
+
+        Comment targetComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        targetComment.updateComment(newContent);
+    }
 }
