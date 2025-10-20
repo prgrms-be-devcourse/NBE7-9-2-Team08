@@ -8,8 +8,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +22,8 @@ public class JwtUtil {
     @Value("${jwt.access-token-expiration-in-milliseconds}")
     private int tokenValidityMilliSeconds;
 
-    //SecretKey를 Base64로 인코딩하여 Key객체로 변환
-    private Key key;
+    //SecretKey를 Base64로 인코딩하여 SecretKey객체로 변환
+    private SecretKey key;
 
     //key값 초기화
     @PostConstruct  //의존성 주입이 될때 딱 1번만 실행되기 때문에 key값은 이후로 변하지 않음
@@ -39,9 +39,7 @@ public class JwtUtil {
         claims.put("name", name);
 
         Date now = new Date();
-        System.out.println("now : "+now.getTime());
         Date expiration = new Date(now.getTime() + tokenValidityMilliSeconds);
-        System.out.println("expiration : "+expiration.getTime());
         return Jwts.builder()
                 .claims(claims)
                 .issuedAt(now)
@@ -50,4 +48,13 @@ public class JwtUtil {
                 .compact();
     }
 
+    //JWT 검증 및 Claims 추출
+    public Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+    }
 }

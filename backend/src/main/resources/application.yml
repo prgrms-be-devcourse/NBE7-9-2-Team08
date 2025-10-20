@@ -43,4 +43,4 @@ github:
 
 jwt:
   secret: ${SECRET_KEY}
-  access-token-expiration-in-milliseconds: 600000
+  access-token-expiration-in-milliseconds: 600000 # 600 * 1000
