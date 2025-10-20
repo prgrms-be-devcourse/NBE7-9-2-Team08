@@ -1,5 +1,6 @@
 package com.backend.domain.analysis.service;
 
+import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
@@ -20,6 +21,8 @@ import java.util.Optional;
 public class AnalysisService {
     private final RepositoryService repositoryService;
     private final AnalysisResultRepository analysisResultRepository;
+    private final EvaluationService evaluationService;  // ★ 추가
+
 
     @Transactional
     public void analyze(String githubUrl) {
@@ -32,7 +35,8 @@ public class AnalysisService {
 
         log.info("🫠 ResponseData: {}", repositoryData);
         // TODO: AI 평가
-        // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
+        evaluationService.evaluateAndSave(repositoryData); // ★ 이 한 줄로 끝!
+
 
         // TODO: AI 평가 저장
     }
