@@ -1,29 +1,21 @@
 package com.backend.domain.community.controller;
 
-import com.backend.domain.analysis.dto.response.AnalysisResultResponseDto;
-import com.backend.domain.analysis.dto.response.HistoryResponseDto;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
-import com.backend.domain.community.dto.CommunityResponseDto;
+import com.backend.domain.community.dto.request.CommentRequestDto;
+import com.backend.domain.community.dto.response.CommentResponseDto;
+import com.backend.domain.community.dto.response.CommunityResponseDto;
+import com.backend.domain.community.entity.Comment;
 import com.backend.domain.community.service.CommunityService;
-import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
-import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.RepositoryService;
-import com.backend.domain.user.entity.User;
-import com.backend.domain.user.service.UserService;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -58,7 +50,33 @@ public class CommunityController {
                 communityRepositories.add(dto);
             }
         }
-
         return ResponseEntity.ok(communityRepositories);
+    }
+
+    // 댓글 작성
+    @PostMapping("/{analysisResultId}/comments")
+    public ResponseEntity<CommentResponseDto> addComment(
+            @PathVariable Long analysisResultId,
+            @RequestBody CommentRequestDto requestDto
+    ) {
+        Comment saved = communityService.addComment(
+                analysisResultId,
+                requestDto.memberId(),
+                requestDto.comment()
+        );
+        return ResponseEntity.ok(new CommentResponseDto(saved));
+    }
+
+    // 댓글 조회
+    @GetMapping("/{analysisResultId}/comments")
+    public ResponseEntity<List<CommentResponseDto>> getCommentsByAnalysisResult(
+            @PathVariable Long analysisResultId
+    ) {
+        List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
+        List<CommentResponseDto> response = comments.stream()
+                .map(CommentResponseDto::new)
+                .toList();
+
+        return ResponseEntity.ok(response);
     }
 }

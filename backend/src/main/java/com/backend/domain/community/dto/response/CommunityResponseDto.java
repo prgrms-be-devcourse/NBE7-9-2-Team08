@@ -1,9 +1,8 @@
-package com.backend.domain.community.dto;
+package com.backend.domain.community.dto.response;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.repository.entity.Repositories;
-import com.backend.domain.user.entity.User;
 
 import java.util.List;
 import java.util.stream.Collectors;

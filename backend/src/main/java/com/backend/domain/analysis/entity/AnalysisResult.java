@@ -39,6 +39,6 @@ public class AnalysisResult {
     @OneToOne(mappedBy = "analysisResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Score score;
 
-    @OneToMany(mappedBy = "analysisResultId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 }
