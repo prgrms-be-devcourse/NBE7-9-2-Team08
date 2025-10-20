@@ -34,11 +34,9 @@ public class AnalysisService {
         RepositoryData repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
 
         log.info("🫠 ResponseData: {}", repositoryData);
-        // TODO: AI 평가
-        evaluationService.evaluateAndSave(repositoryData); // ★ 이 한 줄로 끝!
+        // TODO: AI 평가, 저장
+        evaluationService.evaluateAndSave(repositoryData); //
 
-
-        // TODO: AI 평가 저장
     }
 
     private String[] parseGitHubUrl(String githubUrl) {
