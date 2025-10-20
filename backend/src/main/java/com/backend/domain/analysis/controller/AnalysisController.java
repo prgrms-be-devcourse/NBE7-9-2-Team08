@@ -129,4 +129,14 @@ public class AnalysisController {
         analysisService.deleteAnalysisResult(analysisId, memberId);
         return ResponseEntity.ok(ApiResponse.success());
     }
+
+    // 분석 결과 공개 여부 변경
+    @PutMapping("/{memberId}/repositories/{repositoryId}/public")
+    public ResponseEntity updatePublicStatus(
+            @PathVariable Long memberId,
+            @PathVariable Long repositoryId
+    ) {
+        analysisService.updatePublicStatus(repositoryId, memberId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
 }

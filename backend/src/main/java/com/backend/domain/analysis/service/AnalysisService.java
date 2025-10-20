@@ -117,6 +117,7 @@ public class AnalysisService {
         repositoryJpaRepository.delete(targetRepository);
     }
 
+    // 특정 분석 결과 삭제
     @Transactional
     public void deleteAnalysisResult(Long analysisResultId, Long memberId) {
         if (analysisResultId == null) {
@@ -127,5 +128,26 @@ public class AnalysisService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
 
         analysisResultRepository.delete(analysisResult);
+    }
+
+    // 분석 결과 공개 여부 변경
+    @Transactional
+    public Repositories updatePublicStatus(Long repositoryId, Long memberId) {
+        Repositories repository = repositoryJpaRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        boolean newStatus = !repository.isPublic();
+
+        if (newStatus) {
+            long analysisCount = analysisResultRepository
+                    .countByRepositoriesId(repositoryId);
+
+            if (analysisCount == 0) {
+                throw new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND);
+            }
+        }
+
+        repository.updatePublicStatus(newStatus);
+        return repository;
     }
 }
