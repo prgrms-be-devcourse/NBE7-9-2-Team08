@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -123,19 +122,17 @@ public class RepositoryService {
         return repositoryJpaRepository.findByUserId(userId);
     }
 
-    // GitRepository ID로 언어 조회
+    // Repository ID로 언어 조회
     public List<Language> findLanguagesByRepisotryId(Long gitRepositoryId){
         return repositoryJpaRepository.findLanguagesByRepositoryId(gitRepositoryId);
     }
 
     // repository 삭제
+    @Transactional
     public void delete(Long repositoriesId){
-        Optional<Repositories> optionalRepository = repositoryJpaRepository.findById(repositoriesId);
-        if(optionalRepository.isPresent()){
-            Repositories targetRepository = optionalRepository.get();
-            repositoryJpaRepository.delete(targetRepository);
-        }else{
-            throw new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
-        }
+        Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        repositoryJpaRepository.delete(targetRepository);
     }
 }
