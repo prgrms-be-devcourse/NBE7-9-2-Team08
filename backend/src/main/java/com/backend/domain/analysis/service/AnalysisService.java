@@ -28,9 +28,16 @@ public class AnalysisService {
         String repo = repoInfo[1];
 
         // Repository 데이터 수집
-        RepositoryData repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
+        RepositoryData repositoryData;
 
-        log.info("🫠 ResponseData: {}", repositoryData);
+        try {
+            repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
+            log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
+        } catch (BusinessException e) {
+            log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
+            throw handleRepositoryFetchError(e, owner, repo);
+        }
+
         // TODO: AI 평가
         // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
 
@@ -60,6 +67,16 @@ public class AnalysisService {
 
         log.info("🚩 파싱 완료 - owner: '{}', repo: '{}'", parts[0].trim(), parts[1].trim());
         return new String[]{parts[0].trim(), parts[1].trim()};
+    }
+
+    private BusinessException handleRepositoryFetchError(BusinessException e, String owner, String repo) {
+        return switch (e.getErrorCode()) {
+            case GITHUB_REPO_NOT_FOUND ->
+                    new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
+            case GITHUB_RATE_LIMIT_EXCEEDED ->
+                    new BusinessException(ErrorCode.GITHUB_RATE_LIMIT_EXCEEDED);
+            default -> e;
+        };
     }
 
     // AnalysisRresult에서 repository id로 분석 결과 찾기
