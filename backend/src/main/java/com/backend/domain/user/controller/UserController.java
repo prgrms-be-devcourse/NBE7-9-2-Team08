@@ -4,12 +4,10 @@ import com.backend.domain.user.dto.UserDto;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.service.UserService;
 import com.backend.global.response.ApiResponse;
-import com.backend.global.response.ResponseCode;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -163,31 +161,4 @@ public class UserController {
         return ApiResponse.success(new RestoreResponse(new UserDto(user)));
     }
 
-/*
-    *//**
-     * 로그인
-     *//*
-    record LoginRequest(
-        @NotBlank(message = "이메일은 필수 입력값 입니다.")
-        @Email(message = "이메일 형식이 아닙니다.")
-        String email,
-
-        @NotBlank(message = "비밀번호는 필수 입력값 입니다.")
-        String password
-    ){
-
-    }
-
-    record LoginResponse(
-
-    ){
-
-    }
-
-    @PostMapping("/api/user/login")
-    public ApiResponse<LoginResponse> login(
-            @Valid @RequestBody LoginRequest loginRequest
-    ){
-
-    }*/
 }
