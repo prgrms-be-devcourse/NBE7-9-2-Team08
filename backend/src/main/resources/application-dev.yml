@@ -1,11 +1,12 @@
 spring:
   datasource:
-    #url: jdbc:mysql://localhost:3306/my_project_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    #username: user
-    #password: 1234
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    driver-class-name: org.h2.Driver
+    #url: jdbc:mysql://localhost:3306/my_project_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #username: user
+    #password: 1234
   mail:
     host: smtp.gmail.com         # ✅ Gmail SMTP 서버 주소 (고정)
     port: 587                    # ✅ TLS/STARTTLS를 위한 포트 (고정)
@@ -26,3 +27,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        # 🚨 H2 Dialect를 명시적으로 설정 🚨
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

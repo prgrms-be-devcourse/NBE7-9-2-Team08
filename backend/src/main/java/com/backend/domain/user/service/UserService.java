@@ -48,7 +48,7 @@ public class UserService {
 
         //검증이 완료되었다면 해당 email을 redis에서 삭제
         if(redisUtil.deleteData("VERIFIED_EMAIL:" + email)) {
-            System.out.println("VERIFIED_EMAIL:" + email + "은 삭제가 됐습니다.");
+            System.out.println("VERIFIED_EMAIL:" + email + "은 email검증이 완료되어서 redis에서 삭제가 됐습니다.");
         }else{
             System.out.println("redis 삭제 실패입니다.");
         }
