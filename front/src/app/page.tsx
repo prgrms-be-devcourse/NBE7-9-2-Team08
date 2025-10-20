@@ -12,6 +12,7 @@ export default function LandingPage() {
   const handleStartAnalysis = () => {
     if (!isAuthed) {
       alert("로그인해주세요")
+      router.push("/login")
       return
     }
     router.push("/analysis")
@@ -20,6 +21,7 @@ export default function LandingPage() {
   const handleGoCommunity = () => {
     if (!isAuthed) {
       alert("로그인해주세요")
+      router.push("/login")
       return
     }
     router.push("/community")
