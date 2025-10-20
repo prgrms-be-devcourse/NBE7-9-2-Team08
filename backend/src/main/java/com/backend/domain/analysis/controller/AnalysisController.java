@@ -1,16 +1,13 @@
 package com.backend.domain.analysis.controller;
 
-import com.backend.domain.analysis.dto.HistoryResponseDto;
+import com.backend.domain.analysis.dto.response.AnalysisResultResponseDto;
+import com.backend.domain.analysis.dto.response.HistoryResponseDto;
 import com.backend.domain.analysis.dto.request.AnalysisRequest;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
-import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
-import com.backend.domain.repository.entity.RepositoryLanguage;
 import com.backend.domain.repository.service.RepositoryService;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,14 +31,14 @@ public class AnalysisController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
-    @GetMapping("/user/{memberId}")
+    @GetMapping("/user/repository/{memberId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<HistoryResponseDto>> getMemberHistory(@PathVariable Long memberId){
         List<Repositories> repositories = repositoryService.findRepositoryByMember(memberId);
         List<HistoryResponseDto> historyList = new ArrayList<>();
 
         for (Repositories repo : repositories) {
-            Optional<AnalysisResult> optionalAnalysis = analysisService.findAnalysisResultByRepositoryId(repo.getId());
+            Optional<AnalysisResult> optionalAnalysis = analysisService.findByRepositoryId(repo.getId());
 
             if (optionalAnalysis.isPresent()) { // 존재하는지 확인
                 AnalysisResult analysisResult = optionalAnalysis.get();
@@ -61,5 +58,21 @@ public class AnalysisController {
         historyList.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
         return ResponseEntity.ok(historyList);
+    }
+
+    @GetMapping("repository/{repositoriesId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
+        List<AnalysisResult> optionalResult = analysisService.getAnalysisResultList(repoId);
+        List<AnalysisResultResponseDto> resultList = new ArrayList<>();
+
+
+        for(AnalysisResult result : optionalResult){
+            Score score = result.getScore();
+            AnalysisResultResponseDto dto = new AnalysisResultResponseDto(result, score);
+            resultList.add(dto);
+        }
+
+        return ResponseEntity.ok(resultList);
     }
 }
