@@ -40,7 +40,11 @@ public class AnalysisService {
     private String[] parseGitHubUrl(String githubUrl) {
         log.info("🚩 분석 요청 url: {}", githubUrl);
 
-        if (githubUrl == null || !githubUrl.startsWith("https://github.com/")) {
+        if (githubUrl == null) {
+            throw new BusinessException(ErrorCode.INVALID_GITHUB_URL);
+        }
+
+        if (!githubUrl.startsWith("https://github.com/")) {
             throw new BusinessException(ErrorCode.INVALID_GITHUB_URL);
         }
 
