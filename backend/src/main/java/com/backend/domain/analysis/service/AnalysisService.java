@@ -1,5 +1,7 @@
 package com.backend.domain.analysis.service;
 
+import com.backend.domain.evaluation.service.EvaluationService;
+import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.repository.dto.response.RepositoryData;
@@ -19,6 +21,8 @@ import java.util.List;
 public class AnalysisService {
     private final RepositoryService repositoryService;
     private final AnalysisResultRepository analysisResultRepository;
+    private final EvaluationService evaluationService;  // ★ 추가
+
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -35,6 +39,8 @@ public class AnalysisService {
         // Repository 데이터 수집
         RepositoryData repositoryData;
 
+//        log.info("🫠 ResponseData: {}", repositoryData);
+        // TODO: AI 평가, 저장
         try {
             repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
             log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
@@ -42,11 +48,11 @@ public class AnalysisService {
             log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
             throw handleRepositoryFetchError(e, owner, repo);
         }
+        evaluationService.evaluateAndSave(repositoryData); //
 
         // TODO: AI 평가
         // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
 
-        // TODO: AI 평가 저장
     }
 
     // GitHub URL 파싱하여 owner와 repo 이름 추출

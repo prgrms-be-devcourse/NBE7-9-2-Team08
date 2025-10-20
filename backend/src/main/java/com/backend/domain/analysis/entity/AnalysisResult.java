@@ -33,6 +33,7 @@ public class AnalysisResult {
     @Column(nullable = false, name = "createData")
     private LocalDateTime createDate;
 
+    @Setter
     @OneToOne(mappedBy = "analysisResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Score score;
 }
