@@ -4,6 +4,7 @@ import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
 import com.backend.domain.community.dto.request.CommentRequestDto;
+import com.backend.domain.community.dto.request.CommentUpdateRequestDto;
 import com.backend.domain.community.dto.response.CommentResponseDto;
 import com.backend.domain.community.dto.response.CommunityResponseDto;
 import com.backend.domain.community.entity.Comment;
@@ -93,9 +94,9 @@ public class CommunityController {
     @PatchMapping("/modify/{commentId}/comment")
     public ResponseEntity<String> modifyComment(
             @PathVariable Long commentId,
-            @RequestBody String newComment
-    ){
-        communityService.modifyComment(commentId, newComment);
+            @RequestBody CommentUpdateRequestDto updateDto
+            ){
+        communityService.modifyComment(commentId, updateDto.newComment());
         return ResponseEntity.ok("댓글 수정 완료");
     }
 }

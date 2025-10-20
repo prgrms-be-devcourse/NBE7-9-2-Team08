@@ -2,8 +2,6 @@ package com.backend.domain.community.entity;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.global.entity.BaseEntity;
-import com.backend.global.exception.BusinessException;
-import com.backend.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,7 +31,7 @@ public class Comment extends BaseEntity {
 
     public void updateComment(String newContent) {
         if (newContent == null || newContent.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+            throw new IllegalArgumentException("댓글 내용은 비어 있을 수 없습니다.");
         }
         this.comment = newContent;
     }}
