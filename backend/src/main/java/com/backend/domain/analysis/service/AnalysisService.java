@@ -28,6 +28,7 @@ public class AnalysisService {
         // Repository 데이터 수집
         RepositoryData repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
 
+        log.info("🫠 ResponseData: {}", repositoryData);
         // TODO: AI 평가
         // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
 
