@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
