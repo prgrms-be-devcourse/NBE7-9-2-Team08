@@ -25,12 +25,14 @@ public class AnalysisController {
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
 
+    // POST: 분석 요청
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> analyzeRepository(@RequestBody AnalysisRequest request) {
         analysisService.analyze(request.githubUrl());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    // GET: 사용자 히스토리 전체 목록 조회
     @GetMapping("/user/repository/{memberId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<HistoryResponseDto>> getMemberHistory(@PathVariable Long memberId){
@@ -60,6 +62,7 @@ public class AnalysisController {
         return ResponseEntity.ok(historyList);
     }
 
+    // GET: 사용자 분석 결과 조회
     @GetMapping("repository/{repositoriesId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
