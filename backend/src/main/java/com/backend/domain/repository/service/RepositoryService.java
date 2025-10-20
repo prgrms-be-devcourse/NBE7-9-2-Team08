@@ -138,4 +138,8 @@ public class RepositoryService {
             throw new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
         }
     }
+
+    public User findUserByRepositoriesId(Long repositoriesId) {
+        return repositoryJpaRepository.findUserById(repositoriesId);
+    }
 }

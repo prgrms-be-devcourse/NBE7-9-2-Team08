@@ -64,7 +64,7 @@ public class AnalysisService {
     }
 
     // AnalysisResult를 list로 반환
-    public List<AnalysisResult> getAnalysisResultList(Long RepositoryId){
-        return analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoryId);
+    public List<AnalysisResult> getAnalysisResultList(Long RepositoriesId){
+        return analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
     }
 }

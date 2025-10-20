@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    static List<Repositories> findByPublicReposiotry(boolean b) {}
+    List<Repositories> findByPublicReposiotry(boolean b);
 }

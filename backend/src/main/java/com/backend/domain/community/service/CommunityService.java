@@ -13,11 +13,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommunityService {
+    private final CommentRepository commentRepository;
 
     // repository 조회 : publicRepository = true
     public List<Repositories> getCommunityRepository(){
-        return CommentRepository.findByPublicReposiotry(true);
+        return commentRepository.findByPublicReposiotry(true);
     }
 
-    // repository에 댓글 달
+    // repository에 댓글 달기
 }
