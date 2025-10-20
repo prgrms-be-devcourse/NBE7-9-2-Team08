@@ -20,11 +20,4 @@ public class CommunityService {
     public List<Repositories> getRepositoriesPublicTrue(){
         return repositoryJpaRepository.findByPublicRepository(true);
     }
-
-    // 리포지토리에 댓글 작성
-    public Comment addComment(String content){
-        Comment comment = new Comment(content, this);
-        this.comments.add(comment);
-        return comment;
-    }
 }

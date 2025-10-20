@@ -1,10 +1,13 @@
 package com.backend.domain.analysis.entity;
 
+import com.backend.domain.community.entity.Comment;
 import com.backend.domain.repository.entity.Repositories;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table (name = "analysis_result")
@@ -35,4 +38,7 @@ public class AnalysisResult {
 
     @OneToOne(mappedBy = "analysisResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Score score;
+
+    @OneToMany(mappedBy = "analysisResultId", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 }

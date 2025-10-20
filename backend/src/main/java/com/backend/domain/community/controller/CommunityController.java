@@ -7,6 +7,7 @@ import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
 import com.backend.domain.community.dto.CommunityResponseDto;
 import com.backend.domain.community.service.CommunityService;
+import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.RepositoryService;
@@ -42,14 +43,15 @@ public class CommunityController {
         for(Repositories repo : publicRepository){
             List <AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
 
-            if(!(publicRepository.isEmpty())){ // 비어있지 않으면
+            if(!(repo == null)){ // 비어있지 않으면
 
                 // 가장 첫번째 값만 사용 : List가 정렬되어서 반환되기 때문에 가장 최신값 사용
                 AnalysisResult analysisResult = analysisList.get(0);
                 Score score = analysisResult.getScore();
-                List<String> languages = repositoryService.findLanguagesByRepisotryId(repo.getId())
+
+                List<String> languages = repositoryService.getLanguageByRepositoriesId(repo.getId())
                         .stream()
-                        .map(Enum::name) // RepositoryLanguage -> Language enum
+                        .map(Enum::name)
                         .toList();
 
                 CommunityResponseDto dto = new CommunityResponseDto(repo, analysisResult, score);

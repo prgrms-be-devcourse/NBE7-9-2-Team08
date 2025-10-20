@@ -50,7 +50,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/analysis/**",
                                 "/api/repositories/**",
-                                "/api/ai/complete/**"
+                                "/api/ai/complete/**",
+                                "/api/community/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
