@@ -4,6 +4,7 @@ import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
+import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -24,6 +24,12 @@ public class AnalysisService {
     private final EvaluationService evaluationService;  // ★ 추가
 
 
+    /* Analysis 분석 프로세스 오케스트레이션 담당
+    * 1. GitHub URL 파싱 및 검증
+    * 2. Repository 도메인을 통한 데이터 수집
+    * 3. Evaluation 도메인을 통한 AI 평가
+    * 4. 분석 결과 저장
+    * */
     @Transactional
     public void analyze(String githubUrl) {
         String[] repoInfo = parseGitHubUrl(githubUrl);
@@ -31,18 +37,33 @@ public class AnalysisService {
         String repo = repoInfo[1];
 
         // Repository 데이터 수집
-        RepositoryData repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
+        RepositoryData repositoryData;
 
-        log.info("🫠 ResponseData: {}", repositoryData);
+//        log.info("🫠 ResponseData: {}", repositoryData);
         // TODO: AI 평가, 저장
+        try {
+            repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
+            log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
+        } catch (BusinessException e) {
+            log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
+            throw handleRepositoryFetchError(e, owner, repo);
+        }
         evaluationService.evaluateAndSave(repositoryData); //
+
+        // TODO: AI 평가
+        // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
 
     }
 
+    // GitHub URL 파싱하여 owner와 repo 이름 추출
     private String[] parseGitHubUrl(String githubUrl) {
         log.info("🚩 분석 요청 url: {}", githubUrl);
 
-        if (githubUrl == null || !githubUrl.startsWith("https://github.com/")) {
+        if (githubUrl == null) {
+            throw new BusinessException(ErrorCode.INVALID_GITHUB_URL);
+        }
+
+        if (!githubUrl.startsWith("https://github.com/")) {
             throw new BusinessException(ErrorCode.INVALID_GITHUB_URL);
         }
 
@@ -60,13 +81,25 @@ public class AnalysisService {
         return new String[]{parts[0].trim(), parts[1].trim()};
     }
 
-    // AnalysisRresult에서 repository id로 분석 결과 찾기
-    public Optional<AnalysisResult> findByRepositoryId(Long RepositoryId) {
-        return analysisResultRepository.findByRepositoriesId(RepositoryId);
+    // Repository 데이터 수집 중 발생한 예외 처리
+    private BusinessException handleRepositoryFetchError(BusinessException e, String owner, String repo) {
+        return switch (e.getErrorCode()) {
+            case GITHUB_REPO_NOT_FOUND ->
+                    new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND);
+            case GITHUB_RATE_LIMIT_EXCEEDED ->
+                    new BusinessException(ErrorCode.GITHUB_RATE_LIMIT_EXCEEDED);
+            default -> e;
+        };
     }
 
-    // AnalysisResult를 list로 반환
-    public List<AnalysisResult> getAnalysisResultList(Long RepositoryId){
-        return analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoryId);
+    // 특정 Repository의 모든 분석 결과 조회 (최신순)
+    public List<AnalysisResult> getAnalysisResultList(Long repositoryId){
+        return analysisResultRepository.findAnalysisResultByRepositoriesId(repositoryId);
+    }
+
+    // 분석 결과 ID로 단건 조회
+    public AnalysisResult getAnalysisById(Long analysisId) {
+        return analysisResultRepository.findById(analysisId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
     }
 }

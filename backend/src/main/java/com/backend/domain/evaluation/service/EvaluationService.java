@@ -79,7 +79,7 @@ public class EvaluationService {
                     You are a senior software engineering reviewer.
                     Analyze the given GitHub repository data and return ONLY a valid JSON. No commentary.
 
-                    Scoring: total 100 (README 0~25, TEST 0~25, COMMIT 0~25, CICD 0~25).
+                    Scoring: total 100 (README 0~30, TEST 0~30, COMMIT 0~25, CICD 0~15).
                     Consider test folders, CI configs (.github/workflows), commit frequency/messages, README depth, etc.
 
                     JSON schema:
