@@ -39,27 +39,33 @@ public class AnalysisController {
     }
 
     // GET: 사용자 히스토리 전체 목록 조회
-    @GetMapping("/user/repository/{memberId}")
+    @GetMapping("/{memberId}")
     @Transactional(readOnly = true)
     public ResponseEntity<List<HistoryResponseDto>> getMemberHistory(@PathVariable Long memberId){
+        if (memberId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         List<Repositories> repositories = repositoryService.findRepositoryByMember(memberId);
         List<HistoryResponseDto> historyList = new ArrayList<>();
 
         for (Repositories repo : repositories) {
             Optional<AnalysisResult> optionalAnalysis = analysisService.findByRepositoryId(repo.getId());
 
-            if (optionalAnalysis.isPresent()) { // 존재하는지 확인
-                AnalysisResult analysisResult = optionalAnalysis.get();
-                Score score = analysisResult.getScore();
-
-                List<String> languages = repositoryService.findLanguagesByRepisotryId(repo.getId())
-                        .stream()
-                        .map(Enum::name) // RepositoryLanguage -> Language enum
-                        .toList();
-
-                HistoryResponseDto dto = new HistoryResponseDto(repo, analysisResult, score, languages);
-                historyList.add(dto);
+            if (optionalAnalysis.isEmpty()) {
+                continue;
             }
+
+            AnalysisResult analysisResult = optionalAnalysis.get();
+            Score score = analysisResult.getScore();
+
+            List<String> languages = repositoryService.findLanguagesByRepisotryId(repo.getId())
+                    .stream()
+                    .map(Enum::name) // RepositoryLanguage -> Language enum
+                    .toList();
+
+            HistoryResponseDto dto = new HistoryResponseDto(repo, analysisResult, score, languages);
+            historyList.add(dto);
         }
 
         // 최신순 정렬
@@ -69,9 +75,12 @@ public class AnalysisController {
     }
 
     // GET: 사용자 분석 결과 조회
-    @GetMapping("repository/{repositoriesId}")
+    @GetMapping("/{memberId}/{repositoriesId}")
     @Transactional(readOnly = true)
-    public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(@PathVariable("repositoriesId") Long repoId){
+    public ResponseEntity<List<AnalysisResultResponseDto>> getAnalysisByRepositoriesId(
+            @PathVariable("memberId") Long memberId,
+            @PathVariable("repositoriesId") Long repoId
+    ){
         List<AnalysisResult> optionalResult = analysisService.getAnalysisResultList(repoId);
         List<AnalysisResultResponseDto> resultList = new ArrayList<>();
 
