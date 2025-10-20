@@ -1,9 +1,8 @@
-package com.backend.domain.analysis.dto;
+package com.backend.domain.analysis.dto.response;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.repository.entity.Repositories;
-import com.backend.domain.repository.entity.RepositoryLanguage;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -57,7 +59,12 @@ public class AnalysisService {
     }
 
     // AnalysisRresult에서 repository id로 분석 결과 찾기
-    public Optional<AnalysisResult> findAnalysisResultByRepositoryId (Long RepositoryId){
+    public Optional<AnalysisResult> findByRepositoryId(Long RepositoryId) {
         return analysisResultRepository.findByRepositoriesId(RepositoryId);
+    }
+
+    // AnalysisResult를 list로 반환
+    public List<AnalysisResult> getAnalysisResultList(Long RepositoryId){
+        return analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoryId);
     }
 }
