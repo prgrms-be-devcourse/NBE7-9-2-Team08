@@ -1,5 +1,6 @@
 package com.backend.global.security;
 
+import com.backend.domain.user.service.JwtService;
 import com.backend.domain.user.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -57,7 +58,7 @@ public class SecurityConfig {
                 .formLogin(login -> login.disable())
                 .httpBasic(basic -> basic.disable())
                 //커스텀 JWT 필터를 등록
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, jwtService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
