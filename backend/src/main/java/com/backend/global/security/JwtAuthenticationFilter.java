@@ -1,5 +1,6 @@
 package com.backend.global.security;
 
+import com.backend.domain.user.service.JwtService;
 import com.backend.domain.user.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -19,25 +20,62 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final JwtService jwtService;
 
+    private record ExcludedRequest(String path, String method) {}
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authorizationHeader = request.getHeader("Authorization");
-        String token = null;
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
 
+        //  JWT 검증이 필요 없는 URL (회원가입, 로그인, 이메일 인증코드 발송,이메일 인증코드 검증)
+        List<ExcludedRequest> excludedRequests = List.of(
+                new ExcludedRequest("/api/login", "POST"),
+                new ExcludedRequest("/api/auth", "POST"),
+                new ExcludedRequest("/api/verify", "POST"),
+                new ExcludedRequest("/api/user", "POST")
+        );
+
+        // 요청 경로 + 메서드가 일치하는 경우 필터 스킵
+        boolean excluded = excludedRequests.stream()
+                .anyMatch(ex -> requestURI.startsWith(ex.path()) && ex.method().equalsIgnoreCase(method));
+
+        if (excluded) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        //
+        String authorizationHeader = request.getHeader("Authorization");
+        System.out.println("AuthorizationHeader: " + authorizationHeader);
+        
+
+        String token = null;
+        
         //"Bearer " 제거
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
             token = authorizationHeader.substring(7);
         }
+        //token이 null이거나 비어있다면 JWT가 입력되지 않은것으로 판단
+        if(token==null||token.isEmpty()){
+            sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token error : JWT가 입력되지 않았습니다.");
+            return;
+        }
 
         //토큰이 있다면 검증 및 인증
         if(token != null) {
+            //블랙리스트를 조회하여 토큰이 무효화 되었는지 확인
+            if(jwtService.isBlacklisted(token)){
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token Expired : 토큰이 무효되어 있습니다.(로그아웃 상태입니다.)");
+                return; //요청 차단
+            }
             try {
                 Claims claims = jwtUtil.parseClaims(token);
 
@@ -70,6 +108,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    //에러 발생시 메세지 처리
     private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(status);

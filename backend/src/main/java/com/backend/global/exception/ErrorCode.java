@@ -13,6 +13,10 @@ public enum ErrorCode {
     INVALID_TYPE_VALUE("CMN004", HttpStatus.BAD_REQUEST, "잘못된 타입의 값입니다."),
     MISSING_REQUEST_PARAMETER("CMN005", HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 
+    // ========== user 도메인 에러 ==========
+    Login_Failed("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
+    Email_verify_Failed("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
+
     // ========== analysis 도메인 에러 ==========
     INVALID_GITHUB_URL("A001", HttpStatus.BAD_REQUEST, "올바른 GitHub 저장소 URL이 아닙니다."),
     INVALID_REPOSITORY_PATH("A002", HttpStatus.BAD_REQUEST, "저장소 URL 형식이 잘못되었습니다. 예: https://github.com/{owner}/{repo}"),
@@ -24,7 +28,10 @@ public enum ErrorCode {
     GITHUB_RATE_LIMIT_EXCEEDED("G003", HttpStatus.TOO_MANY_REQUESTS, "GitHub API 호출 제한을 초과했습니다."),
     GITHUB_INVALID_TOKEN("G004", HttpStatus.UNAUTHORIZED, "GitHub 인증 토큰이 유효하지 않습니다."),
     GITHUB_RESPONSE_PARSE_ERROR("G005", HttpStatus.INTERNAL_SERVER_ERROR, "GitHub 응답 데이터를 처리하는 중 오류가 발생했습니다."),
-    GITHUB_API_FAILED("G006", HttpStatus.BAD_REQUEST, "GitHub API 응답에 실패했습니다.");
+    GITHUB_API_FAILED("G006", HttpStatus.BAD_REQUEST, "GitHub API 응답에 실패했습니다."),
+
+    // ========== comment 도메인 에러 ==========
+    COMMENT_NOT_FOUND("R001", HttpStatus.BAD_REQUEST, "댓글을 찾을 수 없습니다.");
 
 
     private final String code;
