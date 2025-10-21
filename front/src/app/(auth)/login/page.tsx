@@ -17,21 +17,24 @@ export default function LoginPage() {
   const toast = useToast();
   const auth = useAuth();
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const payload: LoginRequest = { username, password };
+    const payload: LoginRequest = { email, password };
     try {
       setLoading(true);
       const res = await authApi.login(payload);
-      if (res.accessToken) {
-        auth.loginWithToken(res.accessToken);
-      }
-      toast.push(res.message ?? '로그인 성공');
-      router.push('/');
+      
+      // 로그인 응답에서 사용자 정보 저장
+      auth.loginWithToken(res.user);
+      
+      toast.push('로그인 성공');
+      
+      // 페이지 리로드하여 상태 즉시 반영
+      window.location.href = '/';
     } catch (e: any) {
       toast.push(`로그인 실패: ${e.message}`);
     } finally {
@@ -54,8 +57,8 @@ export default function LoginPage() {
             <CardContent>
               <form className="space-y-6" onSubmit={submit}>
                 <div className="space-y-2">
-                  <Label htmlFor="username">아이디/email</Label>
-                  <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                  <Label htmlFor="email">이메일</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">비밀번호</Label>

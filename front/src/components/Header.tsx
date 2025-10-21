@@ -8,12 +8,16 @@ import { useAuth } from "@/hooks/auth/useAuth"
 
 export default function Header() {
   const router = useRouter()
-  const { isAuthed, logout } = useAuth()
+  const { isAuthed, logout, user, isLoadingUser } = useAuth()
+  
+  // user가 있으면 로그인된 것으로 간주
+  const isLoggedIn = isAuthed || !!user
+  
+  console.log('Header - isAuthed:', isAuthed, 'user:', user, 'isLoggedIn:', isLoggedIn)
 
-  const guardNav = (path: string) => () => {
-    if (!isAuthed) {
-      alert("로그인해주세요")
-      router.push("/login")
+  const guardNav = (path: string, featureName: string) => () => {
+    if (!isLoggedIn) {
+      alert(`${featureName}은 아직 개발중!`)
       return
     }
     router.push(path)
@@ -37,16 +41,19 @@ export default function Header() {
 
           {/* 메뉴 */}
           <div className="flex items-center gap-6">
-            {isAuthed ? (
+            {isLoggedIn ? (
               <>
-                <button onClick={guardNav("/history")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={guardNav("/history", "히스토리")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   히스토리
                 </button>
-                <button onClick={guardNav("/community")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={guardNav("/community", "커뮤니티")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
                 </button>
-                <button onClick={guardNav("/settings")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  마이페이지
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/analysis")}>
+                  시작하기
+                </Button>
+                <button onClick={guardNav("/profile", "마이페이지")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  {isLoadingUser ? '로딩중...' : user?.name ? `${user.name}(마이페이지)` : '마이페이지'}
                 </button>
                 <Button
                   variant="ghost"
@@ -59,7 +66,7 @@ export default function Header() {
               </>
             ) : (
               <>
-                <button onClick={guardNav("/community")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={guardNav("/community", "커뮤니티")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
                 </button>
 
@@ -67,7 +74,7 @@ export default function Header() {
                   <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>
                     로그인
                   </Button>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/signup")}>
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/analysis")}>
                     시작하기
                   </Button>
                 </div>

@@ -1,6 +1,6 @@
 // auth 도메인 타입
 export interface LoginRequest {
-  username: string; // email 또는 username
+  email: string; // email 또는 username
   password: string;
 }
 
@@ -13,9 +13,12 @@ export interface SignupRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken?: string;
-  message?: string;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    imageUrl: string | null;
+  };
 }
 
 export interface SignupResponse {
@@ -27,5 +30,5 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  imageUrl?: string;
+  imageUrl: string | null;
 }
