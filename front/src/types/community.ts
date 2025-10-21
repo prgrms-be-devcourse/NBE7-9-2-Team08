@@ -1,10 +1,10 @@
 // community 도메인 타입
-export type Repo = {
-  id: number
-  userName: string
-  userImage?: string
-  repoName: string
-  summary: string
-  languages?: string[]
-  totalScore: number
+export interface RepositoryItem {
+  userName: string;
+  userImage: string | null;
+  repositoryName: string;
+  summary: string;
+  language: string[];
+  totalScore: number;
+  viewingStatus: boolean;
 }

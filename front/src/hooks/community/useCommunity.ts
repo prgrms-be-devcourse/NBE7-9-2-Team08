@@ -1,26 +1,26 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { Repo } from "@/types/community"
+import { useEffect, useState } from 'react';
+import { fetchRepositories } from '@/lib/api/community';
+import type { RepositoryItem } from '@/types/community';
 
-export function useCommunity() {
-  const [repos, setRepos] = useState<Repo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+export function useRepositories() {
+  const [data, setData] = useState<RepositoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/community/repositories")
-      .then(res => res.json())
-      .then(data => {
-        setRepos(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setError(err)
-        setLoading(false)
-      })
-  }, [])
+    (async () => {
+      try {
+        const res = await fetchRepositories();
+        setData(Array.isArray(res) ? res : [res]);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
-  return { repos, loading, error }
+  return { data, loading, error };
 }
