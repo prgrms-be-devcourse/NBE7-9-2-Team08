@@ -1,9 +1,14 @@
 package com.backend.domain.repository.service;
 
+import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.github.*;
+import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.repository.entity.RepositoryLanguage;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
+import com.backend.domain.repository.repository.RepositoryLanguageRepository;
 import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
 import com.backend.domain.repository.service.mapper.*;
 import com.backend.domain.user.entity.User;
@@ -40,6 +45,8 @@ public class RepositoryService {
     private final IssueInfoMapper issueInfoMapper;
     private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
+    private final AnalysisResultRepository analysisResultRepository;
+    private final RepositoryLanguageRepository repositoryLanguageRepository;
 
     @Transactional
     public RepositoryData fetchAndSaveRepository(String owner, String repo) {
@@ -98,7 +105,7 @@ public class RepositoryService {
     }
 
     /* Repository Entity를 DB에 저장하거나 기존 데이터 업데이트
-    * 같은 htmlUrl이 존재하면 업데이트, 없으면 신규 데이터 저장 */
+     * 같은 htmlUrl이 존재하면 업데이트, 없으면 신규 데이터 저장 */
     private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo) {
         User defaultUser = userRepository.findAll().stream()
                 .findFirst()
@@ -120,12 +127,41 @@ public class RepositoryService {
     }
 
     // 특정 사용자의 모든 Repository 조회
-    public List<Repositories> findRepositoryByMember(Long userId){
+    public List<Repositories> findRepositoryByMember(Long userId) {
         return repositoryJpaRepository.findByUserId(userId);
     }
 
     // Repository ID로 단건 조회
     public Optional<Repositories> findById(Long repositoriesId) {
         return repositoryJpaRepository.findById(repositoriesId);
+    }
+
+    // Repository 삭제
+    @Transactional
+    public void delete(Long repositoriesId) {
+        if (repositoriesId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        repositoryJpaRepository.delete(targetRepository);
+    }
+
+    // AnalysisResult를 list로 반환
+    public List<AnalysisResult> getAnalysisResultList(Long RepositoriesId) {
+        List<AnalysisResult> resultsList = analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
+        // 정렬해서 반환
+        resultsList.sort((a, b) -> b.getCreateDate().compareTo(a.getCreateDate()));
+        return resultsList;
+    }
+
+    // repository 사용 언어 반환
+    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
+        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
+                .stream()
+                .map(RepositoryLanguage::getLanguage)
+                .toList();
     }
 }

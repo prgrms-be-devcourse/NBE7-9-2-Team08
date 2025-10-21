@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -56,7 +57,6 @@ public class AnalysisService {
 
     }
 
-    // GitHub URL 파싱하여 owner와 repo 이름 추출
     private String[] parseGitHubUrl(String githubUrl) {
         log.info("🚩 분석 요청 url: {}", githubUrl);
 

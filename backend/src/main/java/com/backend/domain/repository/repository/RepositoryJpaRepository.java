@@ -2,6 +2,7 @@ package com.backend.domain.repository.repository;
 
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,5 @@ public interface RepositoryJpaRepository extends JpaRepository<Repositories, Lon
 
     List<Repositories> findByUserId(Long userId);
 
-    @Query("SELECT rl.language FROM RepositoryLanguage rl WHERE rl.repositories.id = :repositoryId")
-    List<Language> findLanguagesByRepositoryId(@Param("repositoryId") Long repositoryId);
+    List<Repositories> findByPublicRepository(boolean b);
 }
