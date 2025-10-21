@@ -13,19 +13,26 @@ import { Button } from '@/components/ui/Button';
 export default function SignupPage() {
   const toast = useToast();
   const router = useRouter();
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordCheck, setPasswordCheck] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (password !== passwordCheck) {
       toast.push('비밀번호가 일치하지 않습니다.');
       return;
     }
-    const payload: SignupRequest = { username, email, password, confirmPassword };
+    const payload: SignupRequest = { 
+      email, 
+      name, 
+      password, 
+      passwordCheck,
+      imageUrl: imageUrl || undefined
+    };
     try {
       setLoading(true);
       const res = await authApi.signup(payload);
@@ -49,25 +56,61 @@ export default function SignupPage() {
             <CardContent>
               <form className="space-y-6" onSubmit={submit}>
                 <div className="space-y-2">
-                  <Label htmlFor="username">아이디</Label>
-                  <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                  <Label htmlFor="email">이메일</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    placeholder="example@email.com"
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">이메일</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="name">이름</Label>
+                  <Input 
+                    id="name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    placeholder="사용할 이름을 입력하세요"
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">비밀번호</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    placeholder="8자 이상 입력하세요"
+                    required 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                  <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                  <Label htmlFor="passwordCheck">비밀번호 확인</Label>
+                  <Input 
+                    id="passwordCheck" 
+                    type="password" 
+                    value={passwordCheck} 
+                    onChange={(e) => setPasswordCheck(e.target.value)} 
+                    placeholder="비밀번호를 다시 입력하세요"
+                    required 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">사진 주소 (선택사항)</Label>
+                  <Input 
+                    id="imageUrl" 
+                    type="url" 
+                    value={imageUrl} 
+                    onChange={(e) => setImageUrl(e.target.value)} 
+                    placeholder="https://example.com/profile.jpg"
+                  />
                 </div>
                 <Button type="submit" className="w-full" size="lg" disabled={loading}>
                   {loading ? '처리중...' : '회원가입'}
                 </Button>
-                <p className="text-xs text-muted-foreground">스프링 엔드포인트: POST /api/v1/auth/signup</p>
               </form>
             </CardContent>
           </Card>

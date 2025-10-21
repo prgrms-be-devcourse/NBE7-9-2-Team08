@@ -12,10 +12,10 @@ export const authApi = {
 
   /**
    * 회원가입
-   * POST /api/v1/auth/signup
+   * POST /user
    */
   signup: (data: SignupRequest): Promise<SignupResponse> =>
-    http.post('/api/v1/auth/signup', data, 'none'),
+    http.post('/user', data, 'none'),
 
   /**
    * 로그아웃

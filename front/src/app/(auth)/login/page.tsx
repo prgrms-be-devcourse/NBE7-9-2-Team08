@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+import { Github } from 'lucide-react';
 
 export default function LoginPage() {
   const toast = useToast();
@@ -37,6 +39,10 @@ export default function LoginPage() {
     }
   }
 
+  const handleGithubLogin = () => {
+    alert("아직 개발중!");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -48,7 +54,7 @@ export default function LoginPage() {
             <CardContent>
               <form className="space-y-6" onSubmit={submit}>
                 <div className="space-y-2">
-                  <Label htmlFor="username">아이디</Label>
+                  <Label htmlFor="username">아이디/email</Label>
                   <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
@@ -58,7 +64,22 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" size="lg" disabled={loading}>
                   {loading ? '처리중...' : '로그인'}
                 </Button>
-                <p className="text-xs text-muted-foreground">스프링 엔드포인트: POST /api/v1/auth/login</p>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg" 
+                  onClick={handleGithubLogin}
+                >
+                  <Github className="mr-2 h-4 w-4" />
+                  Github으로 로그인하기
+                </Button>
+                <div className="text-center">
+                  <span className="text-sm text-muted-foreground">처음이신가요? </span>
+                  <Link href="/signup" className="text-sm text-primary hover:underline">
+                    회원가입하기
+                  </Link>
+                </div>
               </form>
             </CardContent>
           </Card>
