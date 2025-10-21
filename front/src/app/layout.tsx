@@ -6,6 +6,7 @@ import { Suspense } from "react"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { ToastProvider } from "@/components/ui/Toast"
+import Link from "next/link";
 
 const inter = Inter({
   subsets: ["latin"],
