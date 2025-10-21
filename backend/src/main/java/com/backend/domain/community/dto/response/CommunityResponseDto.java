@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public record CommunityResponseDto(
         String userName,
+        String userIamge,
         String repositoryName,
         String summary,
         List<String> language,
@@ -18,6 +19,7 @@ public record CommunityResponseDto(
     public CommunityResponseDto(Repositories repositories, AnalysisResult analysis, Score score) {
         this(
                 repositories.getUser().getName(),
+                repositories.getUser().getImageUrl(),
                 repositories.getName(),
                 analysis.getSummary(),
                 repositories.getLanguages().stream()

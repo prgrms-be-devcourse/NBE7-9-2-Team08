@@ -11,6 +11,7 @@ import com.backend.domain.community.entity.Comment;
 import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.service.RepositoryService;
+import com.backend.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,13 @@ public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
+
+    /**
+     * 커뮤니티 관련 기능이 있는 컨트롤러 입니다.
+     * - 공개 리포지토리 조회
+     * - 분석 결과 댓글 작성 / 조회 / 삭제/ 수정
+     *
+     */
 
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
     @GetMapping("/repositories")
