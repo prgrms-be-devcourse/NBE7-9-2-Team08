@@ -39,6 +39,17 @@ public class AnalysisResult {
     @OneToOne(mappedBy = "analysisResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Score score;
 
-    @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
+    @Builder
+    public AnalysisResult(Repositories repositories, String summary,
+                          String strengths, String improvements, LocalDateTime createDate) {
+        this.repositories = repositories;
+        this.summary = summary;
+        this.strengths = strengths;
+        this.improvements = improvements;
+        this.createDate = createDate;
+    }
+
+    public void assignScore(Score score) {
+        this.score = score;
+    }
 }

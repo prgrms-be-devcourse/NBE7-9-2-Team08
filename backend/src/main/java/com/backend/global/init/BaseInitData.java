@@ -14,11 +14,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Profile({"local","dev"}) // 필요시 주석처리 하세요 test에는 BaseInitData 안 들어가게 만든 겁니다
 @Configuration
 @RequiredArgsConstructor
 public class BaseInitData {
@@ -40,6 +42,9 @@ public class BaseInitData {
 
             // 3. 분석 결과 및 점수 데이터 생성
             createAnalysisResults();
+
+            // [선택3] 위에서 모두 만들고 특정 저장소만 “히스토리 용”으로 하나 더 추가하고 싶다면
+            // createDemoAnalysisFor("https://github.com/alice/spring-boot-app");
 
             System.out.println("✅ PortfolioIQ 초기 데이터 생성 완료");
         };
@@ -440,4 +445,27 @@ public class BaseInitData {
         };
         return scores[repoIndex % scores.length][Math.min(versionIndex, 2)];
     }
+
+    private void createDemoAnalysisFor(String htmlUrl) {
+        repositoryJpaRepository.findByHtmlUrl(htmlUrl).ifPresent(repo -> {
+            AnalysisResult ar = AnalysisResult.builder()
+                    .repositories(repo)
+                    .summary("샘플 요약입니다. README, 테스트, 커밋, CI/CD를 종합 평가합니다.")
+                    .strengths("- README가 체계적임\n- 커밋 메시지가 일관적임")
+                    .improvements("- 테스트 커버리지 확장\n- CI 파이프라인 분리")
+                    .createDate(java.time.LocalDateTime.now())
+                    .build();
+            AnalysisResult saved = analysisResultRepository.save(ar);
+
+            Score sc = Score.builder()
+                    .analysisResult(saved)
+                    .readmeScore(20)
+                    .testScore(12)
+                    .commitScore(22)
+                    .cicdScore(18)
+                    .build();
+            scoreRepository.save(sc);
+        });
+    }
+
 }

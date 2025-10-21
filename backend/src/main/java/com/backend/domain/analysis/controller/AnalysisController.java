@@ -112,4 +112,31 @@ public class AnalysisController {
 
         return ResponseEntity.ok(response);
     }
+
+    // Repository 삭제
+    @DeleteMapping("/{memberId}/repositories/{repositoriesId}")
+    public void deleteRepository(@PathVariable("repositoriesId") Long repositoriesId){
+        analysisService.delete(repositoriesId);
+    }
+
+    // 특정 AnalysisResult 삭제
+    @DeleteMapping("/{memberId}/repositories/{repositoryId}/results/{analysisId}")
+    public ResponseEntity<ApiResponse<Void>> deleteAnalysisResult(
+            @PathVariable Long memberId,
+            @PathVariable Long repositoryId,
+            @PathVariable Long analysisId
+    ) {
+        analysisService.deleteAnalysisResult(analysisId, memberId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    // 분석 결과 공개 여부 변경
+    @PutMapping("/{memberId}/repositories/{repositoryId}/public")
+    public ResponseEntity updatePublicStatus(
+            @PathVariable Long memberId,
+            @PathVariable Long repositoryId
+    ) {
+        analysisService.updatePublicStatus(repositoryId, memberId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
 }

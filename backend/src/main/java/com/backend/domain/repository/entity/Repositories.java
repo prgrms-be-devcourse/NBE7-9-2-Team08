@@ -43,7 +43,7 @@ public class Repositories extends BaseEntity {
     private String htmlUrl;
 
     @Column(name = "public_repository")
-    private boolean publicRepository;
+    private boolean publicRepository = false;
 
     @Column(name = "main_branch")
     private String mainBranch;
@@ -84,8 +84,12 @@ public class Repositories extends BaseEntity {
         this.mainBranch = repoInfo.defaultBranch();
     }
 
-    public void updatePublicFrom(Repositories other) {
-        this.publicRepository = other.publicRepository;
+    public boolean isPublic() {
+        return this.publicRepository;
+    }
+
+    public void updatePublicStatus(boolean isPublic) {
+        this.publicRepository = isPublic;
     }
 
     public void updateLanguagesFrom(Map<String, Integer> newLanguagesData) {

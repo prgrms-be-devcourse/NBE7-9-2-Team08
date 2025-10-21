@@ -2,7 +2,10 @@ package com.backend.domain.analysis.service;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
+import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
+import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
@@ -20,6 +23,9 @@ import java.util.List;
 public class AnalysisService {
     private final RepositoryService repositoryService;
     private final AnalysisResultRepository analysisResultRepository;
+    private final EvaluationService evaluationService;
+    private final RepositoryJpaRepository repositoryJpaRepository;
+
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -36,6 +42,7 @@ public class AnalysisService {
         // Repository 데이터 수집
         RepositoryData repositoryData;
 
+        // TODO: AI 평가, 저장
         try {
             repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
             log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
@@ -43,11 +50,11 @@ public class AnalysisService {
             log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
             throw handleRepositoryFetchError(e, owner, repo);
         }
+        evaluationService.evaluateAndSave(repositoryData); //
 
         // TODO: AI 평가
         // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
 
-        // TODO: AI 평가 저장
     }
 
     private String[] parseGitHubUrl(String githubUrl) {
@@ -95,5 +102,52 @@ public class AnalysisService {
     public AnalysisResult getAnalysisById(Long analysisId) {
         return analysisResultRepository.findById(analysisId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
+    }
+
+    // Repository 삭제
+    @Transactional
+    public void delete(Long repositoriesId){
+        if (repositoriesId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        repositoryJpaRepository.delete(targetRepository);
+    }
+
+    // 특정 분석 결과 삭제
+    @Transactional
+    public void deleteAnalysisResult(Long analysisResultId, Long memberId) {
+        if (analysisResultId == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
+
+        analysisResultRepository.delete(analysisResult);
+    }
+
+    // 분석 결과 공개 여부 변경
+    @Transactional
+    public Repositories updatePublicStatus(Long repositoryId, Long memberId) {
+        Repositories repository = repositoryJpaRepository.findById(repositoryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        boolean newStatus = !repository.isPublic();
+
+        if (newStatus) {
+            long analysisCount = analysisResultRepository
+                    .countByRepositoriesId(repositoryId);
+
+            if (analysisCount == 0) {
+                throw new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND);
+            }
+        }
+
+        repository.updatePublicStatus(newStatus);
+        return repository;
     }
 }
