@@ -40,4 +40,18 @@ public class Score {
     public int getTotalScore() {
         return readmeScore + testScore + commitScore + cicdScore;
     }
+
+    @Builder
+    public Score(AnalysisResult analysisResult, int readmeScore,
+                 int testScore, int commitScore, int cicdScore) {
+        this.analysisResult = analysisResult;
+        if (analysisResult != null) {
+            analysisResult.assignScore(this);
+        }
+
+        this.readmeScore = readmeScore;
+        this.testScore = testScore;
+        this.commitScore = commitScore;
+        this.cicdScore = cicdScore;
+    }
 }

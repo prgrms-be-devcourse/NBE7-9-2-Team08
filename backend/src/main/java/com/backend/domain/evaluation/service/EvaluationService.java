@@ -64,8 +64,6 @@ public class EvaluationService {
                 .cicdScore(sc.cicd())
                 .build();
 
-        analysis.setScore(score);
-
         scoreRepository.save(score);
 
         log.info("✅ Evaluation saved. analysisResultId={}", saved.getId());

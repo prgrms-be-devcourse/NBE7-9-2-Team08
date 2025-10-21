@@ -128,17 +128,4 @@ public class RepositoryService {
     public Optional<Repositories> findById(Long repositoriesId) {
         return repositoryJpaRepository.findById(repositoriesId);
     }
-
-    // Repository 삭제
-    @Transactional
-    public void delete(Long repositoriesId){
-        if (repositoriesId == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
-
-        repositoryJpaRepository.delete(targetRepository);
-    }
 }
