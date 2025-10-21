@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -86,5 +88,38 @@ public class JwtUtil {
             return 0;
         }
         return remain;
+    }
+
+    //JWT에서 email추출
+    //HttpServletRequest가 매개변수로 들어갑니다.
+    public String getEmail(HttpServletRequest request){
+        String jwt = getJwtToken(request);
+        if(jwt != null){
+            Claims claims = getClaimsWithoutVerification(jwt);
+            return claims.getSubject();
+        }
+        return null;
+        
+    }
+
+    public String getName(HttpServletRequest request){
+        String jwt = getJwtToken(request);
+        if(jwt != null){
+            Claims claims = getClaimsWithoutVerification(jwt);
+            return claims.get("name", String.class);
+        }
+        return null;
+    }
+
+    public String getJwtToken(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies(); //
+        if(cookies != null) {
+            for(Cookie c : cookies) {
+                if(c.getName().equals("token")) {
+                    return c.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
