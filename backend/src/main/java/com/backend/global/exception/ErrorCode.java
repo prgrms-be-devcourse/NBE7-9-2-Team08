@@ -13,6 +13,10 @@ public enum ErrorCode {
     INVALID_TYPE_VALUE("CMN004", HttpStatus.BAD_REQUEST, "잘못된 타입의 값입니다."),
     MISSING_REQUEST_PARAMETER("CMN005", HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 
+    // ========== user 도메인 에러 ==========
+    Login_Failed("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
+    Email_verify_Failed("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
+
     // ========== analysis 도메인 에러 ==========
     INVALID_GITHUB_URL("A001", HttpStatus.BAD_REQUEST, "올바른 GitHub 저장소 URL이 아닙니다."),
     INVALID_REPOSITORY_PATH("A002", HttpStatus.BAD_REQUEST, "저장소 URL 형식이 잘못되었습니다. 예: https://github.com/{owner}/{repo}"),

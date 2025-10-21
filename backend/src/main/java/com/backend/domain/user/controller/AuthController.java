@@ -2,10 +2,12 @@ package com.backend.domain.user.controller;
 
 import com.backend.domain.user.service.EmailService;
 import com.backend.domain.user.service.JwtService;
+import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
 
     @Value("${jwt.access-token-expiration-in-milliseconds}")
     private int tokenValidityMilliSeconds;
@@ -43,6 +46,11 @@ public class AuthController {
         return  ApiResponse.success("이메일 인증 코드 발송 성공");
     }
 
+    /**
+     * 인증코드 검증
+     * @param email
+     * @param code
+     */
 
     record VerifyRequest(
             String email,
@@ -58,7 +66,7 @@ public class AuthController {
             //인증 성공시
             return ApiResponse.success("이메일 인증 성공");
         }else{
-            return ApiResponse.error(ErrorCode.VALIDATION_FAILED);
+            return ApiResponse.error(ErrorCode.Email_verify_Failed);
         }
 
     }
@@ -87,15 +95,67 @@ public class AuthController {
     ){
         String token = jwtService.login(loginRequest.email, loginRequest.password);
 
-        Cookie cookie = new Cookie("token", token);
-        cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
-        cookie.setSecure(true); //HTTPS 통신에서만 전송
+        if(token != null) {
+            Cookie cookie = new Cookie("token", token);
+            cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
+            cookie.setSecure(true); //HTTPS 통신에서만 전송
+            cookie.setPath("/");
+
+            cookie.setMaxAge(tokenValidityMilliSeconds);
+
+            response.addCookie(cookie); //응답에 쿠키 추가
+
+            return ApiResponse.success("success");
+        }else{
+            return ApiResponse.error(ErrorCode.Login_Failed);
+        }
+    }
+
+    /**
+     * 로그아웃
+     */
+
+    @PostMapping("/api/logout")
+    public ApiResponse<String> logout(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        //쿠키 만료 명령
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
         cookie.setPath("/");
 
-        cookie.setMaxAge(tokenValidityMilliSeconds);
+        cookie.setMaxAge(0);
 
-        response.addCookie(cookie); //응답에 쿠키 추가
+        response.addCookie(cookie);
+
+        //redis에 블랙리스트로 등록
+        String jwtToken = getJwtToken(request);
+        if(jwtToken != null) {
+            long expiration = jwtUtil.getExpiration(jwtToken);
+            if(expiration > 0) {
+                jwtService.logout(jwtToken, expiration);
+            }
+
+        }
+
 
         return ApiResponse.success("success");
     }
+
+    public String getJwtToken(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies(); //
+        if(cookies != null) {
+            for(Cookie c : cookies) {
+                if(c.getName().equals("token")) {
+                    return c.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+
+
 }
