@@ -1,8 +1,31 @@
+"use client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { ArrowRight, Github, Sparkles, BarChart3, Users, Shield } from "lucide-react"
+import { useAuth } from "@/hooks/auth/useAuth"
 
 export default function LandingPage() {
+  const router = useRouter()
+  const { isAuthed } = useAuth()
+
+  const handleStartAnalysis = () => {
+    if (!isAuthed) {
+      alert("로그인해주세요")
+      router.push("/login")
+      return
+    }
+    router.push("/analysis")
+  }
+
+  const handleGoCommunity = () => {
+    if (!isAuthed) {
+      alert("로그인해주세요")
+      router.push("/login")
+      return
+    }
+    router.push("/community")
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -28,18 +51,13 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" className="group" asChild>
-                {/* 로그인 확인하고 로그인 안 되어 있으면 회원가입 or 로그인으로, 로그인되어 있으면 /analysis로 이동동 */}
-                <Link href="/signup">
-                  분석 시작하기
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
+              <Button size="lg" className="group" onClick={handleStartAnalysis}>
+                분석 시작하기
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/community">
-                  <Users className="mr-2 h-4 w-4" />
-                  커뮤니티 보기
-                </Link>
+              <Button size="lg" variant="outline" onClick={handleGoCommunity}>
+                <Users className="mr-2 h-4 w-4" />
+                커뮤니티 보기
               </Button>
             </div>
           </div>
