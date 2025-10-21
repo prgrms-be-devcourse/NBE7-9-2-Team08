@@ -1,10 +1,13 @@
 package com.backend.domain.user.util;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +58,68 @@ public class JwtUtil {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
 
+    //만료시간을 계산하기 위해 서명 검증은 하지 않고 Claims만 읽어오기
+    private Claims getClaimsWithoutVerification(String token) {
+        try{
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        }catch (ExpiredJwtException e){//만료된 토큰인 경우에도 Claims반환
+            return e.getClaims();
+        }
+    }
+
+    //블랙리스트 용 만료시간(현재 시간 - 만료시간) 추출
+    public long getExpiration(String token) {
+        Claims claims = getClaimsWithoutVerification(token);
+
+        Date expiration = claims.getExpiration();
+
+        long now = new Date().getTime();
+        long expirationTime = expiration.getTime();
+        long remain = expirationTime - now;
+
+        //만료되었을 경우(현재시간이 만료시간을 넘은경우) 0 리턴
+        if(remain < 0){
+            return 0;
+        }
+        return remain;
+    }
+
+    //JWT에서 email추출
+    //HttpServletRequest가 매개변수로 들어갑니다.
+    public String getEmail(HttpServletRequest request){
+        String jwt = getJwtToken(request);
+        if(jwt != null){
+            Claims claims = getClaimsWithoutVerification(jwt);
+            return claims.getSubject();
+        }
+        return null;
+        
+    }
+
+    public String getName(HttpServletRequest request){
+        String jwt = getJwtToken(request);
+        if(jwt != null){
+            Claims claims = getClaimsWithoutVerification(jwt);
+            return claims.get("name", String.class);
+        }
+        return null;
+    }
+
+    public String getJwtToken(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies(); //
+        if(cookies != null) {
+            for(Cookie c : cookies) {
+                if(c.getName().equals("token")) {
+                    return c.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

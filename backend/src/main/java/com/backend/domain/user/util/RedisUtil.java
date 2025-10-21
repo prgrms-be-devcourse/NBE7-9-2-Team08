@@ -23,7 +23,6 @@ public class RedisUtil {
 
     /**
      * Redis에서 데이터를 가져옵니다.
-     * @param key 이메일 주소
      * @return 저장된 인증 코드
      */
     public String getData(String key) {
@@ -37,5 +36,14 @@ public class RedisUtil {
      */
     public Boolean deleteData(String key) {
         return redisTemplate.delete(key);
+    }
+
+    /**
+     * Redis에서 데이터가 있는지 확인만 합니다.
+     * 값을 네트로워크로 전송하지 않아서 get()보다 오버헤드가 작습니다.
+     *
+     */
+    public Boolean hasKey(String key) {
+        return redisTemplate.hasKey(key);
     }
 }
