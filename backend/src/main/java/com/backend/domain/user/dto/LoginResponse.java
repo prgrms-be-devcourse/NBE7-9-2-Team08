@@ -1,4 +1,5 @@
 package com.backend.domain.user.dto;
 
-public class LoginResponse {
-}
+import com.backend.domain.user.dto.UserDto;
+
+public record LoginResponse(UserDto user) {}

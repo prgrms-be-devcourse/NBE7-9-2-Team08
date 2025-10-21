@@ -1,9 +1,13 @@
 package com.backend.domain.user.controller;
 
+import com.backend.domain.user.dto.LoginResponse;
+import com.backend.domain.user.dto.UserDto;
 import com.backend.domain.user.service.EmailService;
 import com.backend.domain.user.service.JwtService;
+import com.backend.domain.user.service.UserService;
 import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
+import com.backend.global.response.ResponseCode;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final UserService userService;
 
     @Value("${jwt.access-token-expiration-in-milliseconds}")
     private int tokenValidityMilliSeconds;
@@ -81,11 +86,15 @@ public class AuthController {
 
 
     @PostMapping("/api/login")
-    public ApiResponse<String> login(
-            @Valid @RequestBody LoginRequest loginRequest,
+    public ApiResponse<LoginResponse> login(
+            @RequestBody LoginRequest loginRequest,
             HttpServletResponse response
     ){
         String token = jwtService.login(loginRequest.email, loginRequest.password);
+        if (token == null) {
+            // ★ 에러 분기도 LoginResponse로 타입을 고정해서 반환
+            return ApiResponse.<LoginResponse>error(ResponseCode.UNAUTHORIZED);
+        }
 
         Cookie cookie = new Cookie("token", token);
         cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
@@ -95,7 +104,8 @@ public class AuthController {
         cookie.setMaxAge(tokenValidityMilliSeconds);
 
         response.addCookie(cookie); //응답에 쿠키 추가
-
-        return ApiResponse.success("success");
+        var user = userService.findByEmail(loginRequest.email);
+        return ApiResponse.success(new LoginResponse(new UserDto(user)));
     }
+
 }
