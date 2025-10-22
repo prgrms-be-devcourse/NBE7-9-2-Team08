@@ -20,7 +20,7 @@ export async function api<T = unknown>(
   opts: ApiRequestOptions & { next?: NextFetchRequestConfig } = {}
 ): Promise<T> {
   const {
-    method = 'GET',
+    method = "GET",
     body,
     headers = {},
     auth = 'token',
@@ -39,17 +39,12 @@ export async function api<T = unknown>(
     ...headers,
   };
 
-  if (auth === 'token') {
-    const token = getToken();
-    if (token) h[AUTH_HEADER] = `Bearer ${token}`;
-  }
-
   try {
     const res = await fetch(url, {
       method,
       headers: h,
       body: body ? JSON.stringify(body) : undefined,
-      credentials: auth === 'cookie' ? 'include' : auth === 'none' ? 'omit' : 'same-origin',
+      credentials: 'include',
       cache: 'no-store',
       next,
     });
@@ -86,26 +81,15 @@ export async function api<T = unknown>(
 }
 
 export const http = {
-  get: <T>(path: string, auth: AuthType = 'token') => 
-    api<T>(path, { method: 'GET', auth }),
-  
-  post: <T>(path: string, body?: unknown, auth: AuthType = 'token') => 
-    api<T>(path, { method: 'POST', body, auth }),
-  
-  put: <T>(path: string, body?: unknown, auth: AuthType = 'token') => 
-    api<T>(path, { method: 'PUT', body, auth }),
-  
-  patch: <T>(path: string, body?: unknown, auth: AuthType = 'token') => 
-    api<T>(path, { method: 'PATCH', body, auth }),
-  
-  delete: <T>(path: string, auth: AuthType = 'token') => 
-    api<T>(path, { method: 'DELETE', auth }),
+  get: <T>(path: string) => api<T>(path, { method: "GET" }),
+  post: <T>(path: string, body?: unknown) => api<T>(path, { method: "POST", body }),
+  put: <T>(path: string, body?: unknown) => api<T>(path, { method: "PUT", body }),
+  patch: <T>(path: string, body?: unknown) => api<T>(path, { method: "PATCH", body }),
+  delete: <T>(path: string) => api<T>(path, { method: "DELETE" }),
 };
 
+// 공개 API (로그인 전)
 export const publicHttp = {
-  get: <T>(path: string) => http.get<T>(path, 'none'),
-  post: <T>(path: string, body?: unknown) => http.post<T>(path, body, 'none'),
-  put: <T>(path: string, body?: unknown) => http.put<T>(path, body, 'none'),
-  patch: <T>(path: string, body?: unknown) => http.patch<T>(path, body, 'none'),
-  delete: <T>(path: string) => http.delete<T>(path, 'none'),
+  get: <T>(path: string) => api<T>(path, { method: "GET", auth: "none" }),
+  post: <T>(path: string, body?: unknown) => api<T>(path, { method: "POST", body, auth: "none" }),
 };

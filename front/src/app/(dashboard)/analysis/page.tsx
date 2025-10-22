@@ -20,25 +20,20 @@ export default function AnalyzePage() {
   const router = useRouter()
   const { requestAnalysis, isLoading, error } = useAnalysis()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  
     if (!isValidGitHubUrl(repoUrl)) {
-      setIsValidUrl(false)
-      return
+      setIsValidUrl(false);
+      return;
     }
-
-    setIsValidUrl(true)
+  
+    setIsValidUrl(true);
     
-    try {
-      await requestAnalysis(repoUrl)
-      // 분석 요청 성공 시 로딩 페이지로 이동
-      router.push(`/analysis/loading?repo=${encodeURIComponent(repoUrl)}`)
-    } catch (err) {
-      console.error('분석 요청 실패:', err)
-      // 에러 처리는 useAnalysis 훅에서 관리
-    }
-  }
+    // 여기서 API 요청하지 않고 repoUrl만 전달
+    const encodedUrl = encodeURIComponent(repoUrl);
+    router.push(`/analysis/loading?repoUrl=${encodedUrl}`);
+  };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRepoUrl(e.target.value)
@@ -89,7 +84,13 @@ export default function AnalyzePage() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+              <Button
+                type="button"  // ✅ form submit 방지
+                onClick={handleSubmit}  // ✅ 직접 이벤트 트리거
+                className="w-full"
+                size="lg"
+                disabled={isLoading}
+              >
                 <Search className="mr-2 h-5 w-5" />
                 {isLoading ? "분석 요청 중..." : "분석 시작하기"}
               </Button>
