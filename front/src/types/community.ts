@@ -1,1 +1,10 @@
 // community 도메인 타입
+export interface RepositoryItem {
+  userName: string;
+  userImage: string | null;
+  repositoryName: string;
+  summary: string;
+  language: string[];
+  totalScore: number;
+  viewingStatus: boolean;
+}
