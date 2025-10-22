@@ -71,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     // 메서드가 null (모든 메서드)이거나, 메서드가 일치하는 경우
                     boolean methodMatches = ex.method() == null || ex.method().equalsIgnoreCase(method);
-                    
+
                     //두 조건이 true일때 JWT인증을 스킵
                     return pathMatches && methodMatches;
                 });
@@ -82,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //
-        
+
 
         String token = extractTokenFromCookie(request);
 

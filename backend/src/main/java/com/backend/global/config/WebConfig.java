@@ -15,8 +15,8 @@ public class WebConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-                        .allowCredentials(false)  // ← true에서 false로 변경
-                        .allowedHeaders("*")      // ← 추가
+                        .allowCredentials(true)
+                        .allowedHeaders("*")
                         .exposedHeaders("Authorization"); // ← 추가
             }
         };

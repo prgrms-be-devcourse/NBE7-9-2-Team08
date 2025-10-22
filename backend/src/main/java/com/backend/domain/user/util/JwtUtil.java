@@ -35,11 +35,12 @@ public class JwtUtil {
         System.out.println(key);
     }
 
-    //
-    public String createToken(String email, String name) {
+    // 수정
+    public String createToken(String email, String name, Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(Claims.SUBJECT, email); //Claims.SUBJECT = "sub"이다.
+        claims.put(Claims.SUBJECT, email); // Claims.SUBJECT = "sub"이다.
         claims.put("name", name);
+        claims.put("userId", userId); // 수정: 추가
 
         Date now = new Date();
         System.out.println("현재 시간 : " + now.toString());
@@ -109,6 +110,17 @@ public class JwtUtil {
         if(jwt != null){
             Claims claims = getClaimsWithoutVerification(jwt);
             return claims.get("name", String.class);
+        }
+        return null;
+    }
+
+    // 추가
+    public Long getUserId(HttpServletRequest request){
+        String jwt = getJwtToken(request);
+        if(jwt != null){
+            Claims claims = getClaimsWithoutVerification(jwt);
+            Number userIdNum = claims.get("userId", Number.class);
+            return userIdNum != null ? userIdNum.longValue() : null;
         }
         return null;
     }

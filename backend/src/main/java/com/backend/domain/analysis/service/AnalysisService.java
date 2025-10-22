@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -25,7 +24,7 @@ public class AnalysisService {
     private final AnalysisResultRepository analysisResultRepository;
     private final EvaluationService evaluationService;
     private final RepositoryJpaRepository repositoryJpaRepository;
-
+    private final SseProgressNotifier sseProgressNotifier;
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -34,27 +33,40 @@ public class AnalysisService {
     * 4. 분석 결과 저장
     * */
     @Transactional
-    public void analyze(String githubUrl) {
+    public Long analyze(String githubUrl, Long userId) {
         String[] repoInfo = parseGitHubUrl(githubUrl);
         String owner = repoInfo[0];
         String repo = repoInfo[1];
 
+        sseProgressNotifier.notify(userId, "status", "분석 시작");
+
         // Repository 데이터 수집
         RepositoryData repositoryData;
 
-        // TODO: AI 평가, 저장
         try {
-            repositoryData = repositoryService.fetchAndSaveRepository(owner, repo);
+            repositoryData = repositoryService.fetchAndSaveRepository(owner, repo, userId);
             log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
         } catch (BusinessException e) {
             log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
             throw handleRepositoryFetchError(e, owner, repo);
         }
-        evaluationService.evaluateAndSave(repositoryData); //
 
-        // TODO: AI 평가
-        // EvaluationResult evaluation = evaluationService.evaluate(repositoryData);
+        Repositories savedRepository = repositoryJpaRepository
+                .findByHtmlUrl(repositoryData.getRepositoryUrl())
+                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
+        Long repositoryId = savedRepository.getId();
+
+        // OpenAI API 데이터 분석 및 저장
+        try {
+            evaluationService.evaluateAndSave(repositoryData);
+        } catch (BusinessException e) {
+            sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
+            throw e;
+        }
+
+        sseProgressNotifier.notify(userId, "complete", "최종 리포트 생성");
+        return repositoryId;
     }
 
     private String[] parseGitHubUrl(String githubUrl) {
@@ -106,13 +118,17 @@ public class AnalysisService {
 
     // Repository 삭제
     @Transactional
-    public void delete(Long repositoriesId){
+    public void delete(Long repositoriesId, Long userId){
         if (repositoriesId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         Repositories targetRepository = repositoryJpaRepository.findById(repositoriesId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        if (!targetRepository.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
 
         repositoryJpaRepository.delete(targetRepository);
     }
@@ -127,6 +143,14 @@ public class AnalysisService {
         AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
 
+        if (!analysisResult.getRepositories().getId().equals(analysisResultId)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        if (!analysisResult.getRepositories().getUser().getId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
         analysisResultRepository.delete(analysisResult);
     }
 
@@ -135,6 +159,10 @@ public class AnalysisService {
     public Repositories updatePublicStatus(Long repositoryId, Long memberId) {
         Repositories repository = repositoryJpaRepository.findById(repositoryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+        if (!repository.getUser().getId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
 
         boolean newStatus = !repository.isPublic();
 
