@@ -8,12 +8,14 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
@@ -79,16 +82,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //
-        String authorizationHeader = request.getHeader("Authorization");
-        System.out.println("AuthorizationHeader: " + authorizationHeader);
         
 
-        String token = null;
-        
-        //"Bearer " 제거
+        String token = extractTokenFromCookie(request);
+
+/*        //"Bearer " 제거
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
             token = authorizationHeader.substring(7);
         }
+        */
+
         //token이 null이거나 비어있다면 JWT가 입력되지 않은것으로 판단
         if(token==null||token.isEmpty()){
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token error : JWT가 입력되지 않았습니다.");
@@ -132,6 +135,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         // 다음 필터로 요청 전달
         filterChain.doFilter(request, response);
+    }
+
+    private String extractTokenFromCookie(HttpServletRequest request) {
+        if(request.getCookies()==null){
+            return null;
+        }
+        for(Cookie cookie : request.getCookies()){
+            if(cookie.getName().equals("token")){
+                String value = cookie.getValue();
+                if (value != null && value.startsWith("Bearer%20")) {
+                    return value.substring(9);
+                } else if (value != null && value.startsWith("Bearer ")) {
+                    return value.substring(7);
+                }
+                return value;
+            }
+        }
+        return null;
     }
 
     //에러 발생시 메세지 처리

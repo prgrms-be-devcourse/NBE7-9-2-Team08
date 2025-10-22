@@ -4,9 +4,12 @@ import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
 import com.backend.domain.user.util.JwtUtil;
 import com.backend.domain.user.util.RedisUtil;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,14 +18,18 @@ public class JwtService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
+    private final PasswordEncoder passwordEncoder;
 
     public String login(@NotBlank(message = "이메일은 필수 입력값 입니다.") @Email(message = "이메일 형식이 아닙니다.") String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password) {
-        User user = userRepository.findByEmail(email).orElse(null);
-        if(user.getPassword().equals(password)) {
+        User user = userRepository.findByEmail(email).orElseThrow(()->new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
+        //비밀번호 체크
+        checkPassword(email, password);
+
+        if(checkPassword(email, password)) {
             //email에 대응하는 비밀번호가 맞다면 jwt토큰 발급
             return jwtUtil.createToken(user.getEmail(), user.getName());
         }else{
-            return  null;
+            throw new BusinessException(ErrorCode.Login_Failed);
         }
     }
 
@@ -42,5 +49,13 @@ public class JwtService {
     public boolean isBlacklisted(String token){
         String key = "jwt:blacklist:"+token;
         return redisUtil.hasKey(key);
+    }
+
+    //암호화된 비밀번호를 체크
+    public boolean checkPassword(String email, String password){
+        User user = userRepository.findByEmail(email).orElseThrow(()->new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
+        String hashedPassword = user.getPassword();
+
+        return passwordEncoder.matches(password, hashedPassword);
     }
 }
