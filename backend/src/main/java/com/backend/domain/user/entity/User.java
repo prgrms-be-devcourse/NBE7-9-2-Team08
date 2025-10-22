@@ -69,7 +69,7 @@ public class User {
 
     public void changePassword(String password){
         if(this.password==null || password.trim().isEmpty()){
-            throw new BusinessException(ErrorCode.NAME_NOT_FOUND);
+            throw new BusinessException(ErrorCode.PASSWORD_NOT_FOUND);
         }
         this.password = password;
     }

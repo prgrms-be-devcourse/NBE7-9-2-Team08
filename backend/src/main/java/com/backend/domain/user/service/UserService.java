@@ -8,6 +8,7 @@ import com.backend.global.exception.ErrorCode;
 import jakarta.mail.MessagingException;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.Random;
 public class UserService {
     private final UserRepository userRepository;
     private final RedisUtil redisUtil;
+    private final PasswordEncoder passwordEncoder;
 
 
     public User join(@NotBlank String email, @NotBlank String password, @NotBlank String passwordCheck, @NotBlank String name) throws MessagingException {
@@ -54,7 +56,10 @@ public class UserService {
         }
 
 
-        User user = new User(email, password, name);
+        //암호화 된 비밀번호를 저장
+        String encodedPassword = passwordEncoder.encode(password);
+
+        User user = new User(email, encodedPassword, name);
         return userRepository.save(user);
 
 
@@ -114,17 +119,12 @@ public class UserService {
 
     }
 
-    public User modifyPassword(String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
-        user.changePassword(password);
-        return user;
-    }
-
     public User modifyPassword(String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password, String passwordCheck) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
 
         if(password.equals(passwordCheck)){
-            user.changePassword(password);
+
+            user.changePassword(passwordEncoder.encode(password));
         }else{
             throw new BusinessException(ErrorCode.PASSWORD_NOT_EQUAL);
         }
