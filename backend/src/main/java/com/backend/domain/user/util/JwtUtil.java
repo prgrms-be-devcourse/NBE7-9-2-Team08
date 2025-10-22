@@ -42,7 +42,9 @@ public class JwtUtil {
         claims.put("name", name);
 
         Date now = new Date();
+        System.out.println("현재 시간 : " + now.toString());
         Date expiration = new Date(now.getTime() + tokenValidityMilliSeconds);
+        System.out.println("만료 시간 : " + expiration.toString());
         return Jwts.builder()
                 .claims(claims)
                 .issuedAt(now)
