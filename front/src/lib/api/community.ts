@@ -9,12 +9,32 @@ export async function fetchRepositories() {
   return res.json();
 }
 
-// 댓글 조회
-// 임시로 ${analysisResultId} 를 1로 설정해뒀습니다.
-import { Comment } from "@/types/community"
 
-export async function fetchComments(analysisResultId: string): Promise<Comment[]> {
-  const res = await fetch(`http://localhost:8080/api/community/1/comments`)
-  if (!res.ok) throw new Error("댓글 불러오기 실패")
+// ✅ 댓글 조회
+export async function fetchComments(analysisResultId: string) {
+  const res = await fetch(`http://localhost:8080/api/community/2/comments`)
+  if (!res.ok) {
+    throw new Error("댓글 조회 실패")
+  }
+  return res.json()
+}
+
+// ✅ 댓글 작성
+export async function postComment(analysisResultId: string, memberId: number, comment: string) {
+  const res = await fetch(`http://localhost:8080/api/community/2/write`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      memberId,
+      comment,
+    }),
+  })
+
+  if (!res.ok) {
+    throw new Error("댓글 작성 실패")
+  }
+
   return res.json()
 }

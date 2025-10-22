@@ -11,23 +11,34 @@
 //   );
 // }
 
+"use client"
+
+import { useState } from "react"
 import { CommentList } from "@/components/community/CommentList"
+import { CommentForm } from "@/components/community/CommentForm"
 
 export default function CommunityPage() {
+  const [refreshKey, setRefreshKey] = useState(0)
+
   return (
-    <div className="max-w-2xl mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">커뮤니티 페이지</h1>
+    <main className="max-w-2xl mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-6">💬 댓글 테스트 페이지</h1>
 
-      {/* 기존 콘텐츠 */}
-      <section className="mb-10">
-        {/* ...기존 피드, 카드 등 */}
+      {/* ✅ 댓글 작성 폼을 위로 이동 */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold mb-3">댓글 작성</h2>
+        <CommentForm
+          analysisResultId="1"
+          memberId={1} // 로그인 후 실제 유저 ID로 대체
+          onCommentAdded={() => setRefreshKey((k) => k + 1)} // 작성 후 목록 새로고침
+        />
       </section>
 
-      {/* ✅ 테스트용 댓글 목록 (확인 후 삭제 예정) */}
-      <section className="border-t pt-6 mt-6">
-        <h2 className="text-lg font-semibold mb-4">💬 댓글 테스트</h2>
-        <CommentList analysisResultId="spring-boot-app" />
+      {/* ✅ 댓글 목록은 아래쪽에 표시 */}
+      <section className="border-t border-border pt-6">
+        <h2 className="text-lg font-semibold mb-3">댓글 목록</h2>
+        <CommentList key={refreshKey} analysisResultId="1" />
       </section>
-    </div>
+    </main>
   )
 }
