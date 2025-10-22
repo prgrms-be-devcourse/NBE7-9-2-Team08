@@ -1,5 +1,7 @@
 package com.backend.domain.user.entity;
 
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -58,4 +60,17 @@ public class User {
         this.name = name;
     }
 
+    public void changeName(String name){
+        if(this.name==null || name.trim().isEmpty()){
+            throw new BusinessException(ErrorCode.NAME_NOT_FOUND);
+        }
+        this.name = name;
+    }
+
+    public void changePassword(String password){
+        if(this.password==null || password.trim().isEmpty()){
+            throw new BusinessException(ErrorCode.NAME_NOT_FOUND);
+        }
+        this.password = password;
+    }
 }

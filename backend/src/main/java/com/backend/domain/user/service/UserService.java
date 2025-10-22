@@ -106,4 +106,30 @@ public class UserService {
             throw new BusinessException(ErrorCode.VALIDATION_FAILED);
         }
     }
+
+    public User modifyName(String email, @NotBlank(message = "이름은 필수 입력값 입니다.") String name) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
+        user.changeName(name);
+        return user;
+
+    }
+
+    public User modifyPassword(String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
+        user.changePassword(password);
+        return user;
+    }
+
+    public User modifyPassword(String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password, String passwordCheck) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BusinessException(ErrorCode.VALIDATION_FAILED));
+
+        if(password.equals(passwordCheck)){
+            user.changePassword(password);
+        }else{
+            throw new BusinessException(ErrorCode.PASSWORD_NOT_EQUAL);
+        }
+
+
+        return user;
+    }
 }
