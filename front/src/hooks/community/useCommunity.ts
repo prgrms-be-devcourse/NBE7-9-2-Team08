@@ -1,27 +1,32 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
-import { fetchRepositories } from '@/lib/api/community';
-import type { RepositoryItem } from '@/types/community';
+import { useEffect, useState } from "react"
+import { fetchHistory } from "@/lib/api/history"
+import type { RepositoryResponse } from "@/types/history"
 
-export function useRepositories() {
-  const [data, setData] = useState<RepositoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useHistory(memberId?: number) {
+  const [repositories, setRepositories] = useState<RepositoryResponse[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    (async () => {
+    // memberId가 없으면 실행하지 않음
+    if (!memberId) return
+
+    setLoading(true)
+    async function load() {
       try {
-        const res = await fetchRepositories();
-        setData(Array.isArray(res) ? res : [res]);
-      } catch (err: any) {
-        setError(err.message);
+        const result = await fetchHistory(memberId)
+        setRepositories(result)
+      } catch (err) {
+        setError((err as Error).message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    })();
-  }, []);
+    }
 
-  return { data, loading, error };
+    load()
+  }, [memberId])
+
+  return { repositories, loading, error }
 }
-
