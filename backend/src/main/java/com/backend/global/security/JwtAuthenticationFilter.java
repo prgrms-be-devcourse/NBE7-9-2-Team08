@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -36,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         //  JWT 검증이 필요 없는 URL (회원가입, 로그인, 이메일 인증코드 발송,이메일 인증코드 검증)
-        // TODO: 수정
         List<ExcludedRequest> excludedRequests = List.of(
                 // 개발 도구 (모든 메서드 허용)
                 new ExcludedRequest("/h2-console/**", null),
@@ -52,15 +52,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 new ExcludedRequest("/api/user", "POST"),
 
                 // 커뮤니티 관련 API
-                new ExcludedRequest("/api/community/**", "GET")
+                new ExcludedRequest("/api/community/**", null),
+
+                new ExcludedRequest("/api/analysis/**", null),
+                new ExcludedRequest("/api/repositories/**", null),
+                new ExcludedRequest("/api/ai/complete/**", null)
         );
 
         // 요청 경로 + 메서드가 일치하는 경우 필터 스킵
-        // TODO: 수정
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+
         boolean excluded = excludedRequests.stream()
                 .anyMatch(ex -> {
-                    boolean pathMatches = requestURI.startsWith(ex.path().replace("/**", ""));
-                    boolean methodMatches = (ex.method() == null || ex.method().equalsIgnoreCase(method));
+                    //요청 url이 List의 url과 일치하는지 확인(/**도 지원)
+                    boolean pathMatches = pathMatcher.match(ex.path(), requestURI);
+
+                    // 메서드가 null (모든 메서드)이거나, 메서드가 일치하는 경우
+                    boolean methodMatches = ex.method() == null || ex.method().equalsIgnoreCase(method);
+
+                    //두 조건이 true일때 JWT인증을 스킵
                     return pathMatches && methodMatches;
                 });
 

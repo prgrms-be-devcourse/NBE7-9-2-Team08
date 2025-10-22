@@ -2,9 +2,12 @@ package com.backend.domain.user.controller;
 
 import com.backend.domain.user.dto.UserDto;
 import com.backend.domain.user.entity.User;
+import com.backend.domain.user.service.JwtService;
 import com.backend.domain.user.service.UserService;
+import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.response.ApiResponse;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
 
     /**
      * id를 입력받아 회원이 존재하면 해당 회원을 반환하는 api입니다.
@@ -63,6 +68,7 @@ public class UserController {
 
     @GetMapping("/api/users")
     public ApiResponse<GetUsersResponse> getUsers(){
+        System.out.println("다건 조회");
         List<User> users = userService.findByAll();
 
         List<UserDto> userDtoList = users.stream()
@@ -134,6 +140,61 @@ public class UserController {
         User softDeleteUser = userService.softdelete(deleteRequest.email);
         return  ApiResponse.success(new DeleteResponse(new UserDto(softDeleteUser)));
     }
+
+
+    /**
+     * 이름 변경
+     */
+    record ModifyNameRequest (
+            @NotBlank(message = "이름은 필수 입력값 입니다.")
+            String name
+    ){
+
+    }
+    record ModifyNameResponse (
+            UserDto userDto
+    ){
+
+    }
+    @PostMapping("/api/user/name")
+    public  ApiResponse<ModifyNameResponse> modifyName(
+            HttpServletRequest request,
+            @Valid @RequestBody ModifyNameRequest modifyNameRequest
+    ){
+        String email = jwtUtil.getEmail(request);
+        System.out.println("email: " + email);
+        System.out.println("변경전 name :" + modifyNameRequest.name);
+        User user = userService.modifyName(email, modifyNameRequest.name);
+
+        System.out.println("변경후 name :" + user.getName());
+        return ApiResponse.success(new ModifyNameResponse(new UserDto(user)));
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    record ModifyPasswordRequest (
+            @NotBlank(message = "비밀번호는 필수 입력값 입니다.")
+            String password,
+            String passwordCheck
+    ){
+
+    }
+    record ModifyPasswordResponse (
+            UserDto userDto
+    ){
+
+    }
+    @PostMapping("/api/user/password")
+    public ApiResponse<ModifyPasswordResponse> modifyPassword(
+            HttpServletRequest request,
+            @Valid @RequestBody ModifyPasswordRequest  modifyPasswordRequest
+    ){
+        String email = jwtUtil.getEmail(request);
+        User user = userService.modifyPassword(email, modifyPasswordRequest.password, modifyPasswordRequest.passwordCheck);
+        return ApiResponse.success(new ModifyPasswordResponse(new UserDto(user)));
+    }
+
 
     /**
      * 삭제된 유저 복구
