@@ -10,4 +10,6 @@ import java.util.List;
 public interface AnalysisResultRepository extends JpaRepository <AnalysisResult, Long>{
     List<AnalysisResult> findAnalysisResultByRepositoriesId(Long repositoryId);
     long countByRepositoriesId(Long repositoryId);
+
+    List<AnalysisResult> findByRepositoriesId(Long repositoriedId);
 }

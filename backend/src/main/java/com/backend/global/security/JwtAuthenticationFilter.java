@@ -36,16 +36,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         //  JWT 검증이 필요 없는 URL (회원가입, 로그인, 이메일 인증코드 발송,이메일 인증코드 검증)
+        // TODO: 수정
         List<ExcludedRequest> excludedRequests = List.of(
+                // 개발 도구 (모든 메서드 허용)
+                new ExcludedRequest("/h2-console/**", null),
+                new ExcludedRequest("/swagger-ui/**", null),
+                new ExcludedRequest("/v3/api-docs/**", null),
+                new ExcludedRequest("/swagger-resources/**", null),
+                new ExcludedRequest("/webjars/**", null),
+
+                // 인증 관련 API
                 new ExcludedRequest("/api/login", "POST"),
                 new ExcludedRequest("/api/auth", "POST"),
                 new ExcludedRequest("/api/verify", "POST"),
-                new ExcludedRequest("/api/user", "POST")
+                new ExcludedRequest("/api/user", "POST"),
+
+                // 커뮤니티 관련 API
+                new ExcludedRequest("/api/community/**", "GET")
         );
 
         // 요청 경로 + 메서드가 일치하는 경우 필터 스킵
+        // TODO: 수정
         boolean excluded = excludedRequests.stream()
-                .anyMatch(ex -> requestURI.startsWith(ex.path()) && ex.method().equalsIgnoreCase(method));
+                .anyMatch(ex -> {
+                    boolean pathMatches = requestURI.startsWith(ex.path().replace("/**", ""));
+                    boolean methodMatches = (ex.method() == null || ex.method().equalsIgnoreCase(method));
+                    return pathMatches && methodMatches;
+                });
 
         if (excluded) {
             filterChain.doFilter(request, response);

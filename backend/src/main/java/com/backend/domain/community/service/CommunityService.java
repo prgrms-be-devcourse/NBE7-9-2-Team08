@@ -31,6 +31,11 @@ public class CommunityService {
         return repositoryJpaRepository.findByPublicRepository(true);
     }
 
+    // 리포지토리의 분석 결과 조회
+    public List<AnalysisResult> getAnalysisResult(Long repositoriedId){
+        return analysisResultRepository.findByRepositoriesId(repositoriedId);
+    }
+
     // 댓글 추가
     public Comment addComment(Long analysisResultId, Long memberId, String content) {
         AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)

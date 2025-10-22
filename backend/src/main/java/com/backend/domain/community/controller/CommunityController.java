@@ -62,6 +62,8 @@ public class CommunityController {
         return ResponseEntity.ok(communityRepositories);
     }
 
+
+
     // 댓글 작성
     @PostMapping("/{analysisResultId}/write")
     public ResponseEntity<CommentResponseDto> addComment(
