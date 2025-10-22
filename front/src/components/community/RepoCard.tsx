@@ -9,7 +9,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
       <div className="flex items-center mb-3">
         {item.userImage ? (
           <img
-            src={item.userImage || "./userInit.png"}
+            src={item.userImage || "./userInit.png"} // 수정 : 이미지 경로 못 찾음
             alt={item.userName}
             className="w-10 h-10 rounded-full mr-3"
             onError={(e) => {
