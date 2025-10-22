@@ -82,8 +82,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //
-        String authorizationHeader = request.getHeader("Authorization");
-        System.out.println("AuthorizationHeader: " + authorizationHeader);
         
 
         String token = extractTokenFromCookie(request);
