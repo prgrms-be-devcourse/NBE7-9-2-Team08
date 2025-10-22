@@ -49,7 +49,7 @@ export async function api<T = unknown>(
       method,
       headers: h,
       body: body ? JSON.stringify(body) : undefined,
-      credentials: auth === 'cookie' ? 'include' : 'same-origin',
+      credentials: auth === 'cookie' ? 'include' : auth === 'none' ? 'omit' : 'same-origin',
       cache: 'no-store',
       next,
     });

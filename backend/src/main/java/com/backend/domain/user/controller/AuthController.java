@@ -1,10 +1,14 @@
 package com.backend.domain.user.controller;
 
+import com.backend.domain.user.dto.LoginResponse;
+import com.backend.domain.user.dto.UserDto;
 import com.backend.domain.user.service.EmailService;
 import com.backend.domain.user.service.JwtService;
 import com.backend.domain.user.util.JwtUtil;
+import com.backend.domain.user.service.UserService;
 import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
+import com.backend.global.response.ResponseCode;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     @Value("${jwt.access-token-expiration-in-milliseconds}")
@@ -89,11 +94,15 @@ public class AuthController {
 
 
     @PostMapping("/api/login")
-    public ApiResponse<String> login(
-            @Valid @RequestBody LoginRequest loginRequest,
+    public ApiResponse<LoginResponse> login(
+            @RequestBody LoginRequest loginRequest,
             HttpServletResponse response
     ){
         String token = jwtService.login(loginRequest.email, loginRequest.password);
+        if (token == null) {
+            // ★ 에러 분기도 LoginResponse로 타입을 고정해서 반환
+            return ApiResponse.<LoginResponse>error(ResponseCode.UNAUTHORIZED);
+        }
 
         if(token != null) {
             Cookie cookie = new Cookie("token", token);
@@ -103,9 +112,11 @@ public class AuthController {
 
             cookie.setMaxAge(tokenValidityMilliSeconds);
 
-            response.addCookie(cookie); //응답에 쿠키 추가
+        response.addCookie(cookie); //응답에 쿠키 추가
+        var user = userService.findByEmail(loginRequest.email);
 
-            return ApiResponse.success("success");
+
+            return ApiResponse.success(new LoginResponse(new UserDto(user)));
         }else{
             return ApiResponse.error(ErrorCode.Login_Failed);
         }
@@ -143,6 +154,7 @@ public class AuthController {
 
         return ApiResponse.success("success");
     }
+
 
     public String getJwtToken(HttpServletRequest request){
         Cookie[] cookies = request.getCookies(); //
