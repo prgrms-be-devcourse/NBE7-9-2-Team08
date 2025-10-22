@@ -9,9 +9,13 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
       <div className="flex items-center mb-3">
         {item.userImage ? (
           <img
-            src={item.userImage}
+            src={item.userImage || "./userInit.png"}
             alt={item.userName}
             className="w-10 h-10 rounded-full mr-3"
+            onError={(e) => {
+              e.currentTarget.onerror = null // 무한 루프 방지
+              e.currentTarget.src = "./userInit.png" // 로딩 실패 시 기본 이미지로 교체
+            }}
           />
         ) : (
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold mr-3">
@@ -58,11 +62,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
 
       {/* 하단 */}
       <div className="flex justify-between items-center mt-4 text-gray-500 text-sm">
-        <div className="flex gap-4">
-          <span>❤️ 128</span>
-          <span>💬 24</span>
-          <span>🔗 Share</span>
-        </div>
+
         <button className="border px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-100">
           View Analysis
         </button>
