@@ -50,9 +50,14 @@ public class CommunityService {
         return commentRepository.save(comment);
     }
 
-    // 특정 분석 결과의 댓글 조회
+//    // 특정 분석 결과의 댓글 조회
+//    public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
+//        return commentRepository.findByAnalysisResult_Id(analysisResultId);
+//    }
+
     public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
-        return commentRepository.findByAnalysisResult_Id(analysisResultId);
+        // id 내림차순으로 정렬된 댓글 리스트 반환
+        return commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResultId);
     }
 
     // 댓글 삭제

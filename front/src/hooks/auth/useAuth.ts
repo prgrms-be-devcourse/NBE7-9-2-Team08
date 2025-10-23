@@ -52,6 +52,24 @@ export function useAuth() {
     }
   }, []);
 
+    // ✅ 로그인된 상태일 때 자동 로그아웃 타이머 (2시간 후)
+    useEffect(() => {
+      if (!token) return; // 로그인 안 되어 있으면 실행 안 함
+  
+      console.log('⏰ 2시간 자동 로그아웃 타이머 시작');
+      const logoutTimer = setTimeout(() => {
+        console.warn('🔒 토큰 만료 — 자동 로그아웃 실행');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+        toast.push('세션이 만료되어 로그아웃되었습니다.');
+        window.location.reload();
+      }, 2 * 60 * 60 * 1000); // ✅ 2시간 (7200000ms)
+  
+      return () => clearTimeout(logoutTimer);
+    }, [token]); // token이 새로 설정될 때마다 타이머 재설정
+
   const isAuthed = useMemo(() => !!token, [token]);
 
   function loginWithToken(userData: GetUserResponse) {

@@ -9,8 +9,9 @@ import java.util.stream.Collectors;
 
 public record CommunityResponseDto(
         String userName,
-        String userIamge,
+        String userImage,
         String repositoryName,
+        Long repositoryId,
         String summary,
         List<String> language,
         int totalScore,
@@ -21,6 +22,7 @@ public record CommunityResponseDto(
                 repositories.getUser().getName(),
                 repositories.getUser().getImageUrl(),
                 repositories.getName(),
+                repositories.getId(),
                 analysis.getSummary(),
                 repositories.getLanguages().stream()
                         .map(language -> language.getLanguage().name())

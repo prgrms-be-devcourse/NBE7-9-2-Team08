@@ -6,6 +6,9 @@ export interface RepositoryResponse {
   htmlUrl: string
   publicRepository: boolean
   mainBranch: string
-  languages: string[]
+  languages: string[],
+  createDate: string,
+  latestScore?: number | null
+  latestAnalysisDate?: string | null
 }
   

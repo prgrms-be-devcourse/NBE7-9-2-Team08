@@ -1,8 +1,12 @@
 'use client';
 
 import type { RepositoryItem } from '@/types/community';
+import { useRouter } from 'next/navigation'
 
 export default function RepositoryCard({ item }: { item: RepositoryItem }) {
+
+  const router = useRouter();
+
   return (
     <article className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition-all duration-200">
       {/* 사용자 정보 */}
@@ -63,7 +67,11 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
       {/* 하단 */}
       <div className="flex justify-between items-center mt-4 text-gray-500 text-sm">
 
-        <button className="border px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-100">
+        <button
+          className="border px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-100"
+          type="button"
+          onClick={() => router.push(`/analysis/${item.repositoryId}`) }
+        >
           View Analysis
         </button>
       </div>

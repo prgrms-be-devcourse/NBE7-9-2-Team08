@@ -2,6 +2,7 @@ package com.backend.domain.repository.dto.response;
 
 import com.backend.domain.repository.entity.Repositories;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +17,8 @@ public record RepositoryResponse(
         String htmlUrl,
         boolean publicRepository,
         String mainBranch,
-        List<String> languages
+        List<String> languages,
+        LocalDateTime createDate
 ) {
     public RepositoryResponse(Repositories repositories) {
         this(
@@ -28,7 +30,8 @@ public record RepositoryResponse(
                 repositories.getMainBranch(),
                 repositories.getLanguages().stream()
                         .map(lang -> lang.getLanguage().name())
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                repositories.getCreateDate()
         );
     }
 }
