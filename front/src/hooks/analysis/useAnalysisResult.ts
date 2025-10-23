@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { analysisApi } from "@/lib/api/analysis"
 import type { HistoryResponseDto, AnalysisResultResponseDto } from "@/types/analysis"
-import { formatDate } from "@/lib/utils/formatDate"
+import { formatDateTimeKST } from "@/lib/utils/formatDate"
 
 export function useAnalysisResult(userId?: number, repoId?: number) {
   const [history, setHistory] = useState<HistoryResponseDto | null>(null)
@@ -23,7 +23,7 @@ export function useAnalysisResult(userId?: number, repoId?: number) {
 
         const relabeled = sorted.map((ver, idx) => ({
           ...ver,
-          versionLabel: `v${sorted.length - idx} (${formatDate(ver.analysisDate)})`,
+          versionLabel: `v${sorted.length - idx} (${formatDateTimeKST(ver.analysisDate)})`,
         }))
 
         setHistory({ ...data, analysisVersions: relabeled })

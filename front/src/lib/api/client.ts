@@ -52,6 +52,17 @@ export async function api<T = unknown>(
     const text = await res.text();
     const responseData = text ? JSON.parse(text) : null;
 
+    if (res.status === 401) {
+      console.warn("🔐 토큰 만료 — 로그인 페이지로 이동합니다.");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
+      // 즉시 리턴해서 아래 로직 수행 안 함
+      throw new Error("Unauthorized");
+    }
+    
     if (!res.ok) {
       // 🔥 에러 응답 데이터를 함께 전달
       const errorResponse = responseData as ErrorResponse;

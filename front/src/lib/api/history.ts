@@ -6,8 +6,10 @@ export async function fetchHistory(memberId: number): Promise<RepositoryResponse
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
+    credentials: "include", 
   })
 
   if (!res.ok) throw new Error("히스토리 데이터를 불러오는 데 실패했습니다.")
-  return res.json()
+  const result = await res.json();
+  return result.data;
 }
