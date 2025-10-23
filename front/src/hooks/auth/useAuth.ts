@@ -8,6 +8,7 @@ export function useAuth() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<GetUserResponse | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true); 
 
   const fetchUserInfo = async () => {
     const token = localStorage.getItem('accessToken');
@@ -15,13 +16,15 @@ export function useAuth() {
 
     try {
       setIsLoadingUser(true);
-      console.log('사용자 정보 요청 시작');
       const userData = await authApi.getCurrentUser();
-      console.log('사용자 정보 받음:', userData);
       setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('사용자 정보 가져오기 실패:', error);
-      // 에러 발생 시 로그아웃하지 않고 그냥 넘어감 (무한 루프 방지)
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
     } finally {
       setIsLoadingUser(false);
     }
@@ -41,8 +44,10 @@ export function useAuth() {
           const parsedUser = JSON.parse(savedUser);
           console.log('저장된 사용자 정보 복원:', parsedUser);
           setUser(parsedUser);
+          setIsInitializing(false);
         } catch (error) {
           console.error('사용자 정보 파싱 실패:', error);
+          setIsInitializing(false);
         }
       } else if (t) {
         // 토큰은 있는데 사용자 정보가 없으면 가져오기
@@ -70,7 +75,7 @@ export function useAuth() {
       return () => clearTimeout(logoutTimer);
     }, [token]); // token이 새로 설정될 때마다 타이머 재설정
 
-  const isAuthed = useMemo(() => !!token, [token]);
+  const isAuthed = useMemo(() => !!token && !!user, [token, user]);
 
   function loginWithToken(userData: GetUserResponse) {
     console.log('loginWithToken 호출됨, userData:', userData);
@@ -109,6 +114,7 @@ export function useAuth() {
     token, 
     user, 
     isLoadingUser,
+    isInitializing,
     loginWithToken, 
     logout,
     fetchUserInfo 

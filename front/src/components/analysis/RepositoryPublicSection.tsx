@@ -104,10 +104,6 @@ export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props
                 <p className="text-sm text-muted-foreground">다른 개발자들과 소통하세요.</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                  <MessageSquare className="h-4 w-4" />
-                  댓글 (n)
-                </Button>
                 <ShareButton />
               </div>
             </div>
