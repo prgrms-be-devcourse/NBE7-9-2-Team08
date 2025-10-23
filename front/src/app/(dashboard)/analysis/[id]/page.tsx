@@ -42,11 +42,10 @@ export default function ResultsPage() {
         </div>
 
         {/* 🌐 공개 설정 및 커뮤니티 섹션 */}
-        <RepositoryPublicSection
-          userId={history.repository.ownerId}
-          repoId={repoId}
-          initialPublic={history.repository.publicRepository}
-        />
+        <RepositoryPublicSection 
+          userId={history.repository.ownerId} 
+          repoId={repoId} 
+          initialPublic={history.repository.publicRepository} />
       </div>
     </div>
   )

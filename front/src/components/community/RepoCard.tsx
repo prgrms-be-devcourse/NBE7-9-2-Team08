@@ -2,10 +2,11 @@
 
 import type { RepositoryItem } from '@/types/community';
 import { useRouter } from 'next/navigation'
+import { formatRelativeTimeKST } from '@/lib/utils/formatDate'
 
 export default function RepositoryCard({ item }: { item: RepositoryItem }) {
-
   const router = useRouter();
+  const relativeTime = formatRelativeTimeKST(item.createDate);
 
   return (
     <article className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition-all duration-200">
@@ -30,7 +31,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
           <p className="font-semibold text-sm">{item.userName}</p>
           <p className="text-gray-500 text-xs">@{item.userName.toLowerCase()}</p>
         </div>
-        <span className="ml-auto text-gray-400 text-xs">2시간 전</span>
+        <span className="ml-auto text-gray-400 text-xs">{relativeTime}</span>
       </div>
 
       {/* 레포지토리 링크 */}
