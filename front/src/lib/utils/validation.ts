@@ -1,159 +1,94 @@
-// lib/utils/validation.ts
+// 유효성 검사 유틸리티 함수들
+
+export interface ValidationResult {
+  isValid: boolean
+  message?: string
+}
 
 /**
- * GitHub URL 유효성 검증
+ * 이름 유효성 검사
+ * - 최소 3글자, 최대 10글자
+ * - 특수문자 허용하지 않음
  */
-export function isValidGitHubUrl(url: string): boolean {
-    if (!url || typeof url !== 'string') return false
-    
-    // GitHub URL 패턴 정규식
-    const githubUrlPattern = /^https:\/\/github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\/?$/
-    
-    try {
-      const trimmedUrl = url.trim()
-      return githubUrlPattern.test(trimmedUrl)
-    } catch {
-      return false
-    }
+export function validateName(name: string): ValidationResult {
+  if (!name || name.trim().length === 0) {
+    return { isValid: false, message: '이름을 입력해주세요.' }
   }
+
+  const trimmedName = name.trim()
   
-  /**
-   * 이메일 유효성 검증
-   */
-  export function isValidEmail(email: string): boolean {
-    if (!email || typeof email !== 'string') return false
-    
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailPattern.test(email.trim())
+  if (trimmedName.length < 3) {
+    return { isValid: false, message: '이름은 최소 3글자 이상이어야 합니다.' }
   }
-  
-  /**
-   * 비밀번호 유효성 검증
-   * 최소 8자, 대문자, 소문자, 숫자 포함
-   */
-  export function isValidPassword(password: string): boolean {
-    if (!password || typeof password !== 'string') return false
-    
-    const minLength = password.length >= 8
-    const hasUpperCase = /[A-Z]/.test(password)
-    const hasLowerCase = /[a-z]/.test(password)
-    const hasNumber = /\d/.test(password)
-    
-    return minLength && hasUpperCase && hasLowerCase && hasNumber
+
+  if (trimmedName.length > 10) {
+    return { isValid: false, message: '이름은 최대 10글자까지 입력 가능합니다.' }
   }
-  
-  /**
-   * 사용자명 유효성 검증
-   * 2-20자, 영문/숫자/언더스코어만 허용
-   */
-  export function isValidUsername(username: string): boolean {
-    if (!username || typeof username !== 'string') return false
-    
-    const usernamePattern = /^[a-zA-Z0-9_]{2,20}$/
-    return usernamePattern.test(username.trim())
+
+  // 특수문자 검사 (한글, 영문, 숫자만 허용)
+  const nameRegex = /^[가-힣a-zA-Z0-9]+$/
+  if (!nameRegex.test(trimmedName)) {
+    return { isValid: false, message: '이름에는 특수문자를 사용할 수 없습니다.' }
   }
-  
-  /**
-   * 분석 상태 유효성 검증
-   */
-  export function isValidAnalysisStatus(status: string): boolean {
-    const validStatuses = ['PENDING', 'ANALYZING', 'COMPLETED', 'FAILED']
-    return validStatuses.includes(status)
+
+  return { isValid: true }
+}
+
+/**
+ * 비밀번호 유효성 검사
+ * - 최소 8글자, 최대 20글자
+ * - 특수문자 1개 이상 포함
+ */
+export function validatePassword(password: string): ValidationResult {
+  if (!password || password.length === 0) {
+    return { isValid: false, message: '비밀번호를 입력해주세요.' }
   }
-  
-  /**
-   * 점수 유효성 검증 (0-100)
-   */
-  export function isValidScore(score: number): boolean {
-    return typeof score === 'number' && score >= 0 && score <= 100
+
+  if (password.length < 8) {
+    return { isValid: false, message: '비밀번호는 최소 8글자 이상이어야 합니다.' }
   }
-  
-  /**
-   * 페이지네이션 파라미터 유효성 검증
-   */
-  export function isValidPaginationParams(page: number, size: number): boolean {
-    return (
-      typeof page === 'number' && 
-      typeof size === 'number' && 
-      page >= 0 && 
-      size > 0 && 
-      size <= 100
-    )
+
+  if (password.length > 20) {
+    return { isValid: false, message: '비밀번호는 최대 20글자까지 입력 가능합니다.' }
   }
-  
-  /**
-   * 검색 키워드 유효성 검증
-   */
-  export function isValidSearchKeyword(keyword: string): boolean {
-    if (!keyword || typeof keyword !== 'string') return false
-    
-    const trimmed = keyword.trim()
-    return trimmed.length >= 1 && trimmed.length <= 100
+
+  // 특수문자 검사
+  const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/
+  if (!specialCharRegex.test(password)) {
+    return { isValid: false, message: '비밀번호에는 특수문자를 1개 이상 포함해야 합니다.' }
   }
-  
-  /**
-   * URL이 안전한지 검증 (기본적인 XSS 방지)
-   */
-  export function isSafeUrl(url: string): boolean {
-    if (!url || typeof url !== 'string') return false
-    
-    try {
-      const parsedUrl = new URL(url)
-      // HTTP/HTTPS만 허용
-      return ['http:', 'https:'].includes(parsedUrl.protocol)
-    } catch {
-      return false
-    }
+
+  return { isValid: true }
+}
+
+/**
+ * 비밀번호 확인 검사
+ */
+export function validatePasswordConfirm(password: string, passwordConfirm: string): ValidationResult {
+  if (!passwordConfirm || passwordConfirm.length === 0) {
+    return { isValid: false, message: '비밀번호 확인을 입력해주세요.' }
   }
-  
-  /**
-   * 분석 요청 데이터 유효성 검증
-   */
-  export function validateAnalysisRequest(data: { repositoryUrl: string }): {
-    isValid: boolean
-    errors: string[]
-  } {
-    const errors: string[] = []
-    
-    if (!data.repositoryUrl) {
-      errors.push('저장소 URL이 필요합니다.')
-    } else if (!isValidGitHubUrl(data.repositoryUrl)) {
-      errors.push('올바른 GitHub 저장소 URL을 입력해주세요.')
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors
-    }
+
+  if (password !== passwordConfirm) {
+    return { isValid: false, message: '비밀번호가 일치하지 않습니다.' }
   }
-  
-  /**
-   * 회원가입 데이터 유효성 검증
-   */
-  export function validateSignupData(data: {
-    email: string
-    password: string
-    username: string
-  }): {
-    isValid: boolean
-    errors: Record<string, string>
-  } {
-    const errors: Record<string, string> = {}
-    
-    if (!isValidEmail(data.email)) {
-      errors.email = '올바른 이메일 주소를 입력해주세요.'
-    }
-    
-    if (!isValidPassword(data.password)) {
-      errors.password = '비밀번호는 8자 이상, 대소문자와 숫자를 포함해야 합니다.'
-    }
-    
-    if (!isValidUsername(data.username)) {
-      errors.username = '사용자명은 2-20자의 영문, 숫자, 언더스코어만 가능합니다.'
-    }
-    
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    }
+
+  return { isValid: true }
+}
+
+/**
+ * 전체 비밀번호 변경 폼 유효성 검사
+ */
+export function validatePasswordChangeForm(password: string, passwordConfirm: string): ValidationResult {
+  const passwordValidation = validatePassword(password)
+  if (!passwordValidation.isValid) {
+    return passwordValidation
   }
+
+  const confirmValidation = validatePasswordConfirm(password, passwordConfirm)
+  if (!confirmValidation.isValid) {
+    return confirmValidation
+  }
+
+  return { isValid: true }
+}

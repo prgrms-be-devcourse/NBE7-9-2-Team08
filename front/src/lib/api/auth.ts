@@ -1,5 +1,6 @@
 // auth 도메인 API
 import { http } from './client'
+import { getJwtToken } from '@/lib/utils/cookies'
 import type { LoginRequest, LoginResponse, SignupRequest, SignupResponse } from '@/types/auth'
 
 export interface EmailVerificationRequest {
@@ -120,6 +121,7 @@ export const authApi = {
    * GET /api/user/me
    */
   getCurrentUser: async (): Promise<GetUserResponse> => {
+    const token = getJwtToken() || localStorage.getItem('accessToken');
     const response = await fetch(
       process.env.NEXT_PUBLIC_DEV_PROXY === 'true' 
         ? `/api/user/me` 
@@ -128,7 +130,7 @@ export const authApi = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include',
       }

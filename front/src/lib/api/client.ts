@@ -6,13 +6,27 @@ import type {
   ApiRequestOptions 
 } from '@/types/api';
 import { ErrorHandler } from '@/lib/errors/error-handler';
+import { getJwtToken } from '@/lib/utils/cookies';
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
 const AUTH_HEADER = process.env.NEXT_PUBLIC_AUTH_HEADER || 'Authorization';
 
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken');
+  
+  // 쿠키에서 JWT 토큰 가져오기
+  const jwtToken = getJwtToken();
+  if (jwtToken) {
+    return jwtToken;
+  }
+  
+  // 쿠키에 없으면 localStorage에서 가져오기 (기존 방식)
+  const localToken = localStorage.getItem('accessToken');
+  if (localToken && localToken !== 'logged_in') {
+    return localToken;
+  }
+  
+  return null;
 }
 
 export async function api<T = unknown>(
@@ -28,18 +42,41 @@ export async function api<T = unknown>(
   } = opts;
 
   const isAbsolute = path.startsWith('http');
+  // 프록시 모드 비활성화 - 항상 백엔드 서버로 직접 요청
   const url = isAbsolute 
     ? path 
-    : (process.env.NEXT_PUBLIC_DEV_PROXY === 'true' 
-        ? `/api${path.startsWith('/') ? path : `/${path}`}` 
-        : `${BASE}${path.startsWith('/') ? path : `/${path}`}`);
+    : `${BASE}${path.startsWith('/') ? path : `/${path}`}`;
+
+  console.log('=== API 호출 디버깅 ===');
+  console.log('BASE:', BASE);
+  console.log('path:', path);
+  console.log('isAbsolute:', isAbsolute);
+  console.log('NEXT_PUBLIC_DEV_PROXY:', process.env.NEXT_PUBLIC_DEV_PROXY);
+  console.log('최종 URL:', url);
+  console.log('========================');
 
   const h: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers,
   };
 
+  // 인증 토큰 추가
+  if (auth === 'token') {
+    const token = getToken();
+    console.log('API 호출 - 토큰:', token ? `${token.substring(0, 20)}...` : '없음');
+    if (token) {
+      h[AUTH_HEADER] = `Bearer ${token}`;
+    }
+  }
+
   try {
+    console.log('=== Fetch 요청 시작 ===');
+    console.log('요청 URL:', url);
+    console.log('요청 메서드:', method);
+    console.log('요청 헤더:', h);
+    console.log('요청 바디:', body);
+    console.log('=======================');
+    
     const res = await fetch(url, {
       method,
       headers: h,
@@ -48,6 +85,11 @@ export async function api<T = unknown>(
       cache: 'no-store',
       next,
     });
+    
+    console.log('=== Fetch 응답 받음 ===');
+    console.log('응답 상태:', res.status);
+    console.log('응답 URL:', res.url);
+    console.log('=======================');
 
     const text = await res.text();
     const responseData = text ? JSON.parse(text) : null;
