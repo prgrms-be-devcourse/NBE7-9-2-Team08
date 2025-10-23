@@ -43,7 +43,7 @@ export default function ResultsPage() {
 
         {/* 🌐 공개 설정 및 커뮤니티 섹션 */}
         <RepositoryPublicSection
-          userId={userId}
+          userId={history.repository.ownerId}
           repoId={repoId}
           initialPublic={history.repository.publicRepository}
         />
