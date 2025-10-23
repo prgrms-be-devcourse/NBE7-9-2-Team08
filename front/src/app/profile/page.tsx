@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/auth/useAuth"
 import { userApi } from "@/lib/api/user"
 import { Button } from "@/components/ui/Button"
@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast"
 import { User, Mail, Lock, Save } from "lucide-react"
 
 export default function ProfilePage() {
-  const { user, fetchUserInfo } = useAuth()
+  const { user, fetchUserInfo, updateUserInfo } = useAuth()
   const toast = useToast()
   
   const [isEditingName, setIsEditingName] = useState(false)
@@ -21,6 +21,13 @@ export default function ProfilePage() {
   const [passwordCheck, setPasswordCheck] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
+  // ✅ 사용자 정보가 변경될 때마다 로컬 상태 업데이트
+  useEffect(() => {
+    if (user) {
+      setName(user.name)
+    }
+  }, [user])
+
   const handleNameUpdate = async () => {
     if (!name.trim()) {
       toast.push("이름을 입력해주세요.")
@@ -29,10 +36,20 @@ export default function ProfilePage() {
 
     try {
       setIsLoading(true)
-      await userApi.updateName({ name: name.trim() })
+      const response = await userApi.updateName({ name: name.trim() })
       toast.push("이름이 성공적으로 변경되었습니다.")
       setIsEditingName(false)
-      await fetchUserInfo() // 사용자 정보 새로고침
+      
+      // ✅ 업데이트된 사용자 정보로 전역 상태 갱신
+      if (response.userDto) {
+        updateUserInfo(response.userDto)
+        console.log('프로필 페이지에서 사용자 정보 업데이트 완료:', response.userDto)
+      }
+      
+      // ✅ 페이지 새로고침으로 헤더 업데이트 보장
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error) {
       console.error("이름 변경 실패:", error)
       toast.push("이름 변경에 실패했습니다.")
@@ -59,7 +76,7 @@ export default function ProfilePage() {
 
     try {
       setIsLoading(true)
-      await userApi.updatePassword({ 
+      const response = await userApi.updatePassword({ 
         password: password.trim(), 
         passwordCheck: passwordCheck.trim() 
       })
@@ -67,6 +84,16 @@ export default function ProfilePage() {
       setIsEditingPassword(false)
       setPassword("")
       setPasswordCheck("")
+      
+      // ✅ 업데이트된 사용자 정보로 전역 상태 갱신
+      if (response.userDto) {
+        updateUserInfo(response.userDto)
+      }
+      
+      // ✅ 페이지 새로고침으로 헤더 업데이트 보장
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error) {
       console.error("비밀번호 변경 실패:", error)
       toast.push("비밀번호 변경에 실패했습니다.")

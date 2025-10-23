@@ -38,14 +38,14 @@ export const authApi = {
    * POST /api/v1/auth/login
    */
   login: (data: LoginRequest): Promise<LoginResponse> =>
-    http.post('/login', data, 'cookie'),
+    http.post('/login', data),
 
   /**
    * 회원가입
    * POST /user
    */
   signup: (data: SignupRequest): Promise<SignupResponse> =>
-    http.post('/user', data, 'none'),
+    http.post('/user', data),
 
   /**
    * 이메일 인증 요청
