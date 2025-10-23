@@ -18,7 +18,8 @@ public record CommunityResponseDto(
         List<String> language,
         int totalScore,
         LocalDateTime createDate,
-        boolean vewingStatus
+        boolean vewingStatus,
+        String htmlUrl
 ) {
     public CommunityResponseDto(Repositories repositories, AnalysisResult analysis, Score score) {
         this(
@@ -33,7 +34,8 @@ public record CommunityResponseDto(
                         .collect(Collectors.toList()),
                 score.getTotalScore(),
                 analysis.getCreateDate(),
-                repositories.isPublicRepository()
+                repositories.isPublicRepository(),
+                repositories.getHtmlUrl()
         );
     }
 }

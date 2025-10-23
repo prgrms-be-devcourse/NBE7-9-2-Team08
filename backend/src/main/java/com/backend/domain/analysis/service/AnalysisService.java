@@ -135,7 +135,7 @@ public class AnalysisService {
 
     // 특정 분석 결과 삭제
     @Transactional
-    public void deleteAnalysisResult(Long analysisResultId, Long memberId) {
+    public void deleteAnalysisResult(Long analysisResultId, Long repositoryId, Long memberId) {
         if (analysisResultId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -143,7 +143,7 @@ public class AnalysisService {
         AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
 
-        if (!analysisResult.getRepositories().getId().equals(analysisResultId)) {
+        if (!analysisResult.getRepositories().getId().equals(repositoryId)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 

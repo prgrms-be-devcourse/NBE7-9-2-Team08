@@ -79,16 +79,21 @@ public class AnalysisController {
             @PathVariable("repositoriesId") Long repoId,
             HttpServletRequest httpRequest
     ){
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
 
         // 1. Repository 정보 조회
         Repositories repository = repositoryService.findById(repoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
         RepositoryResponse repositoryResponse = new RepositoryResponse(repository);
+
+        // 권한 검증
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+        boolean isOwner = jwtUserId.equals(userId);
+        boolean isPublic = repository.isPublicRepository();
+
+        if (!isOwner && !isPublic) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
 
         // 2. 분석 결과 목록 조회 (최신순 정렬)
         List<AnalysisResult> analysisResults =
@@ -118,16 +123,21 @@ public class AnalysisController {
             @PathVariable Long analysisId,
             HttpServletRequest httpRequest
     ) {
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
         // 분석 결과 조회
         AnalysisResult analysisResult = analysisService.getAnalysisById(analysisId);
 
         if (!analysisResult.getRepositories().getId().equals(repositoryId)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        
+        // 권한 검증
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+        Repositories repository = analysisResult.getRepositories();
+        boolean isOwner = jwtUserId.equals(userId);
+        boolean isPublic = repository.isPublicRepository();
+
+        if (!isOwner && !isPublic) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
         AnalysisResultResponseDto response =
@@ -163,7 +173,7 @@ public class AnalysisController {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        analysisService.deleteAnalysisResult(analysisId, userId);
+        analysisService.deleteAnalysisResult(analysisId, repositoryId, userId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
