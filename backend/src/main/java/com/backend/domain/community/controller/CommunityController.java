@@ -12,8 +12,14 @@ import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.domain.user.entity.User;
+import com.backend.domain.user.util.JwtUtil;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -26,6 +32,7 @@ public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 커뮤니티 관련 기능이 있는 컨트롤러 입니다.
@@ -59,7 +66,10 @@ public class CommunityController {
                 communityRepositories.add(dto);
             }
         }
-        return ResponseEntity.ok(communityRepositories);
+
+        communityRepositories.sort((a, b) -> b.createDate().compareTo(a.createDate()));
+
+    return ResponseEntity.ok(communityRepositories);
     }
 
 
@@ -68,8 +78,19 @@ public class CommunityController {
     @PostMapping("/{analysisResultId}/write")
     public ResponseEntity<CommentResponseDto> addComment(
             @PathVariable Long analysisResultId,
-            @RequestBody CommentRequestDto requestDto
+            @RequestBody CommentRequestDto requestDto,
+            HttpServletRequest httpRequest
     ) {
+        // userId를 api url에서 받지 않는다.
+        // 여기서 받은 유저 정보가 userDB에 존재하는지 확인
+        // -> 존재하지 않는다면 회원이 아닙니다.
+        // -> 존재한다면 회원이니까 댓글 작성 가능
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+//        if(!idUserPresent(jwtUserId)){
+//
+//        }
+
+
         Comment saved = communityService.addComment(
                 analysisResultId,
                 requestDto.memberId(),
