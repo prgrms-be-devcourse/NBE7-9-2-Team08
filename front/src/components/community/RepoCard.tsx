@@ -2,6 +2,8 @@
 
 import type { RepositoryItem } from '@/types/community';
 import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow"
+import { ko } from "date-fns/locale"
 
 export default function RepositoryCard({ item }: { item: RepositoryItem }) {
 
@@ -30,7 +32,10 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
           <p className="font-semibold text-sm">{item.userName}</p>
           <p className="text-gray-500 text-xs">@{item.userName.toLowerCase()}</p>
         </div>
-        <span className="ml-auto text-gray-400 text-xs">2시간 전</span>
+        <span className="ml-auto text-gray-400 text-xs">
+          {/* {item.createDate} */} 
+          {formatDistanceToNow(new Date(item.createDate), { addSuffix: true, locale: ko })}
+        </span>
       </div>
 
       {/* 레포지토리 링크 */}
