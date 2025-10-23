@@ -1,9 +1,13 @@
 'use client';
+
+import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { authApi, type GetUserResponse } from '@/lib/api/auth';
 
 export function useAuth() {
+  const router = useRouter()
+
   const toast = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<GetUserResponse | null>(null);
@@ -69,11 +73,12 @@ export function useAuth() {
         setToken(null);
         setUser(null);
         toast.push('세션이 만료되어 로그아웃되었습니다.');
-        window.location.reload();
+
+        window.location.href = '/';
       }, 2 * 60 * 60 * 1000); // ✅ 2시간 (7200000ms)
   
       return () => clearTimeout(logoutTimer);
-    }, [token]); // token이 새로 설정될 때마다 타이머 재설정
+    }, [token, router, toast]); // token이 새로 설정될 때마다 타이머 재설정
 
   const isAuthed = useMemo(() => !!token && !!user, [token, user]);
 
@@ -101,7 +106,7 @@ export function useAuth() {
 
       // ✅ 3️⃣ 피드백 토스트
       toast.push('로그아웃되었습니다.');
-      window.location.reload();
+      window.location.href = '/';
     } catch (error) {
       console.error('❌ 로그아웃 실패:', error);
       toast.push('로그아웃 중 오류가 발생했습니다.');

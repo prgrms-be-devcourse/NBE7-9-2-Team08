@@ -43,15 +43,15 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
     implementation("io.jsonwebtoken:jjwt-api:0.13.0")
     implementation("io.jsonwebtoken:jjwt-impl:0.13.0")
     implementation("io.jsonwebtoken:jjwt-jackson:0.13.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 }
 
 tasks.withType<Test> {
