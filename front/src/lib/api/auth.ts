@@ -106,14 +106,14 @@ export const authApi = {
    * POST /api/v1/auth/logout
    */
   logout: (): Promise<void> =>
-    http.post('/api/v1/auth/logout'),
+    http.post('/logout'),
 
   /**
    * 토큰 갱신
    * POST /api/v1/auth/refresh
    */
   refreshToken: (): Promise<LoginResponse> =>
-    http.post('/api/v1/auth/refresh'),
+    http.post('/api/refresh'),
 
   /**
    * 현재 로그인한 사용자 정보 조회

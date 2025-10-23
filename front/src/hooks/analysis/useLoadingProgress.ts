@@ -81,9 +81,13 @@ export function useAnalysisProgress(repoUrl?: string | null) {
       console.log("[SSE][status]", message)
       setStatusMessage(message)
 
-      const stepIndex = steps.findIndex((s) =>
+      let stepIndex = steps.findIndex((s) =>
         message.replace(/\s+/g, "").includes(s.label.replace(/\s+/g, ""))
       )
+
+      if (message.includes("커뮤니티 활동 분석")) {
+        stepIndex = steps.length - 1 // "최종 리포트 생성" 단계 인덱스로 이동
+      }
 
       if (stepIndex !== -1) {
         setCurrentStep(stepIndex)
@@ -103,11 +107,11 @@ export function useAnalysisProgress(repoUrl?: string | null) {
         const repoId = repositoryIdRef.current
         if (repoId) {
           console.log(`🚀 라우팅 시도 → /analysis/${repoId}`)
-          router.push("/analysis/${repoId}")
+          router.push(`/analysis/${repoId}`)
         } else {
           console.warn("⚠️ repositoryId가 존재하지 않아 라우팅하지 않음")
         }
-      }, 1000)
+      }, 1500)
     })
 
     eventSource.onerror = (err) => {
