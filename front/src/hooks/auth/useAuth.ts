@@ -16,7 +16,10 @@ export function useAuth() {
 
   const fetchUserInfo = async () => {
     const token = localStorage.getItem('accessToken');
-    if (!token) return;
+    if (!token) {
+      setIsInitializing(false);
+      return;
+    }
 
     try {
       setIsLoadingUser(true);
