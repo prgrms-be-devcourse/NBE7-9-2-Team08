@@ -4,17 +4,25 @@ import { useState } from "react"
 import { CommentList } from "./CommentList"
 import { CommentForm } from "./CommentForm"
 
-export function CommentSection({ analysisResultId }: { analysisResultId: string }) {
+interface CommentSectionProps {
+  analysisResultId: number
+  memberId: number
+}
+
+export function CommentSection({ analysisResultId, memberId }: CommentSectionProps) {
   const [refreshKey, setRefreshKey] = useState(0)
 
   return (
-    <div>
-      <CommentList key={refreshKey} analysisResultId={analysisResultId} />
+    <div className="mt-6 space-y-6">
+      {/* ✏️ 댓글 작성 폼 */}
       <CommentForm
         analysisResultId={analysisResultId}
-        memberId={1} // 로그인 후 실제 사용자 ID로 교체
+        memberId={memberId}
         onCommentAdded={() => setRefreshKey((k) => k + 1)}
       />
+
+      {/* 💬 댓글 목록 */}
+      <CommentList key={refreshKey} analysisResultId={analysisResultId} />
     </div>
   )
 }

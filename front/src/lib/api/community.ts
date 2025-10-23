@@ -11,8 +11,8 @@ export async function fetchRepositories() {
 
 
 // ✅ 댓글 조회
-export async function fetchComments(analysisResultId: string) {
-  const res = await fetch(`http://localhost:8080/api/community/2/comments`)
+export async function fetchComments(analysisResultId: number) {
+  const res = await fetch(`http://localhost:8080/api/community/${analysisResultId}/comments`)
   if (!res.ok) {
     throw new Error("댓글 조회 실패")
   }
@@ -20,8 +20,8 @@ export async function fetchComments(analysisResultId: string) {
 }
 
 // ✅ 댓글 작성
-export async function postComment(analysisResultId: string, memberId: number, comment: string) {
-  const res = await fetch(`http://localhost:8080/api/community/2/write`, {
+export async function postComment(analysisResultId: number, memberId: number, comment: string) {
+  const res = await fetch(`http://localhost:8080/api/community/${analysisResultId}/write`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

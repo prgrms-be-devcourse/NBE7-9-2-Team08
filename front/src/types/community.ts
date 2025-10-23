@@ -4,7 +4,7 @@
 export interface RepositoryItem {
   userName: string;
   userImage: string | null;
-  repositoryName: string;
+  repositoryId: number;
   summary: string;
   language: string[];
   totalScore: number;

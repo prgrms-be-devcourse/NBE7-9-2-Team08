@@ -5,10 +5,10 @@ import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { fetchComments } from "@/lib/api/community"
 import { Comment } from "@/types/community"
-import { formatDistanceToNow } from "date-fns/formatDistanceToNow"
-import {ko } from "date-fns/locale/ko"
+import { formatDistanceToNow } from "date-fns"
+import { ko } from "date-fns/locale"
 
-export function CommentList({ analysisResultId }: { analysisResultId: string }) {
+export function CommentList({ analysisResultId }: { analysisResultId: number }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -23,7 +23,6 @@ export function CommentList({ analysisResultId }: { analysisResultId: string }) 
         setLoading(false)
       }
     }
-
     loadData()
   }, [analysisResultId])
 
@@ -40,7 +39,6 @@ export function CommentList({ analysisResultId }: { analysisResultId: string }) 
 
         return (
           <Card key={c.id} className="p-5 rounded-2xl shadow-sm flex flex-col gap-3">
-            {/* Header */}
             <div className="flex justify-between">
               <div className="flex gap-3 items-center">
                 <Avatar className="h-10 w-10">
@@ -49,13 +47,10 @@ export function CommentList({ analysisResultId }: { analysisResultId: string }) 
                 </Avatar>
                 <div>
                   <p className="font-semibold">{`User #${c.memberId}`}</p>
-                  <p className="text-sm text-muted-foreground">{`user${c.memberId}@example.com`}</p>
                 </div>
               </div>
               <span className="text-sm text-muted-foreground">{timeAgo}</span>
             </div>
-
-            {/* Content */}
             <p className="text-[15px] text-gray-800 leading-relaxed">{c.comment}</p>
           </Card>
         )
