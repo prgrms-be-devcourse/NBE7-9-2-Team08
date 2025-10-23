@@ -106,7 +106,7 @@ public class AuthController {
         if(token != null) {
             Cookie cookie = new Cookie("token", token);
             cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
-            cookie.setSecure(true); //HTTPS 통신에서만 전송
+            cookie.setSecure(false); //HTTPS 통신에서만 전송
             cookie.setPath("/");
 
             cookie.setMaxAge(tokenValidityMilliSeconds);

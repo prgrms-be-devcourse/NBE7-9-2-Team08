@@ -65,13 +65,26 @@ export function useAuth() {
     toast.push('로그인되었습니다.');
   }
 
-  function logout() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-    toast.push('로그아웃되었습니다.');
+  async function logout() {
+    try {
+      // ✅ 1️⃣ 서버 세션 로그아웃 요청
+      await authApi.logout();
+
+      // ✅ 2️⃣ 클라이언트 측 상태 초기화
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+
+      // ✅ 3️⃣ 피드백 토스트
+      toast.push('로그아웃되었습니다.');
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ 로그아웃 실패:', error);
+      toast.push('로그아웃 중 오류가 발생했습니다.');
+    }
   }
+
 
   return { 
     isAuthed, 

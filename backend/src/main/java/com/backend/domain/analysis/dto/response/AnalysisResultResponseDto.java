@@ -13,7 +13,7 @@ public record AnalysisResultResponseDto(
     int testScore,
     int commitScore,
     int cicdScore,
-    String summery,
+    String summary,
     String strengths,
     String improvements
 ) {

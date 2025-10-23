@@ -49,6 +49,7 @@ public class SecurityConfig {
                                 "/h2-console/**" // H2 콘솔 허용
                         ).permitAll()
                         .requestMatchers(
+                                "/api/analysis/stream/**",
                                 "/api/analysis/**",
                                 "/api/repositories/**",
                                 "/api/ai/complete/**",

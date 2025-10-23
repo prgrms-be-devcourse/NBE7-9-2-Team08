@@ -27,7 +27,7 @@ public class JwtService {
 
         if(checkPassword(email, password)) {
             //email에 대응하는 비밀번호가 맞다면 jwt토큰 발급
-            return jwtUtil.createToken(user.getEmail(), user.getName());
+            return jwtUtil.createToken(user.getEmail(), user.getName(), user.getId());
         }else{
             throw new BusinessException(ErrorCode.Login_Failed);
         }

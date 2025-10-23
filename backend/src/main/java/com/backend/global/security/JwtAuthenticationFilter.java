@@ -83,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         //
-        
+
 
         String token = extractTokenFromCookie(request);
 
