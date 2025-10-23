@@ -62,6 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 new ExcludedRequest("/api/ai/complete/**", null)
         );
 
+        // 요청 경로 + 메서드가 일치하는 경우 필터 스킵
         AntPathMatcher pathMatcher = new AntPathMatcher();
 
         boolean excluded = excludedRequests.stream()
