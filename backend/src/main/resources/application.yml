@@ -44,3 +44,7 @@ github:
 jwt:
   secret: ${SECRET_KEY}
   access-token-expiration-in-milliseconds: 7200000 # 두 시간
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
