@@ -3,22 +3,25 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Sparkles, Github, Clock, TrendingUp, Search } from "lucide-react"
-import { analysisApi } from "@/lib/api/analysis"
 import { isValidGitHubUrl } from "@/lib/utils/validation"
 import { useAnalysis } from "@/hooks/analysis/useAnalysis"
+import { useRequireAuth } from "@/hooks/auth/useRequireAuth"
 
 export default function AnalyzePage() {
   const [repoUrl, setRepoUrl] = useState("")
   const [isValidUrl, setIsValidUrl] = useState(true)
   const router = useRouter()
   const { requestAnalysis, isLoading, error } = useAnalysis()
+
+  const { user } = useRequireAuth()
+  if (!user) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
