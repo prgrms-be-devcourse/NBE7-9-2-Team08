@@ -43,7 +43,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
 
       {/* 요약 */}
       <p className="mt-2 text-gray-700 text-sm leading-relaxed">
-        {item.summary}
+        {item.description}
       </p>
 
       {/* 점수 */}
