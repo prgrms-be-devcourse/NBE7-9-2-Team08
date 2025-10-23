@@ -33,7 +33,8 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
           <p className="text-gray-500 text-xs">@{item.userName.toLowerCase()}</p>
         </div>
         <span className="ml-auto text-gray-400 text-xs">
-          {/* {item.createDate} */} 
+          {/* {item.createDate} */}
+          {/* n시간 전 방식으로 시간 표시*/}
           {formatDistanceToNow(new Date(item.createDate), { addSuffix: true, locale: ko })}
         </span>
       </div>
