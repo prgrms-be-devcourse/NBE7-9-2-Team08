@@ -18,23 +18,34 @@ export default function RepositoryList() {
 
   return (
     <section className="flex flex-col gap-6 mt-6">
-      {/* ✅ 정렬 버튼 */}
-      <div className="flex justify-end gap-2">
-        <Button
-          variant={sortType === 'latest' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSortType('latest')}
-        >
-          최신순
-        </Button>
-        <Button
-          variant={sortType === 'score' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSortType('score')}
-        >
-          점수순
-        </Button>
+      {/* 헤더 + 정렬 버튼 한 줄 정렬 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">커뮤니티</h1>
+          <p className="text-muted-foreground text-sm">
+            다른 사용자의 분석 결과를 둘러보세요.
+          </p>
+        </div>
+
+        {/* 정렬 버튼 그룹 */}
+        <div className="flex gap-2">
+          <Button
+            variant={sortType === 'latest' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSortType('latest')}
+          >
+            최신순
+          </Button>
+          <Button
+            variant={sortType === 'score' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSortType('score')}
+          >
+            점수순
+          </Button>
+        </div>
       </div>
+
 
       {repositories.length === 0 ? (
         <p className="text-center text-muted-foreground">아직 공개된 분석이 없습니다.</p>
