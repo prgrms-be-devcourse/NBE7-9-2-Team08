@@ -45,5 +45,6 @@ export interface AnalysisResultResponseDto {
     summary: string
     strengths: string
     improvements: string
+    createDate: string
 }
   
