@@ -17,10 +17,14 @@ export default function Header() {
 
   const guardNav = (path: string, featureName: string) => () => {
     if (!isLoggedIn) {
-      alert(`${featureName}은 아직 개발중!`)
+      alert(`${featureName}은 로그인이 필요합니다!`)
       return
     }
     router.push(path)
+  }
+
+  const handleCommunityClick = () => {
+    router.push("/community")
   }
 
   return (
@@ -46,7 +50,7 @@ export default function Header() {
                 <button onClick={guardNav("/history", "히스토리")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   히스토리
                 </button>
-                <button onClick={guardNav("/community", "커뮤니티")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={handleCommunityClick} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
                 </button>
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/analysis")}>
@@ -66,7 +70,7 @@ export default function Header() {
               </>
             ) : (
               <>
-                <button onClick={guardNav("/community", "커뮤니티")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={handleCommunityClick} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
                 </button>
 
