@@ -8,12 +8,12 @@ import { useAuth } from "@/hooks/auth/useAuth"
 
 export default function Header() {
   const router = useRouter()
-  const { isAuthed, logout, user, isLoadingUser } = useAuth()
+  const { isAuthed, logout, user, isLoadingUser, refreshTrigger } = useAuth()
   
   // user가 있으면 로그인된 것으로 간주
   const isLoggedIn = isAuthed || !!user
   
-  console.log('Header - isAuthed:', isAuthed, 'user:', user, 'isLoggedIn:', isLoggedIn)
+  console.log('Header - isAuthed:', isAuthed, 'user:', user, 'isLoggedIn:', isLoggedIn, 'refreshTrigger:', refreshTrigger)
 
   const guardNav = (path: string, featureName: string) => () => {
     if (!isLoggedIn) {
