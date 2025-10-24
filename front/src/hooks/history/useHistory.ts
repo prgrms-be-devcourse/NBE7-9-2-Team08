@@ -29,7 +29,7 @@ export function useHistory(memberId: number) {
       const enrichedRepos: RepoBaseResponse[] = await Promise.all(
         baseRepos.map(async (repo): Promise<RepoBaseResponse> => {
           try {
-            const historyData: HistoryResponseDto = await analysisApi.getRepositoryHistory(memberId, repo.id)
+            const historyData: HistoryResponseDto = await analysisApi.getRepositoryHistory(repo.id)
             const versions = historyData.analysisVersions
             const latest = versions.length > 0 ? versions[0] : null
 
@@ -55,7 +55,7 @@ export function useHistory(memberId: number) {
 
   useEffect(() => {
     load()
-  }, [memberId])
+  }, [])
 
   const sortedRepositories = useMemo(() => {
     if (sortType === "score") {

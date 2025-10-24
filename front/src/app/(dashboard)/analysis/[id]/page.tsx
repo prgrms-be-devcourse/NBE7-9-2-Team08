@@ -12,16 +12,23 @@ export default function ResultsPage() {
   const params = useParams()
   const router = useRouter()
   const repoId = Number(params.id)
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : null
-  const userId = user?.id
 
-  const { history, result, loading, selectedId, setSelectedId, reload } = useAnalysisResult(userId, repoId)
+  const { history, result, loading, selectedId, setSelectedId, reload } = useAnalysisResult(repoId)
 
   if (loading)
     return <div className="p-8 text-center text-muted-foreground">🕓 분석 결과를 불러오는 중...</div>
 
   if (!history || !result)
     return <div className="p-8 text-center text-muted-foreground">⚠️ 분석 데이터를 찾을 수 없습니다.</div>
+
+  // ✅ API 응답에서 ownerId 추출
+  const ownerId = history.repository.ownerId
+
+  // ✅ 로그인한 사용자 (권한 체크용)
+  const currentUser = typeof window !== "undefined" 
+    ? JSON.parse(localStorage.getItem("user") || "null") 
+    : null
+  const currentUserId = currentUser?.id
 
   const radarData = [
     { category: "README", score: (result.readmeScore / 30) * 100 },
@@ -45,7 +52,7 @@ export default function ResultsPage() {
           history={history}
           selectedId={selectedId}
           onSelect={setSelectedId}
-          userId={userId}
+          userId={currentUserId}
           repoId={repoId}
           onDeleted={handleDeleted} />
 
@@ -58,7 +65,7 @@ export default function ResultsPage() {
 
         {/* 🌐 공개 설정 및 커뮤니티 섹션 */}
         <RepositoryPublicSection 
-          userId={history.repository.ownerId} 
+          userId={ownerId} 
           repoId={repoId} 
           initialPublic={history.repository.publicRepository} />
       </div>
