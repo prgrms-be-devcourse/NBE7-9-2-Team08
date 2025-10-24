@@ -14,12 +14,13 @@ public enum ErrorCode {
     MISSING_REQUEST_PARAMETER("CMN005", HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
 
     // ========== user 도메인 에러 ==========
-    Login_Failed("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
-    Email_verify_Failed("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
+    LOGIN_FAILED("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
+    EMAIL_VERIFY_FAILED("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
     NAME_NOT_FOUND("U003", HttpStatus.NOT_FOUND, "이름이 입력되지 않았습니다."),
     PASSWORD_NOT_FOUND("U004", HttpStatus.NOT_FOUND, "비밀번호가 입력되지 않았습니다."),
     PASSWORD_NOT_EQUAL("U005", HttpStatus.BAD_REQUEST, "비밀번호 확인이 일치하지 않습니다."),
     EMAIL_NOT_FOUND("U006", HttpStatus.NOT_FOUND, "해당 이메일은 없는 계정입니다.") ,
+    ALREADY_REGISTERED_EMAIL("U007", HttpStatus.BAD_REQUEST, "이미 회원가입된 이메일입니다."),
 
     // ========== analysis 도메인 에러 ==========
     INVALID_GITHUB_URL("A001", HttpStatus.BAD_REQUEST, "올바른 GitHub 저장소 URL이 아닙니다."),
