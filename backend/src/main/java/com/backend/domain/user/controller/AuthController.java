@@ -70,7 +70,7 @@ public class AuthController {
             //인증 성공시
             return ApiResponse.success("이메일 인증 성공");
         }else{
-            return ApiResponse.error(ErrorCode.Email_verify_Failed);
+            return ApiResponse.error(ErrorCode.EMAIL_VERIFY_FAILED);
         }
 
     }
@@ -117,7 +117,7 @@ public class AuthController {
 
             return ApiResponse.success(new LoginResponse(new UserDto(user)));
         }else{
-            return ApiResponse.error(ErrorCode.Login_Failed);
+            return ApiResponse.error(ErrorCode.LOGIN_FAILED);
         }
     }
 
@@ -151,7 +151,7 @@ public class AuthController {
         }
 
 
-        return ApiResponse.success("success");
+        return ApiResponse.success("로그아웃 되었습니다.");
     }
 
 

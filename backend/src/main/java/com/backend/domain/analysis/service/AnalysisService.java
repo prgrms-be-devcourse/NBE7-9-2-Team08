@@ -1,6 +1,7 @@
 package com.backend.domain.analysis.service;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.analysis.lock.InMemoryLockManager;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -26,9 +26,7 @@ public class AnalysisService {
     private final EvaluationService evaluationService;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
-
-    // 인메모리 락
-    private final ConcurrentHashMap<String, Boolean> processingRepositories = new ConcurrentHashMap<>();
+    private final InMemoryLockManager lockManager;
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -44,9 +42,7 @@ public class AnalysisService {
 
         String cacheKey = userId + ":" + githubUrl;
 
-        // 현재 처리 중인지 체크
-        if (processingRepositories.putIfAbsent(cacheKey, true) != null) {
-            log.warn("⚠중복 분석 요청 차단: userId={}, url={}", userId, githubUrl);
+        if (!lockManager.tryLock(cacheKey)) {
             throw new BusinessException(ErrorCode.ANALYSIS_IN_PROGRESS);
         }
 
@@ -58,6 +54,7 @@ public class AnalysisService {
 
             try {
                 repositoryData = repositoryService.fetchAndSaveRepository(owner, repo, userId);
+                lockManager.refreshLock(cacheKey);
                 log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
             } catch (BusinessException e) {
                 log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
@@ -73,6 +70,7 @@ public class AnalysisService {
             // OpenAI API 데이터 분석 및 저장
             try {
                 evaluationService.evaluateAndSave(repositoryData);
+                lockManager.refreshLock(cacheKey);
             } catch (BusinessException e) {
                 sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
                 throw e;
@@ -82,7 +80,7 @@ public class AnalysisService {
             return repositoryId;
         } finally {
             // 락 해제
-            processingRepositories.remove(cacheKey);
+            lockManager.releaseLock(cacheKey);
             log.info("분석 락 해제: cacheKey={}", cacheKey);
         }
     }
