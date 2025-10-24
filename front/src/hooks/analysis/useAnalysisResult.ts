@@ -5,19 +5,19 @@ import { analysisApi } from "@/lib/api/analysis"
 import type { HistoryResponseDto, AnalysisResultResponseDto } from "@/types/analysis"
 import { formatDateTimeKST } from "@/lib/utils/formatDate"
 
-export function useAnalysisResult(userId?: number, repoId?: number) {
+export function useAnalysisResult(repoId?: number) {
   const [history, setHistory] = useState<HistoryResponseDto | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [result, setResult] = useState<AnalysisResultResponseDto | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
-    if (!userId || !repoId) return
+    if (!repoId) return
     setLoading(true)
 
     try {
-      // 1️⃣ 히스토리 불러오기
-      const data = await analysisApi.getRepositoryHistory(userId, repoId)
+      // 1️⃣ 히스토리 불러오기 (JWT 자동 처리)
+      const data = await analysisApi.getRepositoryHistory(repoId)
 
       // 최신순 정렬
       const sorted = [...data.analysisVersions].sort(
@@ -39,21 +39,20 @@ export function useAnalysisResult(userId?: number, repoId?: number) {
 
       // 3️⃣ 선택된 분석 결과 불러오기
       if (latestId) {
-        const detail = await analysisApi.getAnalysisDetail(userId, repoId, latestId)
+        const detail = await analysisApi.getAnalysisDetail(repoId, latestId)
         setResult(detail)
       } else {
         setResult(null)
       }
     } catch (err) {
       console.error("❌ useAnalysisResult load() error:", err)
+      setHistory(null)
+      setResult(null)
     } finally {
       setLoading(false)
     }
-  }, [userId, repoId])
+  }, [repoId])
 
-  /**
-   * 🎬 최초 로드
-   */
   useEffect(() => {
     load()
   }, [load])
@@ -62,12 +61,13 @@ export function useAnalysisResult(userId?: number, repoId?: number) {
    * 🔄 특정 버전 선택 시 분석 결과 다시 로드
    */
   useEffect(() => {
-    if (!selectedId || !userId || !repoId) return
+    if (!selectedId || !repoId  || !history) return
+
     ;(async () => {
-      const detail = await analysisApi.getAnalysisDetail(userId, repoId, selectedId)
+      const detail = await analysisApi.getAnalysisDetail(repoId, selectedId)
       setResult(detail)
     })()
-  }, [selectedId, userId, repoId])
+  }, [selectedId, repoId, history])
 
   return {
     history,

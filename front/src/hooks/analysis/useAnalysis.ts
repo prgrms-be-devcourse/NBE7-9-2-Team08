@@ -33,33 +33,11 @@ export function useAnalysis() {
     }
   }
 
-  /** 📦 사용자별 저장소 목록 조회 */
-  const getUserRepositories = async (userId: number): Promise<RepositoryResponse[]> => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const repositories = await analysisApi.getUserRepositories(userId)
-      return repositories
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "저장소 목록을 불러오는 중 오류가 발생했습니다."
-      const apiError = new Error(message) as ApiError
-      setError(apiError)
-      throw apiError
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   /** ❌ 에러 초기화 */
   const clearError = () => setError(null)
 
   return {
     requestAnalysis,
-    getUserRepositories,
     isLoading,
     error,
     clearError,
