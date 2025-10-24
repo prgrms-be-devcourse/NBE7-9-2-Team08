@@ -61,9 +61,38 @@ export function useAnalysisProgress(repoUrl?: string | null) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ githubUrl: repoUrl }),
           })
-          const data = await res.json()
+          
+          if (!res.ok) {
+            const errorData = await res.json()
+            
+            // 409 Conflict: 중복 요청
+            if (res.status === 409) {
+              console.warn("⚠️ 중복 분석 요청 감지")
+              setError("이미 분석이 진행 중입니다. 잠시 후 다시 시도해주세요.")
+              setStatusMessage("중복 요청이 감지되었습니다")
+              eventSource.close()
+              
+              // 3초 후 분석 페이지로 돌아가기
+              setTimeout(() => {
+                router.push("/analysis")
+              }, 3000)
+              return
+            }
+            
+            // 기타 에러 (400, 500 등)
+            console.error("❌ 분석 요청 실패:", errorData)
+            setError(errorData.message || "분석 요청에 실패했습니다")
+            setStatusMessage("요청 처리 중 오류가 발생했습니다")
+            eventSource.close()
+            
+            // 3초 후 분석 페이지로 돌아가기
+            setTimeout(() => {
+              router.push("/analysis")
+            }, 3000)
+            return
+          }
 
-          // ✅ repositoryId를 즉시 ref에 저장
+          const data = await res.json()
           const repoId = data.data.repositoryId
           setRepositoryId(repoId)
           repositoryIdRef.current = repoId

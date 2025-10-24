@@ -11,19 +11,16 @@ export default function LandingPage() {
 
   const handleStartAnalysis = () => {
     if (!isAuthed && !user) {
-      alert("분석 시작하기는 아직 개발중!")
+      router.push(`/login`)
       return
     }
-    router.push("/analysis")
+    router.push(`/analysis`)
   }
 
   const handleGoCommunity = () => {
-    if (!isAuthed && !user) {
-      alert("커뮤니티는 아직 개발중!")
-      return
-    }
-    router.push("/community")
+    router.push(`/community`)
   }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}

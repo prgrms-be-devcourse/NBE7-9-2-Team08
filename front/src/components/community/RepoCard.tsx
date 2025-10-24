@@ -2,10 +2,12 @@
 
 import type { RepositoryItem } from '@/types/community';
 import { useRouter } from 'next/navigation'
+import { formatRelativeTimeKST } from '@/lib/utils/formatDate'
+import { Github, ExternalLink } from "lucide-react"
 
 export default function RepositoryCard({ item }: { item: RepositoryItem }) {
-
   const router = useRouter();
+  const relativeTime = formatRelativeTimeKST(item.createDate);
 
   return (
     <article className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition-all duration-200">
@@ -30,16 +32,23 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
           <p className="font-semibold text-sm">{item.userName}</p>
           <p className="text-gray-500 text-xs">@{item.userName.toLowerCase()}</p>
         </div>
-        <span className="ml-auto text-gray-400 text-xs">2시간 전</span>
+        <span className="ml-auto text-gray-400 text-xs">{relativeTime}</span>
       </div>
 
       {/* 레포지토리 링크 */}
-      <a
-        href="#"
-        className="text-blue-600 font-semibold text-sm hover:underline"
-      >
-        {item.userName}/{item.repositoryName}
-      </a>
+      <div className="flex items-center gap-2">
+        <Github className="h-4 w-4 text-muted-foreground" />
+        <a
+          href={item.htmlUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-primary hover:underline flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()} // 부모 클릭 이벤트 방지
+        >
+          {item.repositoryName}
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
 
       {/* 요약 */}
       <p className="mt-2 text-gray-700 text-sm leading-relaxed">

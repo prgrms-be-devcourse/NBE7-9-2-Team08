@@ -16,6 +16,7 @@ import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
@@ -79,16 +81,13 @@ public class AnalysisController {
             @PathVariable("repositoriesId") Long repoId,
             HttpServletRequest httpRequest
     ){
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
 
         // 1. Repository 정보 조회
         Repositories repository = repositoryService.findById(repoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
-        RepositoryResponse repositoryResponse = new RepositoryResponse(repository);
+        // 권한 검증
+        validateAccess(httpRequest, userId, repository);
 
         // 2. 분석 결과 목록 조회 (최신순 정렬)
         List<AnalysisResult> analysisResults =
@@ -104,6 +103,7 @@ public class AnalysisController {
         }
 
         // 4. 응답 조합
+        RepositoryResponse repositoryResponse = new RepositoryResponse(repository);
         HistoryResponseDto response = HistoryResponseDto.of(repositoryResponse, versions);
 
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -118,17 +118,15 @@ public class AnalysisController {
             @PathVariable Long analysisId,
             HttpServletRequest httpRequest
     ) {
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
         // 분석 결과 조회
         AnalysisResult analysisResult = analysisService.getAnalysisById(analysisId);
 
         if (!analysisResult.getRepositories().getId().equals(repositoryId)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+        
+        // 권한 검증
+        validateAccess(httpRequest, userId, analysisResult.getRepositories());
 
         AnalysisResultResponseDto response =
                 new AnalysisResultResponseDto(analysisResult, analysisResult.getScore());
@@ -163,7 +161,7 @@ public class AnalysisController {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        analysisService.deleteAnalysisResult(analysisId, userId);
+        analysisService.deleteAnalysisResult(analysisId, repositoryId, userId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -192,5 +190,42 @@ public class AnalysisController {
         }
 
         return analysisProgressService.connect(userId);
+    }
+
+    /**
+     * 리포지토리 접근 권한 검증
+     * - 공개 리포지토리: 누구나 접근 가능 (비로그인 포함)
+     * - 비공개 리포지토리: 소유자만 접근 가능
+     */
+
+    private void validateAccess(HttpServletRequest requeset, Long pathUserId, Repositories repository) {
+        Long jwtUserId = jwtUtil.getUserId(requeset);
+
+        // 1. 공개 리포지토리일 경우
+        if(repository.isPublicRepository()) {
+            if (jwtUserId == null) {
+                log.warn("비로그인 사용자의 공개 리포지토리 접근 시도: repoId={}", repository.getId());
+            }
+
+            if (!jwtUserId.equals(pathUserId)) {
+                log.warn("다른 사용자의 공개 리포지토리 접근 시도: jwtUserId={}, pathUserId={}, repoId={}",
+                        jwtUserId, pathUserId, repository.getId());
+            }
+            return;
+        }
+
+        // 2. 비공개 리포지토리일 경우
+        // 2-1. 비로그인
+        if (jwtUserId == null) {
+            log.warn("비로그인 사용자의 비공개 리포지토리 접근 시도: repoId={}", repository.getId());
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        // 2-2. 다른 사용자
+        if (!jwtUserId.equals(pathUserId)) {
+            log.warn("권한 없는 접근 시도: jwtUserId={}, pathUserId={}, repoId={}",
+                    jwtUserId, pathUserId, repository.getId());
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
     }
 }

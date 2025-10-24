@@ -27,6 +27,7 @@ public enum ErrorCode {
     ANALYSIS_NOT_FOUND("A003", HttpStatus.BAD_REQUEST, "분석 결과를 찾을 수 없습니다."),
     USER_NOT_FOUND("A004", HttpStatus.FORBIDDEN, "사용자 정보를 찾을 수 없습니다."),
     FORBIDDEN("A005", HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    ANALYSIS_IN_PROGRESS("A006", HttpStatus.CONFLICT, "이미 분석이 진행 중입니다. 잠시 후 다시 시도해주세요."),
 
     // ========== repository 도메인 에러 ==========
     GITHUB_REPO_NOT_FOUND("G001", HttpStatus.BAD_REQUEST, "GitHub 저장소를 찾을 수 없습니다."),

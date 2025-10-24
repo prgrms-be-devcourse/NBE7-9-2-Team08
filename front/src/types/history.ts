@@ -10,5 +10,6 @@ export interface RepositoryResponse {
   createDate: string,
   latestScore?: number | null
   latestAnalysisDate?: string | null
+  ownerId: number
 }
   

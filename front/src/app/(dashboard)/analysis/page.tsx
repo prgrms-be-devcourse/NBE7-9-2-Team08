@@ -3,22 +3,39 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { Sparkles, Github, Clock, TrendingUp, Search } from "lucide-react"
-import { analysisApi } from "@/lib/api/analysis"
 import { isValidGitHubUrl } from "@/lib/utils/validation"
 import { useAnalysis } from "@/hooks/analysis/useAnalysis"
+import { useRequireAuth } from "@/hooks/auth/useRequireAuth"
 
 export default function AnalyzePage() {
   const [repoUrl, setRepoUrl] = useState("")
   const [isValidUrl, setIsValidUrl] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false) 
   const router = useRouter()
-  const { requestAnalysis, isLoading, error } = useAnalysis()
+  const { error } = useAnalysis()
+  const { user } = useRequireAuth()
+
+  useEffect(() => {
+    // 페이지 포커스 시 상태 초기화 (뒤로가기 대응)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setIsSubmitting(false)
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
+  
+  if (!user) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +46,7 @@ export default function AnalyzePage() {
     }
   
     setIsValidUrl(true);
+    setIsSubmitting(true); 
     
     // 여기서 API 요청하지 않고 repoUrl만 전달
     const encodedUrl = encodeURIComponent(repoUrl);
@@ -72,7 +90,7 @@ export default function AnalyzePage() {
                     value={repoUrl}
                     onChange={handleUrlChange}
                     className={`pl-10 h-12 text-base ${!isValidUrl ? "border-destructive" : ""}`}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -85,14 +103,13 @@ export default function AnalyzePage() {
               </div>
 
               <Button
-                type="button"  // ✅ form submit 방지
-                onClick={handleSubmit}  // ✅ 직접 이벤트 트리거
+                type="submit"  // ← type="submit"으로 변경 (form 제출 사용)
                 className="w-full"
                 size="lg"
-                disabled={isLoading}
+                disabled={isSubmitting || !repoUrl}  // ← 수정: 제출 중이거나 URL 없으면 비활성화
               >
                 <Search className="mr-2 h-5 w-5" />
-                {isLoading ? "분석 요청 중..." : "분석 시작하기"}
+                {isSubmitting ? "분석 페이지로 이동 중..." : "분석 시작하기"}
               </Button>
             </form>
           </Card>
