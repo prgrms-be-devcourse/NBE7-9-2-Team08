@@ -1,12 +1,35 @@
-import { User } from "@/types/user"
+import { http } from './client'
+import type { GetUserResponse } from './auth'
 
-export async function fetchUserById(id: number): Promise<User | null> {
-  try {
-    const res = await fetch(`http://localhost:8080/api/users`)
-    if (!res.ok) return null
-    return res.json()
-  } catch (err) {
-    console.error("유저 정보 불러오기 실패:", err)
-    return null
-  }
+export interface UpdateNameRequest {
+  name: string
+}
+
+export interface UpdateNameResponse {
+  userDto: GetUserResponse
+}
+
+export interface UpdatePasswordRequest {
+  password: string
+  passwordCheck: string
+}
+
+export interface UpdatePasswordResponse {
+  userDto: GetUserResponse
+}
+
+export const userApi = {
+  /**
+   * 이름 변경
+   * POST /api/user/name
+   */
+  updateName: (data: UpdateNameRequest): Promise<UpdateNameResponse> =>
+    http.post('/user/name', data),
+
+  /**
+   * 비밀번호 변경
+   * POST /api/user/password
+   */
+  updatePassword: (data: UpdatePasswordRequest): Promise<UpdatePasswordResponse> =>
+    http.post('/user/password', data),
 }

@@ -27,7 +27,9 @@ import {
     static handleFetchError(response: Response, errorData?: ErrorResponse): ApiError {
       // 백엔드에서 보낸 구조화된 에러 응답 처리
       if (errorData?.code) {
-        return ApiError.fromCode(errorData.code, response.status, errorData.data);
+        // 원본 백엔드 메시지를 보존
+        const originalMessage = errorData.message || '알 수 없는 오류가 발생했습니다.';
+        return new ApiError(errorData.code, originalMessage, response.status, errorData.data);
       }
       
       // HTTP 상태코드 기반 처리
