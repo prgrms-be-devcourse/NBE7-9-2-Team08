@@ -12,4 +12,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("SELECT u FROM User u WHERE u.email = :email AND u.deleted = true")
     Optional<User> findByEmailIncludeDeleted(@Param("email") String email);
+
+    boolean existsByEmail(String email);
 }

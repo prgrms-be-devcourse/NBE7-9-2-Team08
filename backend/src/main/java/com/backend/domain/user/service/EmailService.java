@@ -15,6 +15,7 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Transactional
 public class EmailService {
+    private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
     private final RedisUtil redisUtil;
 
@@ -35,6 +36,13 @@ public class EmailService {
      * @param email
      */
     public void sendEmail(String email) throws MessagingException {
+        //이미 회원가입된 email이면 예외 발생
+        boolean existsByEmail = userRepository.existsByEmail(email);
+        if(existsByEmail){
+            System.out.println("이미 회원가입된 이메일 입니다.");
+            throw new BusinessException(ErrorCode.ALREADY_REGISTERED_EMAIL);
+        }
+
         String authCode = createCode();
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         // true: 멀티파트 메시지(HTML 등) 활성화, "utf-8": 인코딩 설정
