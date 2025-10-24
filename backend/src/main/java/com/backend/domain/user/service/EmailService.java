@@ -1,6 +1,7 @@
 package com.backend.domain.user.service;
 
 import com.backend.domain.user.repository.UserRepository;
+
 import com.backend.domain.user.util.RedisUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
