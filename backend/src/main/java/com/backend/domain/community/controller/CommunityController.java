@@ -6,6 +6,7 @@ import com.backend.domain.analysis.service.AnalysisService;
 import com.backend.domain.community.dto.request.CommentRequestDto;
 import com.backend.domain.community.dto.request.CommentUpdateRequestDto;
 import com.backend.domain.community.dto.response.CommentResponseDto;
+import com.backend.domain.community.dto.response.CommentWriteResponseDto;
 import com.backend.domain.community.dto.response.CommunityResponseDto;
 import com.backend.domain.community.entity.Comment;
 import com.backend.domain.community.service.CommunityService;
@@ -76,27 +77,17 @@ public class CommunityController {
 
     // 댓글 작성
     @PostMapping("/{analysisResultId}/write")
-    public ResponseEntity<CommentResponseDto> addComment(
+    public ResponseEntity<CommentWriteResponseDto> addComment(
             @PathVariable Long analysisResultId,
             @RequestBody CommentRequestDto requestDto,
             HttpServletRequest httpRequest
     ) {
-        // userId를 api url에서 받지 않는다.
-        // 여기서 받은 유저 정보가 userDB에 존재하는지 확인
-        // -> 존재하지 않는다면 회원이 아닙니다.
-        // -> 존재한다면 회원이니까 댓글 작성 가능
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-//        if(!idUserPresent(jwtUserId)){
-//
-//        }
-
-
         Comment saved = communityService.addComment(
                 analysisResultId,
                 requestDto.memberId(),
                 requestDto.comment()
         );
-        return ResponseEntity.ok(new CommentResponseDto(saved));
+        return ResponseEntity.ok(new CommentWriteResponseDto(saved));
     }
 
     // 댓글 조회
