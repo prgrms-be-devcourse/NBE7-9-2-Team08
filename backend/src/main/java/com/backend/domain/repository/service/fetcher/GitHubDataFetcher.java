@@ -7,7 +7,6 @@ import com.backend.global.github.GitHubApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -32,8 +31,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},  // 네트워크 타임아웃
-            noRetryFor = {WebClientResponseException.NotFound.class,  // 404, 401 에러는 재시도 X
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,  // 최대 2회 시도 (원본 1회 + 재시도 1회)
             backoff = @Backoff(delay = 1000)  // 재시도 전 1초 대기
     )
@@ -45,8 +42,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -66,8 +61,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -81,8 +74,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -105,8 +96,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -135,8 +124,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -164,8 +151,6 @@ public class GitHubDataFetcher {
             retryFor = {WebClientResponseException.ServiceUnavailable.class,
                     WebClientResponseException.InternalServerError.class,
                     WebClientRequestException.class},
-            noRetryFor = {WebClientResponseException.NotFound.class,
-                    WebClientResponseException.Unauthorized.class},
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
@@ -179,11 +164,5 @@ public class GitHubDataFetcher {
 
     private LocalDateTime parseGitHubDate(String dateString) {
         return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
-
-    @Recover  // 재시도 실패 시 호출되는 메서드
-    public RepoResponse recover(WebClientResponseException e, String owner, String repoName) {
-        log.error("GitHub API 재시도 실패: {}/{}", owner, repoName, e);
-        throw new BusinessException(ErrorCode.GITHUB_API_FAILED);
     }
 }

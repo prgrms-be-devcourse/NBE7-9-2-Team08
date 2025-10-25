@@ -111,6 +111,10 @@ public class RepositoryService {
             saveOrUpdateRepository(repoInfo, owner, repo, userId);
 
             return data;
+        } catch (BusinessException e) {
+            sseProgressNotifier.notify(userId, "error", "❌ " + e.getErrorCode().getMessage());
+            throw e;
+
         } catch (Exception e) {
             sseProgressNotifier.notify(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
             throw e;
