@@ -133,7 +133,7 @@ public class UserService {
         return user;
     }
 
-    public String getUserNameByUserId(Long userId){
+    public User getUserNameByUserId(Long userId){
         return userRepository.findNameById(userId);
     }
 }

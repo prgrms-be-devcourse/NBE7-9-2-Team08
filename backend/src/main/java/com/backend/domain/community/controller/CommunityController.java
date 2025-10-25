@@ -101,9 +101,9 @@ public class CommunityController {
         List<CommentResponseDto> commentList = new ArrayList<>();
 
         for(Comment comment : comments){
-            String userName = userService.getUserNameByUserId(comment.getMemberId());
+            User userName = userService.getUserNameByUserId(comment.getMemberId());
 
-            CommentResponseDto dto = new CommentResponseDto(comment, userName);
+            CommentResponseDto dto = new CommentResponseDto(comment, userName.getName());
             commentList.add(dto);
         }
 
