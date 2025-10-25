@@ -37,9 +37,9 @@ public class IssueInfoMapper {
     }
 
     private void setEmptyIssue(RepositoryData data) {
-        data.setPullRequestCountLast6Months(0);
-        data.setMergedPullRequestCountLast6Months(0);
-        data.setRecentPullRequests(Collections.emptyList());
+        data.setIssueCountLast6Months(0);
+        data.setClosedIssueCountLast6Months(0);
+        data.setRecentIssues(Collections.emptyList());
     }
 
     private RepositoryData.IssueInfo convertToIssueInfo(IssueResponse issue) {

@@ -37,9 +37,9 @@ public class PullRequestInfoMapper {
     }
 
     private void setEmptyPullRequest(RepositoryData data) {
-        data.setIssueCountLast6Months(0);
-        data.setClosedIssueCountLast6Months(0);
-        data.setRecentIssues(Collections.emptyList());
+        data.setPullRequestCountLast6Months(0);
+        data.setMergedPullRequestCountLast6Months(0);
+        data.setRecentPullRequests(Collections.emptyList());
     }
 
     private RepositoryData.PullRequestInfo convertToPullRequestInfo(PullRequestResponse pr) {

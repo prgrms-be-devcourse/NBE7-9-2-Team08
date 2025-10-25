@@ -3,7 +3,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
@@ -14,10 +14,14 @@ import { isValidGitHubUrl } from "@/lib/utils/validation"
 import { useAnalysis } from "@/hooks/analysis/useAnalysis"
 import { useRequireAuth } from "@/hooks/auth/useRequireAuth"
 
+type AnalysisErrorKind = "repo" | "auth" | "rate" | "duplicate" | "server" | "network";
+
 export default function AnalyzePage() {
   const [repoUrl, setRepoUrl] = useState("")
   const [isValidUrl, setIsValidUrl] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false) 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [analysisErrorMessage, setAnalysisErrorMessage] = useState<string | null>(null)
+  const [analysisErrorType, setAnalysisErrorType] = useState<AnalysisErrorKind | null>(null)
   const router = useRouter()
   const { error } = useAnalysis()
   const { user } = useRequireAuth()
@@ -34,6 +38,37 @@ export default function AnalyzePage() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
+  useEffect(() => {
+    const stored = sessionStorage.getItem("analysisError");
+    if (!stored) return;
+  
+    try {
+      const parsed = JSON.parse(stored) as { type?: AnalysisErrorKind; message?: string };
+      setAnalysisErrorType(parsed.type ?? "server");
+      setAnalysisErrorMessage(parsed.message ?? "분석 처리 중 문제가 발생했어요.");
+    } catch {
+      setAnalysisErrorType("server");
+      setAnalysisErrorMessage(stored);
+    } finally {
+      sessionStorage.removeItem("analysisError");
+    }
+  }, []);
+  
+  const analysisErrorClass = useMemo(() => {
+    switch (analysisErrorType) {
+      case "auth":
+        return "text-amber-600";
+      case "rate":
+        return "text-orange-600";
+      case "duplicate":
+        return "text-blue-600";
+      case "repo":
+      case "server":
+      case "network":
+      default:
+        return "text-destructive/80";
+    }
+  }, [analysisErrorType]);
   
   if (!user) return null
 
@@ -94,11 +129,16 @@ export default function AnalyzePage() {
                     required
                   />
                 </div>
+                {analysisErrorMessage && (
+                  <p className={`text-sm font-medium ${analysisErrorClass}`}>
+                    {analysisErrorMessage}
+                  </p>
+                )}
                 {!isValidUrl && (
-                  <p className="text-sm text-destructive">올바른 GitHub 리포지토리 URL을 입력하세요</p>
+                  <p className="text-sm text-destructive/80">올바른 GitHub 리포지토리 URL을 입력해 주세요.</p>
                 )}
                 {error && (
-                  <p className="text-sm text-destructive">{error.message}</p>
+                  <p className="text-sm text-destructive/80">{error.message}</p>
                 )}
               </div>
 
