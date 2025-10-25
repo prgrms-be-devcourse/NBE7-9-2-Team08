@@ -15,8 +15,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,8 +50,16 @@ public class GitHubDataFetcher {
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
-    public String fetchReadmeContent(String owner, String repoName) {
-        return gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);
+    public Optional<String> fetchReadmeContent(String owner, String repoName) {
+        try {
+            String content = gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);
+            return Optional.ofNullable(content);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Optional.empty();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
@@ -76,10 +86,19 @@ public class GitHubDataFetcher {
             maxAttempts = 2,
             backoff = @Backoff(delay = 1000)
     )
-    public TreeResponse fetchRepositoryTreeInfo(String owner, String repoName, String defaultBranch) {
-        return gitHubApiClient.get(
-                "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1", TreeResponse.class, owner, repoName, defaultBranch
-        );
+    public Optional<TreeResponse> fetchRepositoryTreeInfo(String owner, String repoName, String defaultBranch) {
+        try {
+            TreeResponse tree = gitHubApiClient.get(
+                    "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1",
+                    TreeResponse.class, owner, repoName, defaultBranch
+            );
+            return Optional.ofNullable(tree);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Optional.empty();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
@@ -92,14 +111,24 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public List<IssueResponse> fetchIssueInfo(String owner, String repoName) {
-        List<IssueResponse> allIssues = gitHubApiClient.getList(
-                "/repos/{owner}/{repo}/issues?state=all&per_page=100", IssueResponse.class, owner, repoName);
+        try {
+            List<IssueResponse> allIssues = gitHubApiClient.getList(
+                    "/repos/{owner}/{repo}/issues?state=all&per_page=100",
+                    IssueResponse.class, owner, repoName
+            );
 
-        LocalDateTime sixMonthsAgo = getSixMonthsAgo();
-        return allIssues.stream()
-                .filter(IssueResponse::isPureIssue)
-                .filter(issue -> parseGitHubDate(issue.created_at()).isAfter(sixMonthsAgo))
-                .collect(Collectors.toList());
+            LocalDateTime sixMonthsAgo = getSixMonthsAgo();
+            return allIssues.stream()
+                    .filter(IssueResponse::isPureIssue)
+                    .filter(issue -> parseGitHubDate(issue.created_at()).isAfter(sixMonthsAgo))
+                    .collect(Collectors.toList());
+
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
@@ -112,13 +141,23 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public List<PullRequestResponse> fetchPullRequestInfo(String owner, String repoName) {
-        List<PullRequestResponse> allPullRequests = gitHubApiClient.getList(
-                "/repos/{owner}/{repo}/pulls?state=all&per_page=100", PullRequestResponse.class, owner, repoName);
+        try {
+            List<PullRequestResponse> allPullRequests = gitHubApiClient.getList(
+                    "/repos/{owner}/{repo}/pulls?state=all&per_page=100",
+                    PullRequestResponse.class, owner, repoName
+            );
 
-        LocalDateTime sixMonthsAgo = getSixMonthsAgo();
-        return allPullRequests.stream()
-                .filter(pr -> parseGitHubDate(pr.created_at()).isAfter(sixMonthsAgo))
-                .collect(Collectors.toList());
+            LocalDateTime sixMonthsAgo = getSixMonthsAgo();
+            return allPullRequests.stream()
+                    .filter(pr -> parseGitHubDate(pr.created_at()).isAfter(sixMonthsAgo))
+                    .collect(Collectors.toList());
+
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
