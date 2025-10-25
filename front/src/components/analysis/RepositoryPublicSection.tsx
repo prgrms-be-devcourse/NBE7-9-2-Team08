@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button" // ✅ 대소문자 수정
 import { Switch } from "@/components/ui/switch"
 import { ShareButton } from "@/components/analysis/ShareButton"
 import { Globe, Lock, MessageSquare } from "lucide-react"
@@ -10,6 +9,7 @@ import { useRepositoryPublic } from "@/hooks/analysis/useRepositoryPublic"
 import { CommentSection } from "@/components/community/CommentSection"
 import { analysisApi } from "@/lib/api/analysis"
 import type { HistoryResponseDto } from "@/types/analysis"
+import { useAuth } from "@/hooks/auth/useAuth"
 
 interface Props {
   userId: number
@@ -19,14 +19,18 @@ interface Props {
 
 export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props) {
   const { isPublic, togglePublic } = useRepositoryPublic(initialPublic, userId, repoId)
-
+  const { user, isAuthed, isInitializing } = useAuth()
+  const currentUserId = user?.id ?? null
+  
   const [analysisResultId, setAnalysisResultId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!repoId) return
+
     const loadAnalysisId = async () => {
       try {
-        const historyResponse: HistoryResponseDto = await analysisApi.getRepositoryHistory(userId, repoId)
+        const historyResponse: HistoryResponseDto = await analysisApi.getRepositoryHistory(repoId)
         // ✅ 최신 분석 결과 ID 추출
         if (Array.isArray(historyResponse.analysisVersions) && historyResponse.analysisVersions.length > 0) {
           const latest = historyResponse.analysisVersions[0]
@@ -42,11 +46,16 @@ export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props
     }
 
     loadAnalysisId()
-  }, [userId, repoId])
+  }, [repoId])
+
+  if (isInitializing) {
+    return <div className="p-6 text-center text-muted-foreground">사용자 정보를 불러오는 중...</div>
+  }
 
   return (
     <>
       {/* 🌐 공개 설정 */}
+      {isAuthed && currentUserId === userId && (
       <Card className="mb-8 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -71,6 +80,7 @@ export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props
           </div>
         </div>
       </Card>
+      )}
 
       {/* 💬 커뮤니티 섹션 */}
       {isPublic ? (
@@ -82,13 +92,9 @@ export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props
                 <h3 className="mb-1 font-semibold">커뮤니티 반응</h3>
                 <p className="text-sm text-muted-foreground">다른 개발자들과 소통하세요.</p>
               </div>
-              {/*<div className="flex gap-2">
-                <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-                  <MessageSquare className="h-4 w-4" />
-                  댓글 (n)
-                </Button>
+              <div className="flex gap-2">
                 <ShareButton />
-              </div>*/}
+              </div>
             </div>
 
             {/* 본문 영역: 댓글 작성 → 댓글 목록 */}
@@ -97,14 +103,7 @@ export function RepositoryPublicSection({ userId, repoId, initialPublic }: Props
             ) : analysisResultId ? (
               <div className="text-muted-foreground text-sm">
                 {/* ✏️ 댓글 작성 폼 */}
-                <CommentSection analysisResultId={analysisResultId} memberId={userId} />
-
-                {/* 💬 댓글 목록 */}
-                <div className="border-t pt-6">
-                  {/* 댓글 목록이 CommentSection 안에서 렌더링되거나 별도 CommentList가 있다면 여기에 배치 */}
-                  {/* 예: <CommentList analysisResultId={analysisResultId} /> */}
-                  {/* CommentSection이 이미 작성+조회 포함한다면 그대로 둬도 됨 */}
-                </div>
+                <CommentSection analysisResultId={analysisResultId} />
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">아직 분석 기록이 없습니다.</p>

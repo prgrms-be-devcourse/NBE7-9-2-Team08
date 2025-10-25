@@ -23,33 +23,29 @@ export const analysisApi = {
     http.post(`/analysis`, data),
 
   /** 📦 사용자별 Repository 목록 조회
-   *  GET /api/analysis/{userId}/repositories
+   *  GET /api/analysis/repositories
    *  - userId는 로그인한 사용자의 ID여야 함 (JWT 검증)
    */
-  getUserRepositories: (
-    userId: number
-  ): Promise<RepositoryResponse[]> =>  // ✅ ApiResponse 제거
-    http.get(`/analysis/${userId}/repositories`),
+  getUserRepositories: (): Promise<RepositoryResponse[]> =>  // ✅ ApiResponse 제거
+    http.get(`/analysis/repositories`),
 
   /** 🕓 특정 Repository의 분석 히스토리 조회
-   *  GET /api/analysis/{userId}/repositories/{repoId}
+   *  GET /api/analysis/repositories/{repoId}
    */
   getRepositoryHistory: (
-    userId: number,
     repoId: number
   ): Promise<HistoryResponseDto> =>  // ✅ ApiResponse 제거
-    http.get(`/analysis/${userId}/repositories/${repoId}`),
+    http.get(`/analysis/repositories/${repoId}`),
 
   /** 🧠 특정 분석 결과 상세 조회
-   *  GET /api/analysis/{userId}/repositories/{repoId}/results/{analysisId}
+   *  GET /api/analysis/repositories/{repoId}/results/{analysisId}
    */
   getAnalysisDetail: (
-    userId: number,
     repoId: number,
     analysisId: number
   ): Promise<AnalysisResultResponseDto> =>  // ✅ ApiResponse 제거
     http.get(
-      `/analysis/${userId}/repositories/${repoId}/results/${analysisId}`
+      `/analysis/repositories/${repoId}/results/${analysisId}`
     ),
 
   /** 🗑️ Repository 삭제

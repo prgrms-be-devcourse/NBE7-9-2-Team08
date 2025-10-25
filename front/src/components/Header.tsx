@@ -8,12 +8,12 @@ import { useAuth } from "@/hooks/auth/useAuth"
 
 export default function Header() {
   const router = useRouter()
-  const { isAuthed, logout, user, isLoadingUser } = useAuth()
+  const { isAuthed, logout, user, isLoadingUser, refreshTrigger } = useAuth()
   
   // user가 있으면 로그인된 것으로 간주
   const isLoggedIn = isAuthed || !!user
   
-  console.log('Header - isAuthed:', isAuthed, 'user:', user, 'isLoggedIn:', isLoggedIn)
+  console.log('Header - isAuthed:', isAuthed, 'user:', user, 'isLoggedIn:', isLoggedIn, 'refreshTrigger:', refreshTrigger)
 
   const guardNav = (path: string, featureName: string) => () => {
     if (!isLoggedIn) {
@@ -47,15 +47,16 @@ export default function Header() {
           <div className="flex items-center gap-6">
             {isLoggedIn ? (
               <>
-                <button onClick={guardNav("/history", "히스토리")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  히스토리
-                </button>
                 <button onClick={handleCommunityClick} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   커뮤니티
                 </button>
-                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/analysis")}>
-                  시작하기
-                </Button>
+                <button onClick={guardNav("/history", "히스토리")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  분석내역
+                </button>
+                <button onClick={() => router.push("/analysis")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  분석하기
+                </button>
+                <div className="w-px h-5 bg-border mx-2" />
                 <button onClick={guardNav("/profile", "마이페이지")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   {isLoadingUser ? '로딩중...' : user?.name ? `${user.name}(마이페이지)` : '마이페이지'}
                 </button>
@@ -78,8 +79,8 @@ export default function Header() {
                   <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>
                     로그인
                   </Button>
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/analysis")}>
-                    시작하기
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => router.push("/signup")}>
+                    회원가입
                   </Button>
                 </div>
               </>

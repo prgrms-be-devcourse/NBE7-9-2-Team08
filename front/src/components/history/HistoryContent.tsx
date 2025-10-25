@@ -25,31 +25,38 @@ export default function HistoryContent({ memberId, name }: HistoryContentProps) 
 
     return (
         <div className="max-w-3xl mx-auto p-6">
-            <div className="mb-8">
-                <h1 className="mb-2 text-3xl font-bold">분석 히스토리</h1>
-                <p className="text-muted-foreground">시간에 따른 리포지토리 개선 사항을 추적하세요</p>
-            </div>
+            <div className="mb-6">
+            {/* 제목 */}
+            <h1 className="text-3xl font-bold">분석 히스토리</h1>
 
-            {/*  통계 카드 컴포넌트 */}
-            <HistoryStats repositories={repositories} />
+            {/* 설명 + 정렬 버튼 한 줄 정렬 */}
+            <div className="flex items-center justify-between">
+                <p className="text-muted-foreground text-sm">
+                시간에 따른 리포지토리 개선 사항을 추적하세요
+                </p>
 
-            {/* ✅ 정렬 버튼 */}
-            <div className="flex justify-end gap-2 mb-4">
+                {/* 정렬 버튼 그룹 */}
+                <div className="flex gap-2">
                 <Button
                     variant={sortType === "latest" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSortType("latest")}
                 >
-                최신순
+                    최신순
                 </Button>
                 <Button
                     variant={sortType === "score" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSortType("score")}
                 >
-                점수순
+                    점수순
                 </Button>
+                </div>
             </div>
+            </div>
+
+            {/*  통계 카드 컴포넌트 */}
+            <HistoryStats repositories={repositories} />
 
             <div className="w-full max-w-3xl space-y-4">
             {repositories.length === 0 ? (

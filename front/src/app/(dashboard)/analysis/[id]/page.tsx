@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useAnalysisResult } from "@/hooks/analysis/useAnalysisResult"
 import { AnalysisHeader } from "@/components/analysis/AnalysisHeader"
 import { AnalysisRadarCard } from "@/components/analysis/AnalysisRadarCard"
@@ -10,17 +10,25 @@ import { RepositoryPublicSection } from "@/components/analysis/RepositoryPublicS
 
 export default function ResultsPage() {
   const params = useParams()
+  const router = useRouter()
   const repoId = Number(params.id)
-  const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : null
-  const userId = user?.id
 
-  const { history, result, loading, selectedId, setSelectedId } = useAnalysisResult(userId, repoId)
+  const { history, result, loading, selectedId, setSelectedId, reload } = useAnalysisResult(repoId)
 
   if (loading)
     return <div className="p-8 text-center text-muted-foreground">🕓 분석 결과를 불러오는 중...</div>
 
   if (!history || !result)
     return <div className="p-8 text-center text-muted-foreground">⚠️ 분석 데이터를 찾을 수 없습니다.</div>
+
+  // ✅ API 응답에서 ownerId 추출
+  const ownerId = history.repository.ownerId
+
+  // ✅ 로그인한 사용자 (권한 체크용)
+  const currentUser = typeof window !== "undefined" 
+    ? JSON.parse(localStorage.getItem("user") || "null") 
+    : null
+  const currentUserId = currentUser?.id
 
   const radarData = [
     { category: "README", score: (result.readmeScore / 30) * 100 },
@@ -29,10 +37,24 @@ export default function ResultsPage() {
     { category: "CI/CD", score: (result.cicdScore / 15) * 100 },
   ]
 
+  const handleDeleted = () => {
+    if (history.analysisVersions.length === 1) {
+      router.push("/history")
+    } else {
+      reload?.()
+    }
+  }
+
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-5xl px-6 sm:px-8 lg:px-12 py-10">
-        <AnalysisHeader history={history} selectedId={selectedId} onSelect={setSelectedId} />
+        <AnalysisHeader
+          history={history}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+          userId={currentUserId}
+          repoId={repoId}
+          onDeleted={handleDeleted} />
 
         <AnalysisSummaryCard totalScore={result.totalScore} summary={result.summary} />
 
@@ -42,11 +64,10 @@ export default function ResultsPage() {
         </div>
 
         {/* 🌐 공개 설정 및 커뮤니티 섹션 */}
-        <RepositoryPublicSection
-          userId={userId}
-          repoId={repoId}
-          initialPublic={history.repository.publicRepository}
-        />
+        <RepositoryPublicSection 
+          userId={ownerId} 
+          repoId={repoId} 
+          initialPublic={history.repository.publicRepository} />
       </div>
     </div>
   )

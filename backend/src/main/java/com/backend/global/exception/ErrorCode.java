@@ -12,14 +12,16 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE("CMN003", HttpStatus.BAD_REQUEST, "잘못된 입력값입니다."),
     INVALID_TYPE_VALUE("CMN004", HttpStatus.BAD_REQUEST, "잘못된 타입의 값입니다."),
     MISSING_REQUEST_PARAMETER("CMN005", HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다."),
+    UNAUTHORIZED("CMN006", HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
 
     // ========== user 도메인 에러 ==========
-    Login_Failed("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
-    Email_verify_Failed("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
+    LOGIN_FAILED("U001", HttpStatus.BAD_REQUEST, "로그인에 실패했습니다."),
+    EMAIL_VERIFY_FAILED("U002", HttpStatus.BAD_REQUEST, "이메일 인증코드가 일치하지 않습니다"),
     NAME_NOT_FOUND("U003", HttpStatus.NOT_FOUND, "이름이 입력되지 않았습니다."),
     PASSWORD_NOT_FOUND("U004", HttpStatus.NOT_FOUND, "비밀번호가 입력되지 않았습니다."),
     PASSWORD_NOT_EQUAL("U005", HttpStatus.BAD_REQUEST, "비밀번호 확인이 일치하지 않습니다."),
     EMAIL_NOT_FOUND("U006", HttpStatus.NOT_FOUND, "해당 이메일은 없는 계정입니다.") ,
+    ALREADY_REGISTERED_EMAIL("U007", HttpStatus.BAD_REQUEST, "이미 회원가입된 이메일입니다."),
 
     // ========== analysis 도메인 에러 ==========
     INVALID_GITHUB_URL("A001", HttpStatus.BAD_REQUEST, "올바른 GitHub 저장소 URL이 아닙니다."),
@@ -27,6 +29,7 @@ public enum ErrorCode {
     ANALYSIS_NOT_FOUND("A003", HttpStatus.BAD_REQUEST, "분석 결과를 찾을 수 없습니다."),
     USER_NOT_FOUND("A004", HttpStatus.FORBIDDEN, "사용자 정보를 찾을 수 없습니다."),
     FORBIDDEN("A005", HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    ANALYSIS_IN_PROGRESS("A006", HttpStatus.CONFLICT, "이미 분석이 진행 중입니다. 잠시 후 다시 시도해주세요."),
 
     // ========== repository 도메인 에러 ==========
     GITHUB_REPO_NOT_FOUND("G001", HttpStatus.BAD_REQUEST, "GitHub 저장소를 찾을 수 없습니다."),

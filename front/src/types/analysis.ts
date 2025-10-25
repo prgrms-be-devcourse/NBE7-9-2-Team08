@@ -19,6 +19,8 @@ export interface RepositoryResponse {
     publicRepository: boolean
     mainBranch: string
     languages: string[]
+    createDate: string
+    ownerId: number
   }
   
 // Repository 상세 정보 + 분석 버전 목록 응답 DTO, 특정 Repository의 모든 분석 버전을 조회할 때 사용

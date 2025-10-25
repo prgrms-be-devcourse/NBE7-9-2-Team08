@@ -12,6 +12,7 @@ export interface RepositoryItem {
   totalScore: number
   createDate: string // LocalDateTime → string
   viewingStatus: boolean
+  htmlUrl: string
 }
 
 

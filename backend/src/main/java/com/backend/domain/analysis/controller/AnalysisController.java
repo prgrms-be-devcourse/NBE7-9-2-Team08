@@ -16,6 +16,7 @@ import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analysis")
@@ -51,19 +54,18 @@ public class AnalysisController {
     }
 
     // GET: 사용자의 모든 Repository 목록 조회
-    @GetMapping("/{userId}/repositories")
+    @GetMapping("/repositories")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<RepositoryResponse>>> getMemberHistory(
-            @PathVariable Long userId,
             HttpServletRequest httpRequest
     ){
         Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
+        if (jwtUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
         List<RepositoryResponse> repositories = repositoryService
-                .findRepositoryByUser(userId)
+                .findRepositoryByUser(jwtUserId)
                 .stream()
                 .map(RepositoryResponse::new)
                 .toList();
@@ -72,23 +74,18 @@ public class AnalysisController {
     }
 
     // GET: 특정 Repository의 분석 히스토리 조회, 모든 분석 결과 조회
-    @GetMapping("/{userId}/repositories/{repositoriesId}")
+    @GetMapping("/repositories/{repositoriesId}")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<HistoryResponseDto>> getAnalysisByRepositoriesId(
-            @PathVariable("userId") Long userId,
             @PathVariable("repositoriesId") Long repoId,
             HttpServletRequest httpRequest
     ){
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
         // 1. Repository 정보 조회
         Repositories repository = repositoryService.findById(repoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
-        RepositoryResponse repositoryResponse = new RepositoryResponse(repository);
+        // 권한 검증
+        validateAccess(httpRequest, repository);
 
         // 2. 분석 결과 목록 조회 (최신순 정렬)
         List<AnalysisResult> analysisResults =
@@ -104,31 +101,29 @@ public class AnalysisController {
         }
 
         // 4. 응답 조합
+        RepositoryResponse repositoryResponse = new RepositoryResponse(repository);
         HistoryResponseDto response = HistoryResponseDto.of(repositoryResponse, versions);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // GET: 특정 분석 결과 상세 조회
-    @GetMapping("/{userId}/repositories/{repositoryId}/results/{analysisId}")
+    @GetMapping("/repositories/{repositoryId}/results/{analysisId}")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<AnalysisResultResponseDto>> getAnalysisDetail(
-            @PathVariable Long userId,
             @PathVariable Long repositoryId,
             @PathVariable Long analysisId,
             HttpServletRequest httpRequest
     ) {
-        Long jwtUserId = jwtUtil.getUserId(httpRequest);
-        if (!jwtUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
-
         // 분석 결과 조회
         AnalysisResult analysisResult = analysisService.getAnalysisById(analysisId);
 
         if (!analysisResult.getRepositories().getId().equals(repositoryId)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
+        
+        // 권한 검증
+        validateAccess(httpRequest, analysisResult.getRepositories());
 
         AnalysisResultResponseDto response =
                 new AnalysisResultResponseDto(analysisResult, analysisResult.getScore());
@@ -163,7 +158,7 @@ public class AnalysisController {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        analysisService.deleteAnalysisResult(analysisId, userId);
+        analysisService.deleteAnalysisResult(analysisId, repositoryId, userId);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -192,5 +187,36 @@ public class AnalysisController {
         }
 
         return analysisProgressService.connect(userId);
+    }
+
+    /**
+     * 리포지토리 접근 권한 검증
+     * - 공개 리포지토리: 누구나 접근 가능 (비로그인 포함)
+     * - 비공개 리포지토리: 소유자만 접근 가능
+     */
+    private void validateAccess(HttpServletRequest requeset, Repositories repository) {
+        Long jwtUserId = jwtUtil.getUserId(requeset);
+        Long ownerId = repository.getUser().getId();
+
+        // 1. 공개 리포지토리는 누구나 접근 가능
+        if (repository.isPublicRepository()) {
+            log.info("공개 리포지토리 접근: repoId={}, jwtUserId={}",
+                    repository.getId(), jwtUserId);
+            return;
+        }
+
+        // 2. 비공개 리포지토리는 로그인 필수
+        if (jwtUserId == null) {
+            log.warn("비로그인 사용자의 비공개 리포지토리 접근 시도: repoId={}",
+                    repository.getId());
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // 3. 비공개 리포지토리는 소유자만 접근 가능
+        if (!Objects.equals(jwtUserId, ownerId)) {
+            log.warn("권한 없는 사용자의 비공개 리포지토리 접근: jwtUserId={}, ownerId={}, repoId={}",
+                    jwtUserId, ownerId, repository.getId());
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
     }
 }

@@ -2,7 +2,7 @@
 import type { RepositoryResponse } from "@/types/history"
 
 export async function fetchHistory(memberId: number): Promise<RepositoryResponse[]> {
-  const res = await fetch(`http://localhost:8080/api/analysis/${memberId}/repositories`, {
+  const res = await fetch(`http://localhost:8080/api/analysis/repositories`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",

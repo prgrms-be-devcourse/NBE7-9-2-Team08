@@ -1,6 +1,7 @@
 package com.backend.domain.analysis.service;
 
 import com.backend.domain.analysis.entity.AnalysisResult;
+import com.backend.domain.analysis.lock.InMemoryLockManager;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
@@ -25,6 +26,7 @@ public class AnalysisService {
     private final EvaluationService evaluationService;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
+    private final InMemoryLockManager lockManager;
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -38,35 +40,49 @@ public class AnalysisService {
         String owner = repoInfo[0];
         String repo = repoInfo[1];
 
-        sseProgressNotifier.notify(userId, "status", "분석 시작");
+        String cacheKey = userId + ":" + githubUrl;
 
-        // Repository 데이터 수집
-        RepositoryData repositoryData;
-
-        try {
-            repositoryData = repositoryService.fetchAndSaveRepository(owner, repo, userId);
-            log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
-        } catch (BusinessException e) {
-            log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
-            throw handleRepositoryFetchError(e, owner, repo);
+        if (!lockManager.tryLock(cacheKey)) {
+            throw new BusinessException(ErrorCode.ANALYSIS_IN_PROGRESS);
         }
 
-        Repositories savedRepository = repositoryJpaRepository
-                .findByHtmlUrl(repositoryData.getRepositoryUrl())
-                .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
-
-        Long repositoryId = savedRepository.getId();
-
-        // OpenAI API 데이터 분석 및 저장
         try {
-            evaluationService.evaluateAndSave(repositoryData);
-        } catch (BusinessException e) {
-            sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
-            throw e;
-        }
+            sseProgressNotifier.notify(userId, "status", "분석 시작");
 
-        sseProgressNotifier.notify(userId, "complete", "최종 리포트 생성");
-        return repositoryId;
+            // Repository 데이터 수집
+            RepositoryData repositoryData;
+
+            try {
+                repositoryData = repositoryService.fetchAndSaveRepository(owner, repo, userId);
+                lockManager.refreshLock(cacheKey);
+                log.info("🫠 Repository Data 수집 완료: {}", repositoryData);
+            } catch (BusinessException e) {
+                log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
+                throw handleRepositoryFetchError(e, owner, repo);
+            }
+
+            Repositories savedRepository = repositoryJpaRepository
+                    .findByHtmlUrl(repositoryData.getRepositoryUrl())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+
+            Long repositoryId = savedRepository.getId();
+
+            // OpenAI API 데이터 분석 및 저장
+            try {
+                evaluationService.evaluateAndSave(repositoryData);
+                lockManager.refreshLock(cacheKey);
+            } catch (BusinessException e) {
+                sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
+                throw e;
+            }
+
+            sseProgressNotifier.notify(userId, "complete", "최종 리포트 생성");
+            return repositoryId;
+        } finally {
+            // 락 해제
+            lockManager.releaseLock(cacheKey);
+            log.info("분석 락 해제: cacheKey={}", cacheKey);
+        }
     }
 
     private String[] parseGitHubUrl(String githubUrl) {
@@ -135,7 +151,7 @@ public class AnalysisService {
 
     // 특정 분석 결과 삭제
     @Transactional
-    public void deleteAnalysisResult(Long analysisResultId, Long memberId) {
+    public void deleteAnalysisResult(Long analysisResultId, Long repositoryId, Long memberId) {
         if (analysisResultId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -143,7 +159,7 @@ public class AnalysisService {
         AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
 
-        if (!analysisResult.getRepositories().getId().equals(analysisResultId)) {
+        if (!analysisResult.getRepositories().getId().equals(repositoryId)) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 

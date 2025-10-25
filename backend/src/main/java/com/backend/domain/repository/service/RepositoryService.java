@@ -84,12 +84,12 @@ public class RepositoryService {
 
             // 3. README 데이터 수집 및 매핑
             sseProgressNotifier.notify(userId, "status", "문서화 품질 분석");
-            String readme = gitHubDataFetcher.fetchReadmeContent(owner, repo);
+            String readme = gitHubDataFetcher.fetchReadmeContent(owner, repo).orElse("");
             readmeInfoMapper.mapReadmeInfo(data, readme);
 
             // 4. 보안 관리 데이터 수집 및 매핑
             sseProgressNotifier.notify(userId, "status", "보안 구성 분석");
-            TreeResponse tree = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch());
+            TreeResponse tree = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch()).orElse(null);
             securityInfoMapper.mapSecurityInfo(data, tree);
 
             // 5. 테스트 데이터 수집 및 매핑
@@ -111,6 +111,10 @@ public class RepositoryService {
             saveOrUpdateRepository(repoInfo, owner, repo, userId);
 
             return data;
+        } catch (BusinessException e) {
+            sseProgressNotifier.notify(userId, "error", "❌ " + e.getErrorCode().getMessage());
+            throw e;
+
         } catch (Exception e) {
             sseProgressNotifier.notify(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
             throw e;

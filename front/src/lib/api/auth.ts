@@ -38,14 +38,14 @@ export const authApi = {
    * POST /api/v1/auth/login
    */
   login: (data: LoginRequest): Promise<LoginResponse> =>
-    http.post('/login', data, 'cookie'),
+    http.post('/login', data),
 
   /**
    * 회원가입
    * POST /user
    */
   signup: (data: SignupRequest): Promise<SignupResponse> =>
-    http.post('/user', data, 'none'),
+    http.post('/user', data),
 
   /**
    * 이메일 인증 요청
@@ -119,7 +119,7 @@ export const authApi = {
    * 현재 로그인한 사용자 정보 조회
    * GET /api/user/me
    */
-  getCurrentUser: async (): Promise<GetUserResponse> => {
+  getCurrentUser: async (): Promise<GetUserResponse | null> => {
     const response = await fetch(
       process.env.NEXT_PUBLIC_DEV_PROXY === 'true' 
         ? `/api/user/me` 
@@ -128,11 +128,14 @@ export const authApi = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         credentials: 'include',
       }
     );
+
+    if (response.status === 401) {
+      return null; // 비로그인 상태면 조용히 null 반환
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -141,7 +144,6 @@ export const authApi = {
     }
 
     const result = await response.json();
-    console.log('사용자 정보 응답:', result);
     return result.data.userDto; // GetResponse에서 userDto 추출
   },
 }

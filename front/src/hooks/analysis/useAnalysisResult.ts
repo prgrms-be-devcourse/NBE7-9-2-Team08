@@ -1,47 +1,80 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { analysisApi } from "@/lib/api/analysis"
 import type { HistoryResponseDto, AnalysisResultResponseDto } from "@/types/analysis"
 import { formatDateTimeKST } from "@/lib/utils/formatDate"
 
-export function useAnalysisResult(userId?: number, repoId?: number) {
+export function useAnalysisResult(repoId?: number) {
   const [history, setHistory] = useState<HistoryResponseDto | null>(null)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [result, setResult] = useState<AnalysisResultResponseDto | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Repository 분석 히스토리 불러오기
-  useEffect(() => {
-    if (!userId || !repoId) return
-    ;(async () => {
-      try {
-        const data = await analysisApi.getRepositoryHistory(userId, repoId)
-        const sorted = [...data.analysisVersions].sort(
-          (a, b) => new Date(b.analysisDate).getTime() - new Date(a.analysisDate).getTime()
-        )
+  const load = useCallback(async () => {
+    if (!repoId) return
+    setLoading(true)
 
-        const relabeled = sorted.map((ver, idx) => ({
-          ...ver,
-          versionLabel: `v${sorted.length - idx} (${formatDateTimeKST(ver.analysisDate)})`,
-        }))
+    try {
+      // 1️⃣ 히스토리 불러오기 (JWT 자동 처리)
+      const data = await analysisApi.getRepositoryHistory(repoId)
 
-        setHistory({ ...data, analysisVersions: relabeled })
-        if (relabeled.length > 0) setSelectedId(relabeled[0].analysisId)
-      } finally {
-        setLoading(false)
+      // 최신순 정렬
+      const sorted = [...data.analysisVersions].sort(
+        (a, b) => new Date(b.analysisDate).getTime() - new Date(a.analysisDate).getTime()
+      )
+
+      // 라벨링
+      const relabeled = sorted.map((ver, idx) => ({
+        ...ver,
+        versionLabel: `v${sorted.length - idx} (${formatDateTimeKST(ver.analysisDate)})`,
+      }))
+
+      const updatedHistory = { ...data, analysisVersions: relabeled }
+      setHistory(updatedHistory)
+
+      // 2️⃣ 최신 버전 자동 선택
+      const latestId = relabeled[0]?.analysisId ?? null
+      setSelectedId(latestId)
+
+      // 3️⃣ 선택된 분석 결과 불러오기
+      if (latestId) {
+        const detail = await analysisApi.getAnalysisDetail(repoId, latestId)
+        setResult(detail)
+      } else {
+        setResult(null)
       }
-    })()
-  }, [userId, repoId])
+    } catch (err) {
+      console.error("❌ useAnalysisResult load() error:", err)
+      setHistory(null)
+      setResult(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [repoId])
 
-  // 선택된 분석 결과 불러오기
   useEffect(() => {
-    if (!selectedId || !userId || !repoId) return
+    load()
+  }, [load])
+
+  /**
+   * 🔄 특정 버전 선택 시 분석 결과 다시 로드
+   */
+  useEffect(() => {
+    if (!selectedId || !repoId  || !history) return
+
     ;(async () => {
-      const detail = await analysisApi.getAnalysisDetail(userId, repoId, selectedId)
+      const detail = await analysisApi.getAnalysisDetail(repoId, selectedId)
       setResult(detail)
     })()
-  }, [selectedId, userId, repoId])
+  }, [selectedId, repoId, history])
 
-  return { history, result, loading, selectedId, setSelectedId }
+  return {
+    history,
+    result,
+    loading,
+    selectedId,
+    setSelectedId,
+    reload: load, // ✅ 외부에서 다시 불러올 수 있도록 노출
+  }
 }

@@ -18,7 +18,8 @@ public record RepositoryResponse(
         boolean publicRepository,
         String mainBranch,
         List<String> languages,
-        LocalDateTime createDate
+        LocalDateTime createDate,
+        Long ownerId
 ) {
     public RepositoryResponse(Repositories repositories) {
         this(
@@ -31,7 +32,8 @@ public record RepositoryResponse(
                 repositories.getLanguages().stream()
                         .map(lang -> lang.getLanguage().name())
                         .collect(Collectors.toList()),
-                repositories.getCreateDate()
+                repositories.getCreateDate(),
+                repositories.getUser().getId()
         );
     }
 }
