@@ -132,4 +132,8 @@ public class UserService {
 
         return user;
     }
+
+    public String getUserNameByUserId(Long userId){
+        return userRepository.findNameById(userId);
+    }
 }

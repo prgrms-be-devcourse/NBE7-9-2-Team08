@@ -13,6 +13,7 @@ import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.domain.user.entity.User;
+import com.backend.domain.user.service.UserService;
 import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
@@ -33,6 +34,7 @@ public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
 
     /**
@@ -96,11 +98,17 @@ public class CommunityController {
             @PathVariable Long analysisResultId
     ) {
         List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
-        List<CommentResponseDto> response = comments.stream()
-                .map(CommentResponseDto::new)
-                .toList();
+        List<CommentResponseDto> commentList = new ArrayList<>();
 
-        return ResponseEntity.ok(response);
+        for(Comment comment : comments){
+            String userName = userService.getUserNameByUserId(comment.getMemberId());
+
+            CommentResponseDto dto = new CommentResponseDto(comment, userName);
+            commentList.add(dto);
+        }
+
+        commentList.sort((a, b) -> b.id().compareTo(a.id()));
+        return ResponseEntity.ok(commentList);
     }
 
     // 댓글 삭제

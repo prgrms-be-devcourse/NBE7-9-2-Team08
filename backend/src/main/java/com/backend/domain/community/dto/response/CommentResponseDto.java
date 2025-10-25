@@ -12,11 +12,11 @@ public record CommentResponseDto(
         String comment,
         LocalDateTime createDate
 ) {
-    public CommentResponseDto(Comment comment, User user) {
+    public CommentResponseDto(Comment comment, String userName) {
         this(
                 comment.getId(),
                 comment.getMemberId(),
-                user.getName(),
+                userName,
                 comment.getComment(),
                 comment.getCreateDate()
         );
