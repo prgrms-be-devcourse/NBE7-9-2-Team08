@@ -63,7 +63,8 @@ public class GitHubApiClient {
                         .toEntity(String.class)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            String body = response.getBody();
+                            return (body != null) ? body : "";
                         })
         );
     }

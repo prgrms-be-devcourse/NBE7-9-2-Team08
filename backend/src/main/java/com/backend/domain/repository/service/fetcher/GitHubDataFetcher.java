@@ -48,7 +48,12 @@ public class GitHubDataFetcher {
     public Optional<String> fetchReadmeContent(String owner, String repoName) {
         try {
             String content = gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);
-            return Optional.ofNullable(content);
+
+            if (content == null || content.trim().isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(content);
         } catch (BusinessException e) {
             if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
                 return Optional.empty();
@@ -83,7 +88,12 @@ public class GitHubDataFetcher {
                     "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1",
                     TreeResponse.class, owner, repoName, defaultBranch
             );
-            return Optional.ofNullable(tree);
+
+            if (tree == null || tree.tree() == null || tree.tree().isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(tree);
         } catch (BusinessException e) {
             if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
                 return Optional.empty();
