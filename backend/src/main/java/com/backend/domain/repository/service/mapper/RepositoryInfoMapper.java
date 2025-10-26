@@ -4,7 +4,6 @@ import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.github.RepoResponse;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Component
@@ -21,9 +20,10 @@ public class RepositoryInfoMapper {
         data.setPrimaryLanguage(response.language());
         // Repository 생성 날짜
         ZoneId kst = ZoneId.of("Asia/Seoul");
-        LocalDateTime createdAtKST = response.createdAt()
-                .atZoneSameInstant(kst)
-                .toLocalDateTime();
-        data.setRepositoryCreatedAt(createdAtKST);
+        data.setRepositoryCreatedAt(
+                response.createdAt() != null
+                        ? response.createdAt().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : null
+        );
     }
 }

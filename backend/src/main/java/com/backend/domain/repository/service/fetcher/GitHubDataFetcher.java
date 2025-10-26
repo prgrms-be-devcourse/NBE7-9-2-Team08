@@ -48,7 +48,12 @@ public class GitHubDataFetcher {
     public Optional<String> fetchReadmeContent(String owner, String repoName) {
         try {
             String content = gitHubApiClient.getRaw("/repos/{owner}/{repo}/readme", owner, repoName);
-            return Optional.ofNullable(content);
+
+            if (content == null || content.trim().isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(content);
         } catch (BusinessException e) {
             if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
                 return Optional.empty();
@@ -65,9 +70,17 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public List<CommitResponse> fetchCommitInfo(String owner, String repoName, String since) {
-        return gitHubApiClient.getList(
-                "/repos/{owner}/{repo}/commits?since={since}&per_page=100", CommitResponse.class, owner, repoName, since
-        );
+        try {
+            return gitHubApiClient.getList(
+                    "/repos/{owner}/{repo}/commits?since={since}&per_page=100",
+                    CommitResponse.class, owner, repoName, since
+            );
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
@@ -83,7 +96,12 @@ public class GitHubDataFetcher {
                     "/repos/{owner}/{repo}/git/trees/{sha}?recursive=1",
                     TreeResponse.class, owner, repoName, defaultBranch
             );
-            return Optional.ofNullable(tree);
+
+            if (tree == null || tree.tree() == null || tree.tree().isEmpty()) {
+                return Optional.empty();
+            }
+
+            return Optional.of(tree);
         } catch (BusinessException e) {
             if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
                 return Optional.empty();
@@ -155,7 +173,14 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public Map<String, Integer> fetchLanguages(String owner, String repoName) {
-        return gitHubApiClient.get("/repos/{owner}/{repo}/languages", Map.class, owner, repoName);
+        try {
+            return gitHubApiClient.get("/repos/{owner}/{repo}/languages", Map.class, owner, repoName);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyMap();
+            }
+            throw e;
+        }
     }
 
     private LocalDateTime getSixMonthsAgo() {
@@ -163,6 +188,10 @@ public class GitHubDataFetcher {
     }
 
     private LocalDateTime parseGitHubDate(String dateString) {
-        return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        try {
+            return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } catch (Exception e) {
+            return LocalDateTime.MIN;
+        }
     }
 }

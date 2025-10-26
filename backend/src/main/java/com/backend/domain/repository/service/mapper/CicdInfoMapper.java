@@ -67,7 +67,7 @@ public class CicdInfoMapper {
     );
 
     public void mapCicdInfo(RepositoryData data, TreeResponse response) {
-        if (response == null || response.tree().isEmpty()) {
+        if (response == null || response.tree() == null || response.tree().isEmpty()) {
             setEmptyCicdData(data);
             return;
         }

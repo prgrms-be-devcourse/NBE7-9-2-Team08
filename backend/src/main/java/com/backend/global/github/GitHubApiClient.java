@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -33,7 +34,11 @@ public class GitHubApiClient {
                         .toEntity(responseType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            T body = response.getBody();
+                            if (body == null) {
+                                throw new BusinessException(ErrorCode.GITHUB_API_FAILED);
+                            }
+                            return body;
                         })
         );
     }
@@ -48,7 +53,11 @@ public class GitHubApiClient {
                         .toEntity(responseType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            T body = response.getBody();
+                            if (body == null) {
+                                throw new BusinessException(ErrorCode.GITHUB_API_FAILED);
+                            }
+                            return body;
                         })
         );
     }
@@ -63,7 +72,8 @@ public class GitHubApiClient {
                         .toEntity(String.class)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            String body = response.getBody();
+                            return (body != null) ? body : "";
                         })
         );
     }
@@ -77,7 +87,8 @@ public class GitHubApiClient {
                         .toEntityList(elementType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            List<T> body = response.getBody();
+                            return (body != null) ? body : Collections.emptyList();
                         })
         );
     }

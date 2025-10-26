@@ -73,6 +73,9 @@ public class RepositoryService {
             // 1. 기본 정보 수집 및 매핑 + Repositories 테이블 저장
             sseProgressNotifier.notify(userId, "status", "GitHub 연결 중");
             RepoResponse repoInfo = gitHubDataFetcher.fetchRepositoryInfo(owner, repo);
+
+            validateRepositorySize(repoInfo.size());
+
             repositoryInfoMapper.mapBasicInfo(data, repoInfo);
 
             // 2. 커밋 데이터 수집 및 매핑
@@ -166,5 +169,19 @@ public class RepositoryService {
                 .stream()
                 .map(RepositoryLanguage::getLanguage)
                 .toList();
+    }
+
+    // 저장소 크기 검증
+    private void validateRepositorySize(Integer sizeInKb) {
+        if (sizeInKb == null) {
+            return;
+        }
+
+        final int MAX_SIZE_KB = 1_000_000;
+
+        if (sizeInKb > MAX_SIZE_KB) {
+            log.warn("저장소 크기 초과: {}KB (제한: {}KB)", sizeInKb, MAX_SIZE_KB);
+            throw new BusinessException(ErrorCode.GITHUB_REPO_TOO_LARGE);
+        }
     }
 }

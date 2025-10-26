@@ -19,17 +19,21 @@ public class IssueInfoMapper {
             return;
         }
 
+        List<IssueResponse> validIssues = response.stream()
+                .filter(issue -> issue != null)
+                .collect(Collectors.toList());
+
         // 최근 6개월 이슈 수
-        data.setIssueCountLast6Months(response.size());
+        data.setIssueCountLast6Months(validIssues.size());
 
         // 6개월 내 해결된 이슈 수
-        long closedIssueCount = response.stream()
+        long closedIssueCount = validIssues.stream()
                 .filter(IssueResponse::isClosed)
                 .count();
         data.setClosedIssueCountLast6Months((int) closedIssueCount);
 
         // 최근 5-10개 이슈
-        List<RepositoryData.IssueInfo> recentIssues = response.stream()
+        List<RepositoryData.IssueInfo> recentIssues = validIssues.stream()
                 .limit(10)
                 .map(this::convertToIssueInfo)
                 .collect(Collectors.toList());

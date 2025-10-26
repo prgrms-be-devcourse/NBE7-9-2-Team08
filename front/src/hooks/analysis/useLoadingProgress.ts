@@ -2,11 +2,70 @@
 
 import { useEffect, useRef, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { ERROR_CODES, ERROR_MESSAGES, ErrorCode } from "@/types/api"
 
 type AnalysisErrorKind = "repo" | "auth" | "rate" | "duplicate" | "server" | "network";
+
 const defaultAnalysisError = {
   type: "server" as AnalysisErrorKind,
   message: "분석 처리 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+};
+
+const ANALYSIS_ERROR_KIND: Partial<Record<ErrorCode, AnalysisErrorKind>> = {
+  [ERROR_CODES.GITHUB_REPO_NOT_FOUND]: "repo",
+  [ERROR_CODES.GITHUB_API_FAILED]: "repo",
+  [ERROR_CODES.GITHUB_REPO_TOO_LARGE]: "repo",
+  [ERROR_CODES.GITHUB_INVALID_TOKEN]: "auth",
+  [ERROR_CODES.FORBIDDEN]: "auth",
+  [ERROR_CODES.GITHUB_RATE_LIMIT_EXCEEDED]: "rate",
+  [ERROR_CODES.GITHUB_API_SERVER_ERROR]: "server",
+  [ERROR_CODES.NETWORK_ERROR]: "network",
+  [ERROR_CODES.ANALYSIS_IN_PROGRESS]: "duplicate",
+}
+
+const ANALYSIS_ERROR_MESSAGE: Partial<Record<ErrorCode, string>> = {
+  [ERROR_CODES.GITHUB_REPO_NOT_FOUND]: "리포지토리 URL을 다시 한번 확인해 주세요.",
+  [ERROR_CODES.GITHUB_API_FAILED]: "요청을 처리할 수 없었어요. 입력값을 다시 확인해 주세요.",
+  [ERROR_CODES.GITHUB_REPO_TOO_LARGE]: "저장소가 너무 커서 분석할 수 없어요.",
+  [ERROR_CODES.GITHUB_INVALID_TOKEN]: "GitHub 인증에 실패했어요. 다시 로그인 후 시도해 주세요.",
+  [ERROR_CODES.FORBIDDEN]: "해당 리포지토리에 접근 권한이 없어요.",
+  [ERROR_CODES.GITHUB_RATE_LIMIT_EXCEEDED]: "요청이 많아요. 잠시 기다렸다 다시 시도해 주세요.",
+  [ERROR_CODES.GITHUB_API_SERVER_ERROR]: "GitHub 서버에서 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+  [ERROR_CODES.NETWORK_ERROR]: "네트워크 연결을 확인해 주세요.",
+  [ERROR_CODES.ANALYSIS_IN_PROGRESS]: "이미 분석을 진행 중이에요. 잠시 후 다시 확인해 주세요.",
+}
+
+const errorCodeValues = new Set<ErrorCode>(Object.values(ERROR_CODES))
+
+const resolveErrorCode = (raw?: string): ErrorCode | undefined => {
+  if (!raw) return undefined
+  if (errorCodeValues.has(raw as ErrorCode)) {
+    return raw as ErrorCode
+  }
+  if (raw in ERROR_CODES) {
+    return ERROR_CODES[raw as keyof typeof ERROR_CODES]
+  }
+  return undefined
+}
+
+const mapErrorCodeToAlert = (
+  code?: string,
+  fallback?: string
+): { type: AnalysisErrorKind; message: string } => {
+  const resolvedCode = resolveErrorCode(code);
+
+  if (resolvedCode) {
+    const type = ANALYSIS_ERROR_KIND[resolvedCode] ?? defaultAnalysisError.type;
+    const message =
+      ANALYSIS_ERROR_MESSAGE[resolvedCode] ||
+      ERROR_MESSAGES[resolvedCode] ||
+      fallback ||
+      defaultAnalysisError.message;
+
+    return { type, message };
+  }
+
+  return defaultAnalysisError;
 };
 
 const stashAnalysisError = (payload: { type: AnalysisErrorKind; message: string }) => {
@@ -14,31 +73,6 @@ const stashAnalysisError = (payload: { type: AnalysisErrorKind; message: string 
     sessionStorage.setItem("analysisError", JSON.stringify(payload));
   } catch {
     /* ignore */
-  }
-};
-
-const mapErrorCodeToAlert = (
-  code?: string,
-  fallback?: string
-): { type: AnalysisErrorKind; message: string } => {
-  switch (code) {
-    case "GITHUB_REPO_NOT_FOUND":
-      return { type: "repo", message: "리포지토리 URL을 다시 한번 확인해 주세요." };
-    case "GITHUB_INVALID_TOKEN":
-      return { type: "auth", message: "GitHub 인증에 실패했어요. 다시 로그인 후 시도해 주세요." };
-    case "GITHUB_RATE_LIMIT_EXCEEDED":
-      return { type: "rate", message: "요청이 많아요. 잠시 기다렸다 다시 시도해 주세요." };
-    case "FORBIDDEN":
-      return { type: "auth", message: "해당 리포지토리에 접근 권한이 없어요." };
-    case "GITHUB_API_FAILED":
-      return { type: "repo", message: "요청을 처리할 수 없었어요. 입력값을 다시 확인해 주세요." };
-    case "GITHUB_API_SERVER_ERROR":
-      return { type: "server", message: "GitHub 서버에서 오류가 발생했어요. 잠시 후 다시 시도해 주세요." };
-    default:
-      return {
-        type: defaultAnalysisError.type,
-        message: fallback || defaultAnalysisError.message,
-      };
   }
 };
 
@@ -185,8 +219,13 @@ export function useAnalysisProgress(repoUrl?: string | null) {
 
     eventSource.onerror = (err) => {
       console.error("[SSE][error]", err)
-      setError("❌ SSE 연결이 끊어졌습니다.")
+      setError("❌ 서버에 문제가 발생했어요.")
       eventSource.close()
+
+      setTimeout(() => {
+        router.push("/analysis");
+      }, 3000);
+      return;
     }
 
     return () => {
