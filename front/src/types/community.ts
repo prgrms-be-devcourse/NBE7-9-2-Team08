@@ -20,6 +20,7 @@ export interface RepositoryItem {
 export interface Comment {
   id: number
   memberId: number
+  name: string
   comment: string
   createDate: string
 }
