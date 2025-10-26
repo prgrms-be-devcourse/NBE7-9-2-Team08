@@ -37,11 +37,11 @@ public class EvaluationService {
     private final ScoreRepository scoreRepository;
 
     @Transactional
-    public Long evaluateAndSave(RepositoryData data) {
+    public Long evaluateAndSave(RepositoryData data, Long userId) {
         AiResult ai = callAiAndParse(data);
 
         String url = data.getRepositoryUrl();
-        Repositories repo = repositoryJpaRepository.findByHtmlUrl(url)
+        Repositories repo = repositoryJpaRepository.findByHtmlUrlAndUserId(url, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
         AnalysisResult analysis = AnalysisResult.builder()

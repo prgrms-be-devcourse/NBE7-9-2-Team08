@@ -122,14 +122,14 @@ public class RepositoryService {
     }
 
     /* Repository Entity를 DB에 저장하거나 기존 데이터 업데이트
-    * 같은 htmlUrl이 존재하면 업데이트, 없으면 신규 데이터 저장 */
+    * 같은 htmlUrl + userId 조합이 존재하면 업데이트, 없으면 신규 데이터 저장 */
     private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
 
-        return repositoryJpaRepository.findByHtmlUrl(repoInfo.htmlUrl())
+        return repositoryJpaRepository.findByHtmlUrlAndUserId(repoInfo.htmlUrl(), userId)
                 .map(existing -> {
                     existing.updateFrom(repoInfo);
                     existing.updateLanguagesFrom(languagesData);
