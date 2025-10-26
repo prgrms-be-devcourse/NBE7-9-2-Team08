@@ -88,7 +88,7 @@ public class SecurityInfoMapper {
     );
 
     public void mapSecurityInfo(RepositoryData data, TreeResponse response) {
-        if (response == null || response.tree().isEmpty()) {
+        if (response == null || response.tree() == null || response.tree().isEmpty()) {
             setEmptySecurityData(data);
             return;
         }

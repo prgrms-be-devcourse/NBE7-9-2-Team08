@@ -70,9 +70,17 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public List<CommitResponse> fetchCommitInfo(String owner, String repoName, String since) {
-        return gitHubApiClient.getList(
-                "/repos/{owner}/{repo}/commits?since={since}&per_page=100", CommitResponse.class, owner, repoName, since
-        );
+        try {
+            return gitHubApiClient.getList(
+                    "/repos/{owner}/{repo}/commits?since={since}&per_page=100",
+                    CommitResponse.class, owner, repoName, since
+            );
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyList();
+            }
+            throw e;
+        }
     }
 
     @Retryable(
@@ -165,7 +173,14 @@ public class GitHubDataFetcher {
             backoff = @Backoff(delay = 1000)
     )
     public Map<String, Integer> fetchLanguages(String owner, String repoName) {
-        return gitHubApiClient.get("/repos/{owner}/{repo}/languages", Map.class, owner, repoName);
+        try {
+            return gitHubApiClient.get("/repos/{owner}/{repo}/languages", Map.class, owner, repoName);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.GITHUB_REPO_NOT_FOUND) {
+                return Collections.emptyMap();
+            }
+            throw e;
+        }
     }
 
     private LocalDateTime getSixMonthsAgo() {
@@ -173,6 +188,10 @@ public class GitHubDataFetcher {
     }
 
     private LocalDateTime parseGitHubDate(String dateString) {
-        return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        try {
+            return LocalDateTime.parse(dateString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } catch (Exception e) {
+            return LocalDateTime.MIN;
+        }
     }
 }
