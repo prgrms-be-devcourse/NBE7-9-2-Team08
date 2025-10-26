@@ -246,6 +246,58 @@ class RepositoryServiceTest {
     }
 
     @Test
+    @DisplayName("완벽한 README + 테스트 + CI/CD를 갖춘 저장소")
+    void testWellStructuredRepository() {
+        // given
+        String owner = "spring-projects";
+        String repo = "spring-boot";
+        Long userId = 1L;
+
+        // when
+        RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
+
+        // then
+        assertThat(data).isNotNull();
+        assertThat(data.isHasReadme()).isTrue();
+        assertThat(data.getReadmeLength()).isGreaterThan(1000);
+        assertThat(data.isHasTestDirectory()).isTrue();
+        assertThat(data.isHasCICD()).isTrue();
+        assertThat(data.getTestCoverageRatio()).isGreaterThan(0.0);
+    }
+
+    @Test
+    @DisplayName("용량 큰 저장소의 경우 분석 불가")
+    void testActiveRepository() {
+        // given
+        String owner = "facebook";
+        String repo = "react";
+        Long userId = 1L;
+
+        // when & then
+        assertThatThrownBy(() -> repositoryService.fetchAndSaveRepository(owner, repo, userId))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.GITHUB_REPO_TOO_LARGE);
+
+        log.info("✅ 용량 큰 저장소(1_000_000KB 이상)는 분석 불가능함 (GITHUB_REPO_TOO_LARGE)");
+    }
+
+    @Test
+    @DisplayName("특수문자가 포함된 저장소명도 처리 가능")
+    void testRepositoryNameWithSpecialChars() {
+        // given - 실제로는 GitHub가 허용하는 특수문자만 가능 (-, _, .)
+        String owner = "day8";
+        String repo = "re-frame";
+        Long userId = 1L;
+
+        // when
+        RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
+
+        // then
+        assertThat(data).isNotNull();
+    }
+
+    @Test
     @DisplayName("존재하지 않는 저장소 요청 시 BusinessException(GITHUB_REPO_NOT_FOUND) 발생")
     void testRepositoryNotFound() {
         // given
