@@ -1,24 +1,21 @@
 package com.backend.domain.evaluation.service;
 
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
-import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
-import jakarta.mail.MessagingException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;              // ★ 추가
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 
@@ -67,14 +64,14 @@ class EvaluationServiceExternalIT {
         );
     }
 
-    @Test
-    @DisplayName("실제 OpenAI 호출되어 토큰 소비되는 외부 연동 테스트")
-    void evaluateAndSave_realOpenAI_call() throws MessagingException {
-        RepositoryData data = new RepositoryData();
-        data.setRepositoryUrl(repoUrl);
-
-        Long id = evaluationService.evaluateAndSave(data);
-        assertThat(id).isNotNull();
-        assertThat(analysisResultRepository.findById(id)).isPresent();
-    }
+//    @Test
+//    @DisplayName("실제 OpenAI 호출되어 토큰 소비되는 외부 연동 테스트")
+//    void evaluateAndSave_realOpenAI_call() throws MessagingException {
+//        RepositoryData data = new RepositoryData();
+//        data.setRepositoryUrl(repoUrl);
+//
+//        Long id = evaluationService.evaluateAndSave(data);
+//        assertThat(id).isNotNull();
+//        assertThat(analysisResultRepository.findById(id)).isPresent();
+//    }
 }
