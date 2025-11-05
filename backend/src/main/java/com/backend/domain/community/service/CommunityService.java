@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-
 
 @Service
 @AllArgsConstructor
@@ -29,11 +27,6 @@ public class CommunityService {
     // publicRepository(repository 필드)가 true인 리포지토리 조회
     public List<Repositories> getRepositoriesPublicTrue(){
         return repositoryJpaRepository.findByPublicRepository(true);
-    }
-
-    // 리포지토리의 분석 결과 조회
-    public List<AnalysisResult> getAnalysisResult(Long repositoriedId){
-        return analysisResultRepository.findByRepositoriesId(repositoriedId);
     }
 
     // 댓글 추가
@@ -50,11 +43,7 @@ public class CommunityService {
         return commentRepository.save(comment);
     }
 
-//    // 특정 분석 결과의 댓글 조회
-//    public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
-//        return commentRepository.findByAnalysisResult_Id(analysisResultId);
-//    }
-
+    // 댓글 조회
     public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
         // id 내림차순으로 정렬된 댓글 리스트 반환
         return commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResultId);
