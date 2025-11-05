@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record CommunityResponseDto(
+public record CommunityResponseDTO(
         String userName,
         String userImage,
         String repositoryName,
@@ -21,7 +21,7 @@ public record CommunityResponseDto(
         boolean vewingStatus,
         String htmlUrl
 ) {
-    public CommunityResponseDto(Repositories repositories, AnalysisResult analysis, Score score) {
+    public CommunityResponseDTO(Repositories repositories, AnalysisResult analysis, Score score) {
         this(
                 repositories.getUser().getName(),
                 repositories.getUser().getImageUrl(),

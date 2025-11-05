@@ -4,14 +4,14 @@ import com.backend.domain.community.entity.Comment;
 
 import java.time.LocalDateTime;
 
-public record CommentResponseDto(
+public record CommentResponseDTO(
         Long id,
         Long memberId,
         String name,
         String comment,
         LocalDateTime createDate
 ) {
-    public CommentResponseDto(Comment comment, String userName) {
+    public CommentResponseDTO(Comment comment, String userName) {
         this(
                 comment.getId(),
                 comment.getMemberId(),

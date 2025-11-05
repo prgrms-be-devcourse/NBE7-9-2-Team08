@@ -1,5 +1,5 @@
 package com.backend.domain.community.dto.request;
 
-public record CommentUpdateRequestDto(
+public record CommentUpdateRequestDTO(
         String newComment
 ) { }

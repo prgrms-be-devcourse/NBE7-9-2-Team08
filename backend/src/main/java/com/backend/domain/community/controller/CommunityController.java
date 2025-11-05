@@ -3,11 +3,11 @@ package com.backend.domain.community.controller;
 import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.entity.Score;
 import com.backend.domain.analysis.service.AnalysisService;
-import com.backend.domain.community.dto.request.CommentRequestDto;
-import com.backend.domain.community.dto.request.CommentUpdateRequestDto;
-import com.backend.domain.community.dto.response.CommentResponseDto;
-import com.backend.domain.community.dto.response.CommentWriteResponseDto;
-import com.backend.domain.community.dto.response.CommunityResponseDto;
+import com.backend.domain.community.dto.request.CommentRequestDTO;
+import com.backend.domain.community.dto.request.CommentUpdateRequestDTO;
+import com.backend.domain.community.dto.response.CommentResponseDTO;
+import com.backend.domain.community.dto.response.CommentWriteResponseDTO;
+import com.backend.domain.community.dto.response.CommunityResponseDTO;
 import com.backend.domain.community.entity.Comment;
 import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
@@ -37,10 +37,10 @@ public class CommunityController {
 
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
     @GetMapping("/repositories")
-    public ResponseEntity<List<CommunityResponseDto>> getPublicRepositories(){
+    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories(){
         // publicRepository가 true인 리포지토리 조회
         List<Repositories> publicRepository = communityService.getRepositoriesPublicTrue();
-        List<CommunityResponseDto> communityRepositories = new ArrayList<>();
+        List<CommunityResponseDTO> communityRepositories = new ArrayList<>();
 
         for(Repositories repo : publicRepository){
             List <AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
@@ -51,7 +51,7 @@ public class CommunityController {
                 AnalysisResult analysisResult = analysisList.get(0);
                 Score score = analysisResult.getScore();
 
-                CommunityResponseDto dto = new CommunityResponseDto(repo, analysisResult, score);
+                CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
                 communityRepositories.add(dto);
             }
         }
@@ -65,30 +65,30 @@ public class CommunityController {
 
     // 댓글 작성
     @PostMapping("/{analysisResultId}/write")
-    public ResponseEntity<CommentWriteResponseDto> addComment(
+    public ResponseEntity<CommentWriteResponseDTO> addComment(
             @PathVariable Long analysisResultId,
-            @RequestBody CommentRequestDto requestDto
+            @RequestBody CommentRequestDTO requestDto
     ) {
         Comment saved = communityService.addComment(
                 analysisResultId,
                 requestDto.memberId(),
                 requestDto.comment()
         );
-        return ResponseEntity.ok(new CommentWriteResponseDto(saved));
+        return ResponseEntity.ok(new CommentWriteResponseDTO(saved));
     }
 
     // 댓글 조회
     @GetMapping("/{analysisResultId}/comments")
-    public ResponseEntity<List<CommentResponseDto>> getCommentsByAnalysisResult(
+    public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
             @PathVariable Long analysisResultId
     ) {
         List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
-        List<CommentResponseDto> commentList = new ArrayList<>();
+        List<CommentResponseDTO> commentList = new ArrayList<>();
 
         for(Comment comment : comments){
             User userName = userService.getUserNameByUserId(comment.getMemberId());
 
-            CommentResponseDto dto = new CommentResponseDto(comment, userName.getName());
+            CommentResponseDTO dto = new CommentResponseDTO(comment, userName.getName());
             commentList.add(dto);
         }
 
@@ -109,7 +109,7 @@ public class CommunityController {
     @PatchMapping("/modify/{commentId}/comment")
     public ResponseEntity<String> modifyComment(
             @PathVariable Long commentId,
-            @RequestBody CommentUpdateRequestDto updateDto
+            @RequestBody CommentUpdateRequestDTO updateDto
             ){
         communityService.modifyComment(commentId, updateDto.newComment());
         return ResponseEntity.ok("댓글 수정 완료");
