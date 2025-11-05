@@ -1,7 +1,6 @@
 package com.backend.domain.community.dto.response;
 
 import com.backend.domain.community.entity.Comment;
-import com.backend.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 
