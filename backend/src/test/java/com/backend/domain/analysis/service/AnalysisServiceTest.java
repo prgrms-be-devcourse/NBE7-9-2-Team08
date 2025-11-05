@@ -49,7 +49,7 @@ class AnalysisServiceTest {
 
         // then
         ArgumentCaptor<RepositoryData> captor = ArgumentCaptor.forClass(RepositoryData.class);
-        then(evaluationService).should(times(1)).evaluateAndSave(captor.capture());
+        then(evaluationService).should(times(1)).evaluateAndSave(captor.capture(), userId);
         assertThat(captor.getValue()).isNotNull();
         then(repositoryService).should().fetchAndSaveRepository("owner", "repo", any());
     }
