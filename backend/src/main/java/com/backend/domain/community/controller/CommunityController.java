@@ -60,7 +60,7 @@ public class CommunityController {
                 AnalysisResult analysisResult = analysisList.get(0);
                 Score score = analysisResult.getScore();
 
-                List<String> languages = repositoryService.getLanguageByRepositoriesId(repo.getId())
+                List<String> languages = analysisService.getLanguageByRepositoriesId(repo.getId())
                         .stream()
                         .map(Enum::name)
                         .toList();

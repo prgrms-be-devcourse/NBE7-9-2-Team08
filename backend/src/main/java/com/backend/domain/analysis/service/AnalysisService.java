@@ -5,8 +5,11 @@ import com.backend.domain.analysis.lock.InMemoryLockManager;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
+import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
+import com.backend.domain.repository.entity.RepositoryLanguage;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
+import com.backend.domain.repository.repository.RepositoryLanguageRepository;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
@@ -27,6 +30,7 @@ public class AnalysisService {
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
     private final InMemoryLockManager lockManager;
+    private final RepositoryLanguageRepository repositoryLanguageRepository;
 
     /* Analysis 분석 프로세스 오케스트레이션 담당
     * 1. GitHub URL 파싱 및 검증
@@ -147,6 +151,14 @@ public class AnalysisService {
         }
 
         repositoryJpaRepository.delete(targetRepository);
+    }
+
+    // repository 사용 언어 반환
+    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
+        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
+                .stream()
+                .map(RepositoryLanguage::getLanguage)
+                .toList();
     }
 
     // 특정 분석 결과 삭제

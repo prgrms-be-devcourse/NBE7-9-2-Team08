@@ -34,9 +34,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RepositoryService {
 
-    // TODO: 임시 - 인증/인가 기능 구현 후 실제 로그인한 사용자로 대체 필요
     private final UserRepository userRepository;
-
     private final GitHubDataFetcher gitHubDataFetcher;
     private final RepositoriesMapper repositoriesMapper;
     private final RepositoryInfoMapper repositoryInfoMapper;
@@ -49,8 +47,6 @@ public class RepositoryService {
     private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
-    private final AnalysisResultRepository analysisResultRepository;
-    private final RepositoryLanguageRepository repositoryLanguageRepository;
 
     @Transactional
     public RepositoryData fetchAndSaveRepository(String owner, String repo, Long userId) {
@@ -153,22 +149,6 @@ public class RepositoryService {
     // Repository ID로 단건 조회
     public Optional<Repositories> findById(Long repositoriesId) {
         return repositoryJpaRepository.findById(repositoriesId);
-    }
-
-    // AnalysisResult를 list로 반환
-    public List<AnalysisResult> getAnalysisResultList(Long RepositoriesId) {
-        List<AnalysisResult> resultsList = analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
-        // 정렬해서 반환
-        resultsList.sort((a, b) -> b.getCreateDate().compareTo(a.getCreateDate()));
-        return resultsList;
-    }
-
-    // repository 사용 언어 반환
-    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
-        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
-                .stream()
-                .map(RepositoryLanguage::getLanguage)
-                .toList();
     }
 
     // 저장소 크기 검증
