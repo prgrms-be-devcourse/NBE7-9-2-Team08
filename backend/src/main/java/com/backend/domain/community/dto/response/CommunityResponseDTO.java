@@ -18,7 +18,7 @@ public record CommunityResponseDTO(
         List<String> language,
         int totalScore,
         LocalDateTime createDate,
-        boolean vewingStatus,
+        boolean pulicStatus,
         String htmlUrl
 ) {
     public CommunityResponseDTO(Repositories repositories, AnalysisResult analysis, Score score) {
