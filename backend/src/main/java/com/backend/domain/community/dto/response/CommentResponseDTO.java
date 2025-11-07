@@ -5,7 +5,7 @@ import com.backend.domain.community.entity.Comment;
 import java.time.LocalDateTime;
 
 public record CommentResponseDTO(
-        Long id,
+        Long commentId,
         Long memberId,
         String name,
         String comment,

@@ -77,7 +77,7 @@ public class CommunityController {
         return ResponseEntity.ok(new CommentWriteResponseDTO(saved));
     }
 
-    // 댓글 조회
+    // 분석 결과 당 댓글 조회
     @GetMapping("/{analysisResultId}/comments")
     public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
             @PathVariable Long analysisResultId

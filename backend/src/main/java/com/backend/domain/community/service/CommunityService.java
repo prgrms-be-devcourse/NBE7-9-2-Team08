@@ -24,6 +24,7 @@ public class CommunityService {
     private final AnalysisResultRepository analysisResultRepository;
     private final CommentRepository commentRepository;
 
+    // 커뮤니티 - 리포지토리 조회
     // publicRepository(repository 필드)가 true인 리포지토리 조회
     public List<Repositories> getRepositoriesPublicTrue(){
         return repositoryJpaRepository.findByPublicRepository(true);
@@ -44,12 +45,14 @@ public class CommunityService {
     }
 
     // 댓글 조회
+    // TODO : 페이징 추가 예정
     public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
         // id 내림차순으로 정렬된 댓글 리스트 반환
         return commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResultId);
     }
 
     // 댓글 삭제
+    // TODO : 소프트 딜리트 추가 예정
     public void deleteComment(Long commentId){
         if(commentId == null){
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
