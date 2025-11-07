@@ -92,7 +92,7 @@ public class CommunityController {
             commentList.add(dto);
         }
 
-        commentList.sort((a, b) -> b.id().compareTo(a.id()));
+        commentList.sort((a, b) -> b.commentId().compareTo(a.commentId()));
         return ResponseEntity.ok(commentList);
     }
 
