@@ -1,5 +1,10 @@
 package com.backend.domain.analysis.service;
 
+import com.backend.domain.user.util.JwtUtil;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -8,10 +13,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class AnalysisProgressService {
+    private final JwtUtil jwtUtil;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    public SseEmitter connect(Long userId) {
+    public SseEmitter connect(Long userId, HttpServletRequest request) {
+        Long requestUserId = jwtUtil.getUserId(request);
+        if (requestUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (!requestUserId.equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
         SseEmitter emitter = new SseEmitter(10 * 60 * 1000L);
         emitters.put(userId, emitter);
 

@@ -4,6 +4,7 @@ import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.analysis.service.SseProgressNotifier;
 import com.backend.domain.repository.dto.response.RepositoryData;
+import com.backend.domain.repository.dto.response.RepositoryResponse;
 import com.backend.domain.repository.dto.response.github.*;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
@@ -14,8 +15,10 @@ import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
 import com.backend.domain.repository.service.mapper.*;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,6 +50,8 @@ public class RepositoryService {
     private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
+    private final RepositoryLanguageRepository repositoryLanguageRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public RepositoryData fetchAndSaveRepository(String owner, String repo, Long userId) {
@@ -163,5 +168,27 @@ public class RepositoryService {
             log.warn("저장소 크기 초과: {}KB (제한: {}KB)", sizeInKb, MAX_SIZE_KB);
             throw new BusinessException(ErrorCode.GITHUB_REPO_TOO_LARGE);
         }
+    }
+
+    // repository 사용 언어 반환
+    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
+        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
+                .stream()
+                .map(RepositoryLanguage::getLanguage)
+                .toList();
+    }
+
+    // 사용자 분석 결과 조회
+    @Transactional(readOnly = true)
+    public List<RepositoryResponse> getUserRepositories(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserId(request);
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return findRepositoryByUser(userId)
+                .stream()
+                .map(RepositoryResponse::new)
+                .toList();
     }
 }
