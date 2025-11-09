@@ -3,16 +3,13 @@ package com.backend.domain.analysis.service;
 import com.backend.domain.analysis.dto.response.AnalysisResultResponseDto;
 import com.backend.domain.analysis.dto.response.HistoryResponseDto;
 import com.backend.domain.analysis.entity.AnalysisResult;
-import com.backend.domain.analysis.lock.InMemoryLockManager;
+import com.backend.domain.analysis.lock.RedisLockManager;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.RepositoryResponse;
-import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
-import com.backend.domain.repository.entity.RepositoryLanguage;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
-import com.backend.domain.repository.repository.RepositoryLanguageRepository;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
@@ -35,7 +32,7 @@ public class AnalysisService {
     private final EvaluationService evaluationService;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
-    private final InMemoryLockManager lockManager;
+    private final RedisLockManager lockManager;
     private final JwtUtil jwtUtil;
 
     /* Analysis 분석 프로세스 오케스트레이션 담당

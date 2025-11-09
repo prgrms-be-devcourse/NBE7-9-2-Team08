@@ -1,6 +1,6 @@
 package com.backend.domain.analysis.service;
 
-import com.backend.domain.analysis.lock.InMemoryLockManager;
+import com.backend.domain.analysis.lock.RedisLockManager;
 import com.backend.domain.evaluation.service.EvaluationService;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.entity.Repositories;
@@ -50,12 +50,11 @@ class AnalysisServiceTest {
     private RepositoryJpaRepository repositoryJpaRepository;
 
     @MockitoBean
-    private InMemoryLockManager lockManager;
+    private RedisLockManager lockManager;
 
     @MockitoBean
     private EmailService emailService;
 
-    // ← 헬퍼 메서드 추가
     private MockHttpServletRequest createAuthenticatedRequest(Long userId) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setCookies(new Cookie("token", "dummy-token"));
@@ -73,7 +72,7 @@ class AnalysisServiceTest {
 
         given(lockManager.tryLock(anyString())).willReturn(true);
 
-        // Fixture 사용 ← 여기 수정됨
+        // Fixture 사용
         RepositoryData fakeData = createMinimal();
         fakeData.setRepositoryUrl("https://github.com/owner/repo");
         given(repositoryService.fetchAndSaveRepository("owner", "repo", userId))
@@ -146,5 +145,57 @@ class AnalysisServiceTest {
 
         then(repositoryService).shouldHaveNoInteractions();
         then(evaluationService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    @DisplayName("analyze → Repository 수집 실패 시에도 락 해제")
+    void analyze_repositoryFetchFails_releasesLock() {
+        // given
+        String url = "https://github.com/owner/repo";
+        Long userId = 1L;
+        MockHttpServletRequest request = createAuthenticatedRequest(userId);
+
+        given(lockManager.tryLock(anyString())).willReturn(true);
+        given(repositoryService.fetchAndSaveRepository("owner", "repo", userId))
+                .willThrow(new RuntimeException("GitHub API 실패"));
+
+        // when & then
+        assertThatThrownBy(() -> analysisService.analyze(url, request))
+                .isInstanceOf(RuntimeException.class);
+
+        // 예외 발생해도 락은 해제되어야 함
+        then(lockManager).should().releaseLock(anyString());
+    }
+
+    @Test
+    @DisplayName("analyze → Evaluation 실패 시에도 락 해제")
+    void analyze_evaluationFails_releasesLock() {
+        // given
+        String url = "https://github.com/owner/repo";
+        Long userId = 1L;
+        MockHttpServletRequest request = createAuthenticatedRequest(userId);
+
+        given(lockManager.tryLock(anyString())).willReturn(true);
+
+        RepositoryData fakeData = createMinimal();
+        fakeData.setRepositoryUrl("https://github.com/owner/repo");
+        given(repositoryService.fetchAndSaveRepository("owner", "repo", userId))
+                .willReturn(fakeData);
+
+        Repositories fakeRepo = mock(Repositories.class);
+        given(fakeRepo.getId()).willReturn(1L);
+        given(repositoryJpaRepository.findByHtmlUrlAndUserId(anyString(), anyLong()))
+                .willReturn(Optional.of(fakeRepo));
+
+        // evaluateAndSave에서 예외 발생
+        willThrow(new RuntimeException("OpenAI API 실패"))
+                .given(evaluationService).evaluateAndSave(any(), anyLong());
+
+        // when & then
+        assertThatThrownBy(() -> analysisService.analyze(url, request))
+                .isInstanceOf(RuntimeException.class);
+
+        // 예외 발생해도 락은 해제되어야 함
+        then(lockManager).should().releaseLock(anyString());
     }
 }
