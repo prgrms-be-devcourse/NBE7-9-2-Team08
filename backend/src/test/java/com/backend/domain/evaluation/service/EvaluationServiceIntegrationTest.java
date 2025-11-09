@@ -9,6 +9,7 @@ import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,10 +21,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
-// Boot 3.4+: @MockBean 대신 아래 사용
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.backend.domain.repository.dto.RepositoryDataFixture.createMinimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
@@ -37,16 +38,19 @@ class EvaluationServiceIntegrationTest {
     @Autowired private RepositoryJpaRepository repositoryJpaRepository;
     @Autowired private AnalysisResultRepository analysisResultRepository;
     @Autowired private ScoreRepository scoreRepository;
+    @Autowired EntityManager em;
 
     @MockitoBean
     private AiService aiService; // OpenAI 호출만 목킹
 
     private String repoUrl;
+    private Long userId;
 
     @BeforeEach
     void seed() {
         // 1) 유저 시드
         User user = userRepository.save(new User("tester@example.com", "pw", "tester"));
+        userId = user.getId();
 
         // 2) Repositories 시드 (evaluation이 repo를 찾을 때 htmlUrl로 매칭)
         repoUrl = "https://github.com/test-owner/test-repo";
@@ -65,7 +69,7 @@ class EvaluationServiceIntegrationTest {
     @DisplayName("evaluateAndSave(RepositoryData) → AnalysisResult/Score 실제 저장")
     void evaluateAndSave_saves() {
         // 3) RepositoryData 준비 (url만 맞으면 됨; 나머지는 평가 프롬프트에 영향 없도록 최소)
-        RepositoryData data = new RepositoryData();
+        RepositoryData data = createMinimal();
         // RepositoryData에 세터가 있다면:
         data.setRepositoryUrl(repoUrl);
 
@@ -82,8 +86,12 @@ class EvaluationServiceIntegrationTest {
                 .willReturn(new AiDto.CompleteResponse(json));
 
         // 5) 실행
-        Long analysisId = evaluationService.evaluateAndSave(data);
+        Long analysisId = evaluationService.evaluateAndSave(data, userId);
 
+        // 영속성 컨텍스트 초기화
+        em.flush();
+        em.clear();
+        
         // 6) 검증: AnalysisResult/Score가 실제로 저장됐는지
         AnalysisResult ar = analysisResultRepository.findById(analysisId).orElseThrow();
         assertThat(ar.getSummary()).contains("요약");
