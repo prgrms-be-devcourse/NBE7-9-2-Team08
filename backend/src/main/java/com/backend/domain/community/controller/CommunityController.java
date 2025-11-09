@@ -13,6 +13,10 @@ import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.service.UserService;
+import com.backend.domain.user.util.JwtUtil;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +31,7 @@ public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 커뮤니티 관련 기능이 있는 컨트롤러 입니다.
@@ -67,8 +72,15 @@ public class CommunityController {
     @PostMapping("/{analysisResultId}/write")
     public ResponseEntity<CommentWriteResponseDTO> addComment(
             @PathVariable Long analysisResultId,
-            @RequestBody CommentRequestDTO requestDto
+            @RequestBody CommentRequestDTO requestDto,
+            HttpServletRequest httpRequest
     ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if(jwtUserId == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
         Comment saved = communityService.addComment(
                 analysisResultId,
                 requestDto.memberId(),

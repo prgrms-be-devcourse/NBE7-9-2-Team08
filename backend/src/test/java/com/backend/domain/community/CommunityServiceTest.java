@@ -7,6 +7,7 @@ import com.backend.domain.community.repository.CommentRepository;
 import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
+import com.backend.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,11 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +37,10 @@ public class CommunityServiceTest {
     @InjectMocks
     private CommunityService communityService;
 
+
+    /*
+     *  커뮤니티 내에서 분석결과를 조회하는 내용에 대한 테스트 입니다.
+     */
     @Test
     @DisplayName("커뮤니티 분석결과 조회 테스트")
     void getCommunityRepositoryList(){
@@ -72,6 +77,22 @@ public class CommunityServiceTest {
     }
 
     @Test
+    @DisplayName("조회 시, 데이터가 null이 출력될 경우")
+    void AnalysisResultListIsNull(){
+        when(repositoryJpaRepository.findByPublicRepository(true))
+                .thenReturn(Collections.emptyList());
+
+        List<Repositories> result = communityService.getRepositoriesPublicTrue();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verify(repositoryJpaRepository, times(1)).findByPublicRepository(true);
+    }
+
+    /*
+     *  분석결과 당 댓글을 조회하는 내용에 대한 테스트 입니다.
+     */
+    @Test
     @DisplayName("댓글 조회 테스트")
     void getCommnets(){
         // 테스트 데이터 만들기
@@ -99,13 +120,53 @@ public class CommunityServiceTest {
         // 서비스 코드로 데이터 조회
         List<Comment> result = communityService.getCommentsByAnalysisResult(1L);
 
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
         assertEquals("test comment 1", result.get(0).getComment());
+        assertEquals("test comment 2", result.get(1).getComment());
 
         verify(commentRepository, times(1))
                 .findByAnalysisResultIdOrderByIdDesc(1L);
     }
 
+    @Test
+    @DisplayName("댓글이 없을 경우 빈 리스트 반환")
+    void getComments_noComments() {
+        // given
+        when(commentRepository.findByAnalysisResultIdOrderByIdDesc(99L))
+                .thenReturn(Collections.emptyList());
+
+        // when
+        List<Comment> result = communityService.getCommentsByAnalysisResult(99L);
+
+        // then
+        assertNotNull(result);
+        assertEquals(0, result.size());
+        verify(commentRepository, times(1))
+                .findByAnalysisResultIdOrderByIdDesc(99L);
+    }
+
+    @Test
+    @DisplayName("댓글 작성 시 AnalysisResult가 존재하지 않으면 예외 발생")
+    void writeComment_noAnalysisResult() {
+        // given
+        when(analysisResultRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(
+                BusinessException.class, // 또는 NoSuchElementException 등
+                () -> communityService.addComment(1L, 1L, "테스트 댓글"),
+                "AnalysisResult not found 예외가 발생해야 함"
+        );
+
+        verify(analysisResultRepository, times(1)).findById(1L);
+        verify(commentRepository, never()).save(any());
+    }
+
+
+    /*
+     *  분석결과 당 댓글을 작성하는 내용에 대한 테스트 입니다.
+     */
     @Test
     @DisplayName("댓글 작성 테스트")
     void writeComment(){
@@ -138,5 +199,47 @@ public class CommunityServiceTest {
 
         verify(analysisResultRepository, times(1)).findById(1L);
         verify(commentRepository, times(1)).save(any(Comment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패 - 분석 결과가 없으면 BusinessException 발생")
+    void writeComment_noAnalysisResult_throwsBusinessException() {
+        // given
+        when(analysisResultRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(BusinessException.class,
+                () -> communityService.addComment(1L, 1L, "Write Test 1"));
+
+        verify(analysisResultRepository, times(1)).findById(1L);
+        verify(commentRepository, never()).save(any(Comment.class)); // 저장 시도 X
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패 - 내용이 비어 있을 경우 예외 발생")
+    void writeComment_emptyContent_throwsException() {
+        // mock repository에 넣어둘 가짜 데이터
+        AnalysisResult analysisResult1 = AnalysisResult.builder()
+                .id(1L)
+                .build();
+
+        when(analysisResultRepository.findById(1L))
+                .thenReturn(Optional.of(analysisResult1));
+
+        // mock이 .save()를 호출했을 때 반환해줄 가짜 데이터
+        Comment savedComment = Comment.builder()
+                .id(1L)
+                .analysisResult(analysisResult1)
+                .memberId(1L)
+                .comment("테스트 댓글")
+                .build();
+
+//        when(commentRepository.save(any(Comment.class)))  // 예외처리로 .save가 사용되지 않음으로 해당 내용 주석처리
+//                .thenReturn(savedComment);
+
+        // 댓글 작성 시,  댓글 내용이 없을 때 -> 예외처리 확인
+        assertThrows(BusinessException.class,
+                () -> communityService.addComment(1L, 1L, ""));
     }
 }

@@ -35,6 +35,10 @@ public class CommunityService {
         AnalysisResult analysisResult = analysisResultRepository.findById(analysisResultId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_NOT_FOUND));
 
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.EMPTY_COMMENT);
+        }
+
         Comment comment = Comment.builder()
                 .analysisResult(analysisResult)
                 .memberId(memberId)
