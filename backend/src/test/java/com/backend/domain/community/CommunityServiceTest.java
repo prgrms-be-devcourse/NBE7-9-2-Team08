@@ -8,6 +8,7 @@ import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -241,5 +242,59 @@ public class CommunityServiceTest {
         // 댓글 작성 시,  댓글 내용이 없을 때 -> 예외처리 확인
         assertThrows(BusinessException.class,
                 () -> communityService.addComment(1L, 1L, ""));
+    }
+
+    /*
+     *  분석결과 당 댓글을 수정하는 내용에 대한 테스트 입니다.
+     */
+    @Test
+    @DisplayName("댓글 수정 성공 - 존재하는 댓글의 내용이 변경된다")
+    void modifyComment_success() {
+        // given
+        Comment comment = Comment.builder()
+                .id(1L)
+                .comment("old content")
+                .build();
+
+        when(commentRepository.findById(1L))
+                .thenReturn(Optional.of(comment));
+
+        // when
+        communityService.modifyComment(1L, "update content");
+
+        // then
+        assertEquals("update content", comment.getComment());
+        verify(commentRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 존재하지 않는 댓글 ID일 경우 예외 발생")
+    void modifyComment_notFound_throwsBusinessException() {
+        // given
+        when(commentRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> communityService.modifyComment(1L, "update content")
+        );
+
+        assertEquals(ErrorCode.COMMENT_NOT_FOUND, exception.getErrorCode());
+        verify(commentRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    @DisplayName("댓글 수정 시 updateComment()가 한 번 호출된다")
+    void modifyComment_callsUpdateComment_once() {
+        // given
+        Comment comment = mock(Comment.class);
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+
+        // when
+        communityService.modifyComment(1L, "update content");
+
+        // then
+        verify(comment, times(1)).updateComment("update content");
     }
 }

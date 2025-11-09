@@ -74,6 +74,10 @@ public class CommunityService {
         Comment targetComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
+        if(newContent == null || newContent.isEmpty()){
+            throw new BusinessException(ErrorCode.EMPTY_COMMENT);
+        }
+
         targetComment.updateComment(newContent);
     }
 }
