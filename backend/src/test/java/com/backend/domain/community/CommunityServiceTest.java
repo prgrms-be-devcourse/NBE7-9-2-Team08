@@ -297,4 +297,43 @@ public class CommunityServiceTest {
         // then
         verify(comment, times(1)).updateComment("update content");
     }
+
+    /*
+     *  분석결과 당 댓글을 삭제하는 내용에 대한 테스트 입니다.
+     */
+    @Test
+    @DisplayName("댓글 삭제 성공 확인")
+    void deleteCommnet(){
+        Comment comment1 = Comment.builder()
+                .id(1L)
+                .comment("target content")
+                .build();
+
+        when(commentRepository.findById(1L))
+                .thenReturn(Optional.of(comment1));
+
+        communityService.deleteComment(1L);
+
+        verify(commentRepository, times(1)).findById(1L);
+        verify(commentRepository, times(1)).delete(comment1);
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 시, 존재하지 않는 댓글일 때 예외처리 반환 확인")
+    void notFoundComment(){
+        // given
+        when(commentRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // when & then
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> communityService.deleteComment(1L)
+        );
+
+        // then
+        assertEquals(ErrorCode.COMMENT_NOT_FOUND, exception.getErrorCode());
+        verify(commentRepository, times(1)).findById(1L);
+        verify(commentRepository, never()).delete(any());
+    }
 }

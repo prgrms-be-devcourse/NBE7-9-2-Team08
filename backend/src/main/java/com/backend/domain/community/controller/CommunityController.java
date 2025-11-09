@@ -111,8 +111,15 @@ public class CommunityController {
     // 댓글 삭제
     @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<String> deleteCommnt(
-            @PathVariable Long commentId
+            @PathVariable Long commentId,
+            HttpServletRequest httpRequest
     ){
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if(jwtUserId == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
         communityService.deleteComment(commentId);
         return ResponseEntity.ok("댓글 삭제 완료");
     }

@@ -58,6 +58,7 @@ public class CommunityService {
     // 댓글 삭제
     // TODO : 소프트 딜리트 추가 예정
     public void deleteComment(Long commentId){
+
         if(commentId == null){
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
