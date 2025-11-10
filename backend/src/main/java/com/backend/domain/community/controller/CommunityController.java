@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,30 +42,39 @@ public class CommunityController {
      */
 
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
+    // 공개 리포지토리 조회
     @GetMapping("/repositories")
-    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories(){
+    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories() {
+
         // publicRepository가 true인 리포지토리 조회
         List<Repositories> publicRepository = communityService.getRepositoriesPublicTrue();
         List<CommunityResponseDTO> communityRepositories = new ArrayList<>();
 
-        for(Repositories repo : publicRepository){
-            List <AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
+        for (Repositories repo : publicRepository) {
+            if (repo == null) continue; // ✅ repo 자체가 null이면 패스
 
-            if(!(repo == null)){ // 비어있지 않으면
+            // 분석 결과 조회 (없을 수도 있음)
+            List<AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
+            if (analysisList == null || analysisList.isEmpty()) continue; // ✅ null/빈 리스트 보호
 
-                // 가장 첫번째 값만 사용 : List가 정렬되어서 반환되기 때문에 가장 최신값 사용
-                AnalysisResult analysisResult = analysisList.get(0);
-                Score score = analysisResult.getScore();
+            // 가장 첫 번째(가장 최신) 분석 결과만 사용
+            AnalysisResult analysisResult = analysisList.get(0);
 
-                CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
-                communityRepositories.add(dto);
-            }
+            // Score가 null일 경우 기본값 생성
+            Score score = Optional.ofNullable(analysisResult.getScore())
+                    .orElseGet(() -> new Score(analysisResult, 0, 0, 0, 0)); // ✅ null-safe score
+
+            // DTO 생성 시 NPE 방지
+            CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
+            communityRepositories.add(dto);
         }
 
+        // 최신순 정렬
         communityRepositories.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
-    return ResponseEntity.ok(communityRepositories);
+        return ResponseEntity.ok(communityRepositories);
     }
+
 
 
 
