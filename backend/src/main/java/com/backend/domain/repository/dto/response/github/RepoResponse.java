@@ -12,6 +12,7 @@ public record RepoResponse(
         @JsonProperty("html_url") String htmlUrl,
         String language,
         @JsonProperty("default_branch") String defaultBranch,
-        @JsonProperty("created_at") OffsetDateTime createdAt
+        @JsonProperty("created_at") OffsetDateTime createdAt,
+        Integer size
 ) {
 }

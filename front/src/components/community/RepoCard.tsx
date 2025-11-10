@@ -2,6 +2,8 @@
 
 import type { RepositoryItem } from '@/types/community';
 import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow"
+import { ko } from "date-fns/locale"
 import { formatRelativeTimeKST } from '@/lib/utils/formatDate'
 import { Github, ExternalLink } from "lucide-react"
 
@@ -15,18 +17,20 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
       <div className="flex items-center mb-3">
         {item.userImage ? (
           <img
-            src={item.userImage || "./userInit.png"} // 수정 : 이미지 경로 못 찾음
+            src={item.userImage || "/userInit.png"} // ✅ public 기준 절대경로
             alt={item.userName}
             className="w-10 h-10 rounded-full mr-3"
             onError={(e) => {
               e.currentTarget.onerror = null // 무한 루프 방지
-              e.currentTarget.src = "./userInit.png" // 로딩 실패 시 기본 이미지로 교체
+              e.currentTarget.src = "/userInit.png" // ✅ fallback도 절대경로
             }}
           />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold mr-3">
-            {item.userName.charAt(0).toUpperCase()}
-          </div>
+          <img
+            src="/userInit.png" // ✅ 기본 이미지
+            alt="기본 프로필"
+            className="w-10 h-10 rounded-full mr-3"
+          />
         )}
         <div>
           <p className="font-semibold text-sm">{item.userName}</p>
@@ -79,7 +83,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
         <button
           className="border px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-100"
           type="button"
-          onClick={() => router.push(`/analysis/${item.repositoryId}`) }
+          onClick={() => router.push(`/analysis/${item.repositoryId}`)}
         >
           View Analysis
         </button>

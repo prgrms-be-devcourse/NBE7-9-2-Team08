@@ -132,4 +132,8 @@ public class UserService {
 
         return user;
     }
+
+    public User getUserNameByUserId(Long userId){
+        return userRepository.findNameById(userId);
+    }
 }

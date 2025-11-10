@@ -19,17 +19,21 @@ public class PullRequestInfoMapper {
             return;
         }
 
+        List<PullRequestResponse> validPrs = response.stream()
+                .filter(pr -> pr != null)
+                .collect(Collectors.toList());
+
         // 최근 6개월 PR 수
-        data.setPullRequestCountLast6Months(response.size());
+        data.setPullRequestCountLast6Months(validPrs.size());
 
         // 6개월 내 머지된 PR 수
-        long mergedPRCount = response.stream()
+        long mergedPRCount = validPrs.stream()
                 .filter(pr -> pr.merged_at() != null)
                 .count();
         data.setMergedPullRequestCountLast6Months((int) mergedPRCount);
 
         // 최근 5-10개 PR
-        List<RepositoryData.PullRequestInfo> recentPRs = response.stream()
+        List<RepositoryData.PullRequestInfo> recentPRs = validPrs.stream()
                 .limit(10)
                 .map(this::convertToPullRequestInfo)
                 .collect(Collectors.toList());
@@ -37,9 +41,9 @@ public class PullRequestInfoMapper {
     }
 
     private void setEmptyPullRequest(RepositoryData data) {
-        data.setIssueCountLast6Months(0);
-        data.setClosedIssueCountLast6Months(0);
-        data.setRecentIssues(Collections.emptyList());
+        data.setPullRequestCountLast6Months(0);
+        data.setMergedPullRequestCountLast6Months(0);
+        data.setRecentPullRequests(Collections.emptyList());
     }
 
     private RepositoryData.PullRequestInfo convertToPullRequestInfo(PullRequestResponse pr) {

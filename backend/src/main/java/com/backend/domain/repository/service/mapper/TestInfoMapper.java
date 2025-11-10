@@ -64,7 +64,7 @@ public class TestInfoMapper {
     );
 
     public void mapTestInfo(RepositoryData data, TreeResponse response) {
-        if (response == null || response.tree().isEmpty()) {
+        if (response == null || response.tree().isEmpty() || response.tree() == null) {
             setEmptyTestData(data);
             return;
         }

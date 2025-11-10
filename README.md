@@ -32,7 +32,11 @@
   - 오혜승: Analysis, Repository 도메인 (GitHub API 연동)
   - 양희원: Analysis, Community 도메인 (게시판, 댓글)
 
-### 📊 데이터 흐름
+### 📹 시연 영상
+[![시연 영상](https://img.youtube.com/vi/1ism7BSkffM/0.jpg)](https://youtu.be/1ism7BSkffM)
+
+### 📊 시스템 아키텍처
+<img src="https://github.com/user-attachments/assets/e91daac0-b6d2-4e53-8fde-7bfebe061468" width="60%" alt="8_시스템_구성도" />
 
 ---
 

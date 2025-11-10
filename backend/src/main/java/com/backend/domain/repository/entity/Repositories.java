@@ -18,7 +18,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "repositories")
+@Table(
+        name = "repositories",
+        uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_html_url_user",
+                columnNames = {"html_url", "user_id"}
+        )
+            }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Repositories extends BaseEntity {

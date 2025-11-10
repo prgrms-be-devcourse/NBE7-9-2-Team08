@@ -5,18 +5,16 @@ import com.backend.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 
-public record CommentResponseDto(
+public record CommentWriteResponseDto(
         Long id,
         Long memberId,
-        String name,
         String comment,
         LocalDateTime createDate
-) {
-    public CommentResponseDto(Comment comment, String userName) {
+){
+    public CommentWriteResponseDto(Comment comment) {
         this(
                 comment.getId(),
                 comment.getMemberId(),
-                userName,
                 comment.getComment(),
                 comment.getCreateDate()
         );

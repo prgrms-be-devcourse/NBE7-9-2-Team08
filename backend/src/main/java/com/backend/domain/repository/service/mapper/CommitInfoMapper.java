@@ -25,7 +25,14 @@ public class CommitInfoMapper {
         }
 
         // 마지막 커밋 시점
-        LocalDateTime lastCommitDate = parseCommitDate(response.get(0).commit().author().date());
+        CommitResponse.CommitDetails commit = response.get(0).commit();
+        if (commit == null) {
+            setDefaultValues(data);
+            return;
+        }
+        LocalDateTime lastCommitDate = commit.author() != null
+                ? parseCommitDate(commit.author().date())
+                : LocalDateTime.now();
         data.setLastCommitDate(lastCommitDate);
 
         // 마지막 커밋 이후 경과일
@@ -72,6 +79,7 @@ public class CommitInfoMapper {
 
     private List<RepositoryData.CommitInfo> extractRecentCommitMessages(List<CommitResponse> commitResponses) {
         return commitResponses.stream()
+                .filter(commitResponse -> commitResponse != null)
                 .limit(10)
                 .map(this::createCommitInfoFromMessage)
                 .collect(Collectors.toList());
@@ -80,7 +88,10 @@ public class CommitInfoMapper {
     private RepositoryData.CommitInfo createCommitInfoFromMessage(CommitResponse commitResponse) {
         RepositoryData.CommitInfo commitInfo = new RepositoryData.CommitInfo();
 
-        String message = Optional.ofNullable(commitResponse.commit().message())
+        CommitResponse.CommitDetails commit = commitResponse.commit();
+
+        String message = Optional.ofNullable(commit)
+                .map(CommitResponse.CommitDetails::message)
                 .map(String::trim)
                 .map(this::cleanCommitMessage)
                 .filter(msg -> !msg.isEmpty())
@@ -88,10 +99,10 @@ public class CommitInfoMapper {
 
         commitInfo.setMessage(message);
 
-        if (commitResponse.commit().author() != null) {
-            LocalDateTime commitDate = parseCommitDate(commitResponse.commit().author().date());
-            commitInfo.setCommittedDate(commitDate);
-        }
+        Optional.ofNullable(commit)
+                .map(CommitResponse.CommitDetails::author)
+                .map(author -> parseCommitDate(author.date()))
+                .ifPresent(commitInfo::setCommittedDate);
 
         return commitInfo;
     }

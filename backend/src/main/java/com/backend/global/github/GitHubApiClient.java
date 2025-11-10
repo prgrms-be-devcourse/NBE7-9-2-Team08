@@ -5,11 +5,13 @@ import com.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -32,7 +34,11 @@ public class GitHubApiClient {
                         .toEntity(responseType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            T body = response.getBody();
+                            if (body == null) {
+                                throw new BusinessException(ErrorCode.GITHUB_API_FAILED);
+                            }
+                            return body;
                         })
         );
     }
@@ -47,7 +53,11 @@ public class GitHubApiClient {
                         .toEntity(responseType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            T body = response.getBody();
+                            if (body == null) {
+                                throw new BusinessException(ErrorCode.GITHUB_API_FAILED);
+                            }
+                            return body;
                         })
         );
     }
@@ -62,7 +72,8 @@ public class GitHubApiClient {
                         .toEntity(String.class)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            String body = response.getBody();
+                            return (body != null) ? body : "";
                         })
         );
     }
@@ -76,7 +87,8 @@ public class GitHubApiClient {
                         .toEntityList(elementType)
                         .map(response -> {
                             checkRateLimit(response.getHeaders());
-                            return response.getBody();
+                            List<T> body = response.getBody();
+                            return (body != null) ? body : Collections.emptyList();
                         })
         );
     }
@@ -93,6 +105,30 @@ public class GitHubApiClient {
         log.error("GitHub API 호출 실패: {}", ex.getMessage());
 
         if (ex.getStatusCode().is4xxClientError()) {
+            HttpStatus status = (HttpStatus) ex.getStatusCode();
+
+            if (status == HttpStatus.BAD_REQUEST) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_API_FAILED));
+            }
+            if (status == HttpStatus.UNAUTHORIZED) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_INVALID_TOKEN));
+            }
+            if (status == HttpStatus.FORBIDDEN) {
+                return Mono.error(new BusinessException(ErrorCode.FORBIDDEN));
+            }
+            if (status == HttpStatus.NOT_FOUND) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
+            }
+            if (status == HttpStatus.GONE) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_API_FAILED));
+            }
+            if (status == HttpStatus.UNPROCESSABLE_ENTITY) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_API_FAILED));
+            }
+            if (status == HttpStatus.TOO_MANY_REQUESTS) {
+                return Mono.error(new BusinessException(ErrorCode.GITHUB_RATE_LIMIT_EXCEEDED));
+            }
+
             return Mono.error(new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
         }
         if (ex.getStatusCode().is5xxServerError()) {

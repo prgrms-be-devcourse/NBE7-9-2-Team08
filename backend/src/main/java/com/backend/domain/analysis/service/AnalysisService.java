@@ -62,14 +62,14 @@ public class AnalysisService {
             }
 
             Repositories savedRepository = repositoryJpaRepository
-                    .findByHtmlUrl(repositoryData.getRepositoryUrl())
+                    .findByHtmlUrlAndUserId(repositoryData.getRepositoryUrl(), userId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.GITHUB_REPO_NOT_FOUND));
 
             Long repositoryId = savedRepository.getId();
 
             // OpenAI API 데이터 분석 및 저장
             try {
-                evaluationService.evaluateAndSave(repositoryData);
+                evaluationService.evaluateAndSave(repositoryData, userId);
                 lockManager.refreshLock(cacheKey);
             } catch (BusinessException e) {
                 sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
