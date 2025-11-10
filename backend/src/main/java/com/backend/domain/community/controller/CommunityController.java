@@ -18,6 +18,7 @@ import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,25 +45,28 @@ public class CommunityController {
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
     // 공개 리포지토리 조회
     @GetMapping("/repositories")
-    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories() {
+    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
 
         // publicRepository가 true인 리포지토리 조회
-        List<Repositories> publicRepository = communityService.getRepositoriesPublicTrue();
+        Page<Repositories> publicRepository = communityService.getPagedRepositoriesPublicTrue(page, size);
         List<CommunityResponseDTO> communityRepositories = new ArrayList<>();
 
         for (Repositories repo : publicRepository) {
-            if (repo == null) continue; // ✅ repo 자체가 null이면 패스
+            if (repo == null) continue;
 
             // 분석 결과 조회 (없을 수도 있음)
             List<AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
-            if (analysisList == null || analysisList.isEmpty()) continue; // ✅ null/빈 리스트 보호
+            if (analysisList == null || analysisList.isEmpty()) continue;
 
             // 가장 첫 번째(가장 최신) 분석 결과만 사용
             AnalysisResult analysisResult = analysisList.get(0);
 
             // Score가 null일 경우 기본값 생성
             Score score = Optional.ofNullable(analysisResult.getScore())
-                    .orElseGet(() -> new Score(analysisResult, 0, 0, 0, 0)); // ✅ null-safe score
+                    .orElseGet(() -> new Score(analysisResult, 0, 0, 0, 0));
 
             // DTO 생성 시 NPE 방지
             CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
@@ -74,9 +78,6 @@ public class CommunityController {
 
         return ResponseEntity.ok(communityRepositories);
     }
-
-
-
 
     // 댓글 작성
     @PostMapping("/{analysisResultId}/write")
