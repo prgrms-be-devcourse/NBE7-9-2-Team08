@@ -17,6 +17,6 @@ public interface RepositoryJpaRepository extends JpaRepository<Repositories, Lon
 
     List<Repositories> findByUserId(Long userId);
 
-    // List<Repositories> findByPublicRepository(boolean b);
+    List<Repositories> findByPublicRepository(boolean b);
     Page<Repositories> findByPublicRepositoryTrue(Pageable pageable);
 }

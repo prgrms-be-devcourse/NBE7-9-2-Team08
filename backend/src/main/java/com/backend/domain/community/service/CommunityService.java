@@ -10,6 +10,10 @@ import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,10 +28,17 @@ public class CommunityService {
     private final AnalysisResultRepository analysisResultRepository;
     private final CommentRepository commentRepository;
 
+
     // 커뮤니티 - 리포지토리 조회
     // publicRepository(repository 필드)가 true인 리포지토리 조회
     public List<Repositories> getRepositoriesPublicTrue(){
         return repositoryJpaRepository.findByPublicRepository(true);
+    }
+
+    // 공개 여부 true인 Repository 페이징 조회 (신규)
+    public Page<Repositories> getPagedRepositoriesPublicTrue(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createDate").descending());
+        return repositoryJpaRepository.findByPublicRepositoryTrue(pageable);
     }
 
     // 댓글 추가
