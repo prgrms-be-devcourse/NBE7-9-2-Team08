@@ -19,6 +19,7 @@ import com.backend.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class CommunityController {
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
     // 공개 리포지토리 조회
     @GetMapping("/repositories")
-    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories(
+    public ResponseEntity<Page<CommunityResponseDTO>> getPublicRepositories(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size
     ) {
@@ -76,7 +77,32 @@ public class CommunityController {
         // 최신순 정렬
         communityRepositories.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
-        return ResponseEntity.ok(communityRepositories);
+        Page<CommunityResponseDTO> pageingResponseDto = new PageImpl<>(
+                communityRepositories,
+                publicRepository.getPageable(),
+                publicRepository.getTotalElements()
+        );
+
+        return ResponseEntity.ok(pageingResponseDto);
+    }
+
+    // 분석 결과 당 댓글 조회
+    @GetMapping("/{analysisResultId}/comments")
+    public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
+            @PathVariable Long analysisResultId
+    ) {
+        List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
+        List<CommentResponseDTO> commentList = new ArrayList<>();
+
+        for(Comment comment : comments){
+            User userName = userService.getUserNameByUserId(comment.getMemberId());
+
+            CommentResponseDTO dto = new CommentResponseDTO(comment, userName.getName());
+            commentList.add(dto);
+        }
+
+        commentList.sort((a, b) -> b.commentId().compareTo(a.commentId()));
+        return ResponseEntity.ok(commentList);
     }
 
     // 댓글 작성
@@ -98,25 +124,6 @@ public class CommunityController {
                 requestDto.comment()
         );
         return ResponseEntity.ok(new CommentWriteResponseDTO(saved));
-    }
-
-    // 분석 결과 당 댓글 조회
-    @GetMapping("/{analysisResultId}/comments")
-    public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
-            @PathVariable Long analysisResultId
-    ) {
-        List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
-        List<CommentResponseDTO> commentList = new ArrayList<>();
-
-        for(Comment comment : comments){
-            User userName = userService.getUserNameByUserId(comment.getMemberId());
-
-            CommentResponseDTO dto = new CommentResponseDTO(comment, userName.getName());
-            commentList.add(dto);
-        }
-
-        commentList.sort((a, b) -> b.commentId().compareTo(a.commentId()));
-        return ResponseEntity.ok(commentList);
     }
 
     // 댓글 삭제
