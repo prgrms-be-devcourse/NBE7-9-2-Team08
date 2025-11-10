@@ -129,7 +129,7 @@ public class JwtUtil {
         Cookie[] cookies = request.getCookies(); //
         if(cookies != null) {
             for(Cookie c : cookies) {
-                if(c.getName().equals("token")) {
+                if(c.getName().equals("accessToken")) {
                     return c.getValue();
                 }
             }

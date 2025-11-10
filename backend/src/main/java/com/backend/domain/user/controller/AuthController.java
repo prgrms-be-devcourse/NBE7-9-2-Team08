@@ -6,6 +6,8 @@ import com.backend.domain.user.service.EmailService;
 import com.backend.domain.user.service.JwtService;
 import com.backend.domain.user.service.UserService;
 import com.backend.domain.user.util.JwtUtil;
+import com.backend.domain.user.util.RefreshTokenUtil;
+import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
 import com.backend.global.response.ResponseCode;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -28,9 +32,13 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenUtil refreshTokenUtil;
 
     @Value("${jwt.access-token-expiration-in-milliseconds}")
     private int tokenValidityMilliSeconds;
+
+    @Value("${jwt.refresh-token-expiration-in-milliseconds}")
+    private long refreshTokenValidityMilliSeconds;
 
     /**
      * 입력받은 이메일에 인증코드를 보냅니다.
@@ -97,28 +105,45 @@ public class AuthController {
             @RequestBody LoginRequest loginRequest,
             HttpServletResponse response
     ){
-        String token = jwtService.login(loginRequest.email, loginRequest.password);
-        if (token == null) {
+        List<String> tokens = jwtService.login(loginRequest.email, loginRequest.password);
+        System.out.println("===== jwt, refreshToken 발급 ==========");
+        String accessToken = tokens.get(0);
+        String refreshToken = tokens.get(1);
+        if (accessToken == null || refreshToken == null) {
             // ★ 에러 분기도 LoginResponse로 타입을 고정해서 반환
             return ApiResponse.<LoginResponse>error(ResponseCode.UNAUTHORIZED);
         }
 
-        if(token != null) {
-            Cookie cookie = new Cookie("token", token);
-            cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
-            cookie.setSecure(false); //HTTPS 통신에서만 전송
-            cookie.setPath("/");
 
-            cookie.setMaxAge(tokenValidityMilliSeconds);
+
+        Cookie cookie = new Cookie("accessToken", accessToken);
+        cookie.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
+        cookie.setSecure(false); //HTTPS 통신에서만 전송
+        cookie.setPath("/");
+        cookie.setMaxAge(tokenValidityMilliSeconds/1000); //쿠키는 초단위
 
         response.addCookie(cookie); //응답에 쿠키 추가
+
+        Cookie cookie2 =  new Cookie("refreshToken", refreshToken);
+        cookie2.setHttpOnly(true); // JavaScript 접근 방지 (XSS 공격 방어)
+        cookie2.setSecure(false); //HTTPS 통신에서만 전송
+        cookie2.setPath("/");
+        int refreshTokenMaxAge = 0;
+        try {
+            refreshTokenMaxAge = Math.toIntExact(refreshTokenValidityMilliSeconds / 1000);
+        }catch (ArithmeticException e){
+            throw new BusinessException(ErrorCode.EXPIRATION_ERROR);
+        }
+
+        cookie2.setMaxAge(refreshTokenMaxAge);
+
+        response.addCookie(cookie2);
+
         var user = userService.findByEmail(loginRequest.email);
 
 
-            return ApiResponse.success(new LoginResponse(new UserDto(user)));
-        }else{
-            return ApiResponse.error(ErrorCode.LOGIN_FAILED);
-        }
+        return ApiResponse.success(new LoginResponse(new UserDto(user)));
+
     }
 
     /**
