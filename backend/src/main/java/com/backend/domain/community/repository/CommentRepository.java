@@ -1,6 +1,8 @@
 package com.backend.domain.community.repository;
 
 import com.backend.domain.community.entity.Comment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +13,7 @@ import java.util.Optional;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     // TODO : QueryDSL로 작성해보기 -> 조회 시 조회 조건(id 순(최신), 점수 순, 좋아요 순 등)
     List<Comment> findByAnalysisResultIdOrderByIdDesc(Long analysisResultId);
+    Page<Comment> findByAnalysisResultIdOrderByIdDesc(Long analysisResultId, Pageable pageable);
+
     Optional<Comment> findTopByOrderByIdDesc();
 }

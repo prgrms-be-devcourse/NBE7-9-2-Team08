@@ -88,10 +88,13 @@ public class CommunityController {
 
     // 분석 결과 당 댓글 조회
     @GetMapping("/{analysisResultId}/comments")
-    public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
-            @PathVariable Long analysisResultId
+    public ResponseEntity<Page<CommentResponseDTO>> getCommentsByAnalysisResult(
+            @PathVariable Long analysisResultId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+
     ) {
-        List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
+        Page<Comment> comments = communityService.getPagedCommentsByAnalysisResult(analysisResultId, page, size);
         List<CommentResponseDTO> commentList = new ArrayList<>();
 
         for(Comment comment : comments){
@@ -102,7 +105,14 @@ public class CommunityController {
         }
 
         commentList.sort((a, b) -> b.commentId().compareTo(a.commentId()));
-        return ResponseEntity.ok(commentList);
+
+        Page<CommentResponseDTO> pageingResponseDto = new PageImpl<>(
+                commentList,
+                comments.getPageable(),
+                comments.getTotalElements()
+        );
+
+        return ResponseEntity.ok(pageingResponseDto);
     }
 
     // 댓글 작성

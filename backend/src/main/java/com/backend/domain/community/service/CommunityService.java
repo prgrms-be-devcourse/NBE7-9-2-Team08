@@ -35,7 +35,7 @@ public class CommunityService {
         return repositoryJpaRepository.findByPublicRepository(true);
     }
 
-    // 공개 여부 true인 Repository 페이징 조회 (신규)
+    // 공개 여부 true인 Repository 페이징 조회
     public Page<Repositories> getPagedRepositoriesPublicTrue(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createDate").descending());
         return repositoryJpaRepository.findByPublicRepositoryTrue(pageable);
@@ -60,10 +60,15 @@ public class CommunityService {
     }
 
     // 댓글 조회
-    // TODO : 페이징 추가 예정
     public List<Comment> getCommentsByAnalysisResult(Long analysisResultId) {
         // id 내림차순으로 정렬된 댓글 리스트 반환
         return commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResultId);
+    }
+
+    // 댓글 조회 - 페이징 추가
+    public Page<Comment> getPagedCommentsByAnalysisResult(Long analysisResultId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResultId, pageable);
     }
 
     // 댓글 삭제
