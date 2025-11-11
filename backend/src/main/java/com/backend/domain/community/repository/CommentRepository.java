@@ -11,9 +11,14 @@ import java.util.Optional;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    // TODO : QueryDSL로 작성해보기 -> 조회 시 조회 조건(id 순(최신), 점수 순, 좋아요 순 등)
-    List<Comment> findByAnalysisResultIdOrderByIdDesc(Long analysisResultId);
-    Page<Comment> findByAnalysisResultIdOrderByIdDesc(Long analysisResultId, Pageable pageable);
+    // 댓글 내용 조회
+    List<Comment> findByAnalysisResultIdAndDeletedOrderByIdDesc(Long analysisResultId, boolean deleted);
+    Page<Comment> findByAnalysisResultIdAndDeletedOrderByIdDesc(Long analysisResultId, boolean deleted, Pageable pageable);
 
+
+    // 댓글 작성 테스트에서 가장 최신 댓글을 확인하기 위해서 작성
     Optional<Comment> findTopByOrderByIdDesc();
+
+    // 댓글 삭제 시, 존재하는 댓글인지 확인 하기 위해서 먼저 조회
+    Optional<Comment> findByIdAndDeleted(Long commentId, boolean deleted);
 }

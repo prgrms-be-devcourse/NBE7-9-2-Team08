@@ -71,7 +71,7 @@ class CommentRepositoryTest {
         commentRepository.save(comment2);
 
         // when
-        List<Comment> result = commentRepository.findByAnalysisResultIdOrderByIdDesc(analysisResult.getId());
+        List<Comment> result = commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(analysisResult.getId(), true);
 
         // then
         assertThat(result).hasSize(2);
@@ -86,7 +86,7 @@ class CommentRepositoryTest {
         Long nonExistentId = 9999L;
 
         // when
-        List<Comment> result = commentRepository.findByAnalysisResultIdOrderByIdDesc(nonExistentId);
+        List<Comment> result = commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(nonExistentId, true);
 
         // then
         assertThat(result).isEmpty();

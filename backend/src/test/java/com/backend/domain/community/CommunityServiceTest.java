@@ -113,7 +113,7 @@ class CommunityServiceTest {
                 .comment("test comment 2")
                 .build();
 
-        when(commentRepository.findByAnalysisResultIdOrderByIdDesc(1L))
+        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, true))
                 .thenReturn(List.of(comment1, comment2));
 
         // when
@@ -123,14 +123,14 @@ class CommunityServiceTest {
         assertEquals(2, result.size());
         assertEquals("test comment 1", result.get(0).getComment());
         assertEquals("test comment 2", result.get(1).getComment());
-        verify(commentRepository, times(1)).findByAnalysisResultIdOrderByIdDesc(1L);
+        verify(commentRepository, times(1)).findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, true);
     }
 
     @Test
     @DisplayName("댓글 조회 - 존재하지 않는 분석결과 ID일 경우 빈 리스트 반환")
     void getComments_empty() {
         // given
-        when(commentRepository.findByAnalysisResultIdOrderByIdDesc(99L))
+        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, true))
                 .thenReturn(Collections.emptyList());
 
         // when
@@ -139,7 +139,7 @@ class CommunityServiceTest {
         // then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(commentRepository, times(1)).findByAnalysisResultIdOrderByIdDesc(99L);
+        verify(commentRepository, times(1)).findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, true);
     }
 
     // ------------------------------------------------------
