@@ -4,11 +4,13 @@ import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@SQLDelete(sql = "UPDATE Comment SET deleted = TRUE WHERE id = ?")
 @Builder
 public class Comment extends BaseEntity {
     // 댓글 id
