@@ -99,6 +99,7 @@ export function useAnalysisProgress(repoUrl?: string | null) {
       { label: "테스트 구성 분석", description: "테스트 커버리지 및 폴더 구조 확인 중..." },
       { label: "CI/CD 설정 분석", description: "자동화 및 배포 파이프라인 검토 중..." },
       { label: "커뮤니티 활동 분석", description: "이슈/PR 및 협업 지표 분석 중..." },
+      { label: "AI 평가", description: "수집된 리포지토리 데이터 평가 중..." },
       { label: "최종 리포트 생성", description: "결과를 정리하고 있습니다." },
     ],
     []
