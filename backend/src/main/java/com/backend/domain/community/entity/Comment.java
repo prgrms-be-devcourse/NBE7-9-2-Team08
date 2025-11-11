@@ -10,7 +10,10 @@ import org.hibernate.annotations.SQLDelete;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE Comment SET deleted = TRUE WHERE id = ?")
+// SQL 문 delete가 실행 될 때 -> 실행될 SQL문을 설정
+@SQLDelete(sql = "UPDATE Comment SET deleted = true WHERE id = ?")
+// 조회 시에 기본적으로 deleted = false인 것을만 조회하도록 설정 -> 관리자 조회 시에는 삭제 처리 된 것도 조회 필요
+// @Where(clause="deleted = false")
 @Builder
 public class Comment extends BaseEntity {
     // 댓글 id
