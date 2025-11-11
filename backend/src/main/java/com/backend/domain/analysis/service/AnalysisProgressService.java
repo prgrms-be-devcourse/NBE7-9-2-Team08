@@ -5,6 +5,7 @@ import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AnalysisProgressService {
@@ -41,11 +43,16 @@ public class AnalysisProgressService {
 
     public void sendEvent(Long userId, String eventName, String data) {
         SseEmitter emitter = emitters.get(userId);
-        if(emitter == null) return;
+        if(emitter == null) {
+            log.debug("SSE Emitter 없음: userId={}", userId);
+            return;
+        }
 
         try {
             emitter.send(SseEmitter.event().name(eventName).data(data));
+            log.debug("SSE 전송 성공: userId={}, event={}", userId, eventName);
         } catch(IOException e) {
+            log.debug("SSE 연결 끊김 (정상): userId={}, event={}", userId, eventName);
             emitters.remove(userId);
         }
     }

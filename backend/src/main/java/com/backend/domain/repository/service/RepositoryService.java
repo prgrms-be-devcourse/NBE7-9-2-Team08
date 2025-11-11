@@ -1,7 +1,5 @@
 package com.backend.domain.repository.service;
 
-import com.backend.domain.analysis.entity.AnalysisResult;
-import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.analysis.service.SseProgressNotifier;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.RepositoryResponse;
@@ -72,40 +70,38 @@ public class RepositoryService {
 
         try {
             // 1. 기본 정보 수집 및 매핑 + Repositories 테이블 저장
-            sseProgressNotifier.notify(userId, "status", "GitHub 연결 중");
+            safeSendSse(userId, "status", "GitHub 연결 중");
             RepoResponse repoInfo = gitHubDataFetcher.fetchRepositoryInfo(owner, repo);
-
             validateRepositorySize(repoInfo.size());
-
             repositoryInfoMapper.mapBasicInfo(data, repoInfo);
 
             // 2. 커밋 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "커밋 히스토리 분석");
+            safeSendSse(userId, "status", "커밋 히스토리 분석");
             ZonedDateTime ninetyDaysAgoUtc = ZonedDateTime.now(ZoneOffset.UTC).minus(90, ChronoUnit.DAYS);
             String sinceParam = ninetyDaysAgoUtc.format(DateTimeFormatter.ISO_INSTANT);
             List<CommitResponse> commits = gitHubDataFetcher.fetchCommitInfo(owner, repo, sinceParam);
             commitInfoMapper.mapCommitInfo(data, commits);
 
             // 3. README 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "문서화 품질 분석");
+            safeSendSse(userId, "status", "문서화 품질 분석");
             String readme = gitHubDataFetcher.fetchReadmeContent(owner, repo).orElse("");
             readmeInfoMapper.mapReadmeInfo(data, readme);
 
             // 4. 보안 관리 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "보안 구성 분석");
+            safeSendSse(userId, "status", "보안 구성 분석");
             TreeResponse tree = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch()).orElse(null);
             securityInfoMapper.mapSecurityInfo(data, tree);
 
             // 5. 테스트 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "테스트 구성 분석");
+            safeSendSse(userId, "status", "테스트 구성 분석");
             testInfoMapper.mapTestInfo(data, tree);
 
             // 6. CI/CD 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "CI/CD 설정 분석");
+            safeSendSse(userId, "status", "CI/CD 설정 분석");
             cicdInfoMapper.mapCicdInfo(data, tree);
 
             // 7. 커뮤니티 활성도 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "커뮤니티 활동 분석");
+            safeSendSse(userId, "status", "커뮤니티 활동 분석");
             List<IssueResponse> issues = gitHubDataFetcher.fetchIssueInfo(owner, repo);
             issueInfoMapper.mapIssueInfo(data, issues);
             List<PullRequestResponse> prs = gitHubDataFetcher.fetchPullRequestInfo(owner, repo);
@@ -116,12 +112,22 @@ public class RepositoryService {
 
             return data;
         } catch (BusinessException e) {
-            sseProgressNotifier.notify(userId, "error", "❌ " + e.getErrorCode().getMessage());
+            safeSendSse(userId, "error", "❌ " + e.getErrorCode().getMessage());
             throw e;
 
         } catch (Exception e) {
-            sseProgressNotifier.notify(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
+            safeSendSse(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
             throw e;
+        }
+    }
+
+    // SSE 전송 헬퍼 메서드
+    private void safeSendSse(Long userId, String event, String message) {
+        try {
+            sseProgressNotifier.notify(userId, event, message);
+        } catch (Exception e) {
+            log.warn("SSE 전송 실패 (분석은 계속): userId={}, event={}, error={}",
+                    userId, event, e.getMessage());
         }
     }
 

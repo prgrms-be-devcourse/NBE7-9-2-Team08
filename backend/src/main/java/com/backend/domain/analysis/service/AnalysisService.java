@@ -59,7 +59,7 @@ public class AnalysisService {
         }
 
         try {
-            sseProgressNotifier.notify(userId, "status", "분석 시작");
+            safeSendSse(userId, "status", "분석 시작");
 
             // Repository 데이터 수집
             RepositoryData repositoryData;
@@ -67,9 +67,11 @@ public class AnalysisService {
             try {
                 repositoryData = repositoryService.fetchAndSaveRepository(owner, repo, userId);
                 lockManager.refreshLock(cacheKey);
+                safeSendSse(userId, "status", "GitHub 데이터 수집 완료");
                 log.info("Repository Data 수집 완료: {}", repositoryData);
             } catch (BusinessException e) {
                 log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
+                safeSendSse(userId, "error", "Repository 데이터 수집 실패");
                 throw new BusinessException(ErrorCode.ANALYSIS_FAIL);
             }
 
@@ -83,17 +85,28 @@ public class AnalysisService {
             try {
                 evaluationService.evaluateAndSave(repositoryData, userId);
                 lockManager.refreshLock(cacheKey);
+                safeSendSse(userId, "status", "AI 평가 완료");
             } catch (BusinessException e) {
-                sseProgressNotifier.notify(userId, "error", "AI 평가 실패: " + e.getMessage());
+                safeSendSse(userId, "error", "AI 평가 실패: " + e.getMessage());
                 throw new BusinessException(ErrorCode.ANALYSIS_FAIL);
             }
 
-            sseProgressNotifier.notify(userId, "complete", "최종 리포트 생성");
+            safeSendSse(userId, "complete", "최종 리포트 생성");
             return repositoryId;
         } finally {
             // 락 해제
             lockManager.releaseLock(cacheKey);
             log.info("분석 락 해제: cacheKey={}", cacheKey);
+        }
+    }
+
+    // SSE 전송 헬퍼 메서드
+    private void safeSendSse(Long userId, String event, String message) {
+        try {
+            sseProgressNotifier.notify(userId, event, message);
+        } catch (Exception e) {
+            log.warn("SSE 전송 실패 (분석은 계속): userId={}, event={}, error={}",
+                    userId, event, e.getMessage());
         }
     }
 

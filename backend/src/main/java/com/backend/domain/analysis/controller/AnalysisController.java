@@ -4,11 +4,9 @@ import com.backend.domain.analysis.dto.request.AnalysisRequest;
 import com.backend.domain.analysis.dto.response.AnalysisResultResponseDto;
 import com.backend.domain.analysis.dto.response.AnalysisStartResponse;
 import com.backend.domain.analysis.dto.response.HistoryResponseDto;
-import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.service.AnalysisProgressService;
 import com.backend.domain.analysis.service.AnalysisService;
 import com.backend.domain.repository.dto.response.RepositoryResponse;
-import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.service.RepositoryService;
 import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
@@ -22,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RestController
