@@ -6,9 +6,9 @@ import com.backend.domain.analysis.dto.response.AnalysisStartResponse;
 import com.backend.domain.analysis.dto.response.HistoryResponseDto;
 import com.backend.domain.analysis.service.AnalysisProgressService;
 import com.backend.domain.analysis.service.AnalysisService;
+import com.backend.domain.repository.dto.response.RepositoryComparisonResponse;
 import com.backend.domain.repository.dto.response.RepositoryResponse;
 import com.backend.domain.repository.service.RepositoryService;
-import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import com.backend.global.response.ApiResponse;
@@ -30,7 +30,6 @@ public class AnalysisController {
     private final AnalysisService analysisService;
     private final RepositoryService repositoryService;
     private final AnalysisProgressService analysisProgressService;
-    private final JwtUtil jwtUtil;
 
     // POST: 분석 요청
     @PostMapping
@@ -121,5 +120,15 @@ public class AnalysisController {
     public SseEmitter stream(@PathVariable Long userId,
                              HttpServletRequest httpRequest){
         return analysisProgressService.connect(userId, httpRequest);
+    }
+
+    // 비교 기능용 Repository 목록 조회
+    @GetMapping("/comparison")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<RepositoryComparisonResponse>>> getRepositoriesForComparison(
+            HttpServletRequest httpRequest) {
+        List<RepositoryComparisonResponse> repositories =
+                analysisService.getRepositoriesForComparison(httpRequest);
+        return ResponseEntity.ok(ApiResponse.success(repositories));
     }
 }

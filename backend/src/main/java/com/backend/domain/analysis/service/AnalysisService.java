@@ -6,6 +6,7 @@ import com.backend.domain.analysis.entity.AnalysisResult;
 import com.backend.domain.analysis.lock.RedisLockManager;
 import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.evaluation.service.EvaluationService;
+import com.backend.domain.repository.dto.response.RepositoryComparisonResponse;
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.dto.response.RepositoryResponse;
 import com.backend.domain.repository.entity.Repositories;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -72,7 +74,7 @@ public class AnalysisService {
             } catch (BusinessException e) {
                 log.error("Repository 데이터 수집 실패: {}/{}", owner, repo, e);
                 safeSendSse(userId, "error", "Repository 데이터 수집 실패");
-                throw new BusinessException(ErrorCode.ANALYSIS_FAIL);
+                throw e;
             }
 
             Repositories savedRepository = repositoryJpaRepository
@@ -94,9 +96,12 @@ public class AnalysisService {
             safeSendSse(userId, "complete", "최종 리포트 생성");
             return repositoryId;
         } finally {
-            // 락 해제
-            lockManager.releaseLock(cacheKey);
-            log.info("분석 락 해제: cacheKey={}", cacheKey);
+            try {
+                lockManager.releaseLock(cacheKey);
+                log.info("분석 락 해제: cacheKey={}", cacheKey);
+            } catch (Exception e) {
+                log.warn("⚠️ 락 해제 중 예외 발생 (무시됨): {}", e.getMessage());
+            }
         }
     }
 
@@ -310,5 +315,31 @@ public class AnalysisService {
         }
 
         return new String[]{parts[0].trim(), parts[1].trim()};
+    }
+
+    // 비교 기능, 사용자의 모든 Repository와 최신 분석 점수 조회
+    @Transactional(readOnly = true)
+    public List<RepositoryComparisonResponse> getRepositoriesForComparison(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserId(request);
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<Repositories> repositories = repositoryJpaRepository.findByUserId(userId);
+
+        return repositories.stream()
+                .map(repo -> {
+                    Optional<AnalysisResult> latestAnalysis =
+                            analysisResultRepository
+                                    .findTopByRepositoriesIdOrderByCreateDateDesc(repo.getId());
+
+                    return latestAnalysis.map(analysis ->
+                            RepositoryComparisonResponse.from(repo, analysis)
+                    );
+
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
     }
 }

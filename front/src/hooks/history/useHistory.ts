@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { fetchHistory } from "@/lib/api/history"
 import { analysisApi } from "@/lib/api/analysis"
 import type { RepositoryResponse as RepoBaseResponse } from "@/types/history"
 import type { HistoryResponseDto } from "@/types/analysis"
@@ -24,12 +23,13 @@ export function useHistory(memberId: number) {
   async function load() {
     try {
       setLoading(true)
-      const baseRepos = await fetchHistory(memberId)
+      const baseRepos = await analysisApi.getUserRepositories()
 
       const enrichedRepos: RepoBaseResponse[] = await Promise.all(
         baseRepos.map(async (repo): Promise<RepoBaseResponse> => {
           try {
             const historyData: HistoryResponseDto = await analysisApi.getRepositoryHistory(repo.id)
+            
             const versions = historyData.analysisVersions
             const latest = versions.length > 0 ? versions[0] : null
 

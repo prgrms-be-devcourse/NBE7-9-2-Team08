@@ -30,7 +30,7 @@ public class AnalysisProgressService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        SseEmitter emitter = new SseEmitter(10 * 60 * 1000L);
+        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L);
         emitters.put(userId, emitter);
 
         emitter.onCompletion(() -> emitters.remove(userId));
