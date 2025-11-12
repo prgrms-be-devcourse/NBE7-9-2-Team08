@@ -21,7 +21,6 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-@Transactional(readOnly = true)
 @Builder
 public class CommunityService {
     private final RepositoryJpaRepository repositoryJpaRepository;
@@ -71,31 +70,37 @@ public class CommunityService {
         return commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(analysisResultId, false, pageable);
     }
 
-    // 댓글 삭제
-    @Transactional
-    public void deleteComment(Long commentId){
-
-        if(commentId == null){
+    // ✅ 댓글 삭제 (본인만 가능)
+    public void deleteComment(Long commentId, Long jwtUserId) {
+        if (commentId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         Comment targetComment = commentRepository.findByIdAndDeleted(commentId, false)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
+        // 🔒 작성자 본인 확인
+        if (!targetComment.getMemberId().equals(jwtUserId)) {
+            throw new BusinessException(ErrorCode.NOT_WRITER); // 권한 없음
+        }
+
         commentRepository.delete(targetComment);
-        // commentRepository.flush();
     }
 
-    // 댓글 수정
-    public void modifyComment(Long commentId, String newContent){
-
+    @Transactional // ✅ 트랜잭션 readOnly=false로 override
+    public void modifyComment(Long commentId, String newContent, Long jwtUserId) {
         Comment targetComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if(newContent == null || newContent.isEmpty()){
+        // 🔒 작성자 본인 확인
+        if (!targetComment.getMemberId().equals(jwtUserId)) {
+            throw new BusinessException(ErrorCode.NOT_WRITER);
+        }
+
+        if (newContent == null || newContent.isEmpty()) {
             throw new BusinessException(ErrorCode.EMPTY_COMMENT);
         }
 
-        targetComment.updateComment(newContent);
+        targetComment.updateComment(newContent); // ✅ 엔티티 변경 감지
     }
 }

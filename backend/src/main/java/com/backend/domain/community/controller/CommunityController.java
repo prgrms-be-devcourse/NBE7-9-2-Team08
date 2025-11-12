@@ -138,17 +138,19 @@ public class CommunityController {
 
     // 댓글 삭제
     @DeleteMapping("/delete/{commentId}")
-    public ResponseEntity<String> deleteCommnt(
-            @PathVariable Long commentId
-            // HttpServletRequest httpRequest
-    ){
-        // Long jwtUserId = jwtUtil.getUserId(httpRequest);
+    public ResponseEntity<String> deleteComment(
+            @PathVariable Long commentId,
+            HttpServletRequest httpRequest
+    ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
 
-        // if(jwtUserId == null){
-        //     throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
-        // }
+        if (jwtUserId == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
 
-        communityService.deleteComment(commentId);
+        // ✅ 본인 검증을 위해 userId 전달
+        communityService.deleteComment(commentId, jwtUserId);
+
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -156,9 +158,18 @@ public class CommunityController {
     @PatchMapping("/modify/{commentId}/comment")
     public ResponseEntity<String> modifyComment(
             @PathVariable Long commentId,
-            @RequestBody CommentUpdateRequestDTO updateDto
-            ){
-        communityService.modifyComment(commentId, updateDto.newComment());
+            @RequestBody CommentUpdateRequestDTO updateDto,
+            HttpServletRequest httpRequest
+    ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if (jwtUserId == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
+        // ✅ 본인 검증을 위해 userId 전달
+        communityService.modifyComment(commentId, updateDto.newComment(), jwtUserId);
+
         return ResponseEntity.ok("댓글 수정 완료");
     }
 }

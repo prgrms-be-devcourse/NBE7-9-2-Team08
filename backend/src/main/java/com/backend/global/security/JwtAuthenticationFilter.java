@@ -99,6 +99,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ✅ 쿠키에서도 읽기 (이게 꼭 있어야 함!)
+        if (token == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
         //토큰이 있다면 검증 및 인증
         if(token != null) {
             //블랙리스트를 조회하여 토큰이 무효화 되었는지 확인
