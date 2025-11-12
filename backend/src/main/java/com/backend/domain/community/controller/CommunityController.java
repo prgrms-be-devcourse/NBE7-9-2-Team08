@@ -13,12 +13,19 @@ import com.backend.domain.community.service.CommunityService;
 import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.service.UserService;
+import com.backend.domain.user.util.JwtUtil;
+import com.backend.global.exception.BusinessException;
+import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +34,7 @@ public class CommunityController {
     private final CommunityService communityService;
     private final AnalysisService analysisService;
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 커뮤니티 관련 기능이 있는 컨트롤러 입니다.
@@ -36,53 +44,57 @@ public class CommunityController {
      */
 
     // publisRepositories = true (공개여부 : 공개함) 리포지토리 조회
+    // 공개 리포지토리 조회
     @GetMapping("/repositories")
-    public ResponseEntity<List<CommunityResponseDTO>> getPublicRepositories(){
+    public ResponseEntity<Page<CommunityResponseDTO>> getPublicRepositories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+
         // publicRepository가 true인 리포지토리 조회
-        List<Repositories> publicRepository = communityService.getRepositoriesPublicTrue();
+        Page<Repositories> publicRepository = communityService.getPagedRepositoriesPublicTrue(page, size);
         List<CommunityResponseDTO> communityRepositories = new ArrayList<>();
 
-        for(Repositories repo : publicRepository){
-            List <AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
+        for (Repositories repo : publicRepository) {
+            if (repo == null) continue;
 
-            if(!(repo == null)){ // 비어있지 않으면
+            // 분석 결과 조회 (없을 수도 있음)
+            List<AnalysisResult> analysisList = analysisService.getAnalysisResultList(repo.getId());
+            if (analysisList == null || analysisList.isEmpty()) continue;
 
-                // 가장 첫번째 값만 사용 : List가 정렬되어서 반환되기 때문에 가장 최신값 사용
-                AnalysisResult analysisResult = analysisList.get(0);
-                Score score = analysisResult.getScore();
+            // 가장 첫 번째(가장 최신) 분석 결과만 사용
+            AnalysisResult analysisResult = analysisList.get(0);
 
-                CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
-                communityRepositories.add(dto);
-            }
+            // Score가 null일 경우 기본값 생성
+            Score score = Optional.ofNullable(analysisResult.getScore())
+                    .orElseGet(() -> new Score(analysisResult, 0, 0, 0, 0));
+
+            // DTO 생성 시 NPE 방지
+            CommunityResponseDTO dto = new CommunityResponseDTO(repo, analysisResult, score);
+            communityRepositories.add(dto);
         }
 
+        // 최신순 정렬
         communityRepositories.sort((a, b) -> b.createDate().compareTo(a.createDate()));
 
-    return ResponseEntity.ok(communityRepositories);
-    }
-
-
-
-    // 댓글 작성
-    @PostMapping("/{analysisResultId}/write")
-    public ResponseEntity<CommentWriteResponseDTO> addComment(
-            @PathVariable Long analysisResultId,
-            @RequestBody CommentRequestDTO requestDto
-    ) {
-        Comment saved = communityService.addComment(
-                analysisResultId,
-                requestDto.memberId(),
-                requestDto.comment()
+        Page<CommunityResponseDTO> pageingResponseDto = new PageImpl<>(
+                communityRepositories,
+                publicRepository.getPageable(),
+                publicRepository.getTotalElements()
         );
-        return ResponseEntity.ok(new CommentWriteResponseDTO(saved));
+
+        return ResponseEntity.ok(pageingResponseDto);
     }
 
-    // 댓글 조회
+    // 분석 결과 당 댓글 조회
     @GetMapping("/{analysisResultId}/comments")
-    public ResponseEntity<List<CommentResponseDTO>> getCommentsByAnalysisResult(
-            @PathVariable Long analysisResultId
+    public ResponseEntity<Page<CommentResponseDTO>> getCommentsByAnalysisResult(
+            @PathVariable Long analysisResultId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+
     ) {
-        List<Comment> comments = communityService.getCommentsByAnalysisResult(analysisResultId);
+        Page<Comment> comments = communityService.getPagedCommentsByAnalysisResult(analysisResultId, page, size);
         List<CommentResponseDTO> commentList = new ArrayList<>();
 
         for(Comment comment : comments){
@@ -92,16 +104,53 @@ public class CommunityController {
             commentList.add(dto);
         }
 
-        commentList.sort((a, b) -> b.id().compareTo(a.id()));
-        return ResponseEntity.ok(commentList);
+        commentList.sort((a, b) -> b.commentId().compareTo(a.commentId()));
+
+        Page<CommentResponseDTO> pageingResponseDto = new PageImpl<>(
+                commentList,
+                comments.getPageable(),
+                comments.getTotalElements()
+        );
+
+        return ResponseEntity.ok(pageingResponseDto);
+    }
+
+    // 댓글 작성
+    @PostMapping("/{analysisResultId}/write")
+    public ResponseEntity<CommentWriteResponseDTO> addComment(
+            @PathVariable Long analysisResultId,
+            @RequestBody CommentRequestDTO requestDto,
+            HttpServletRequest httpRequest
+    ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if(jwtUserId == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
+        Comment saved = communityService.addComment(
+                analysisResultId,
+                requestDto.memberId(),
+                requestDto.comment()
+        );
+        return ResponseEntity.ok(new CommentWriteResponseDTO(saved));
     }
 
     // 댓글 삭제
     @DeleteMapping("/delete/{commentId}")
-    public ResponseEntity<String> deleteCommnt(
-            @PathVariable Long commentId
-    ){
-        communityService.deleteComment(commentId);
+    public ResponseEntity<String> deleteComment(
+            @PathVariable Long commentId,
+            HttpServletRequest httpRequest
+    ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if (jwtUserId == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
+        // ✅ 본인 검증을 위해 userId 전달
+        communityService.deleteComment(commentId, jwtUserId);
+
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -109,9 +158,18 @@ public class CommunityController {
     @PatchMapping("/modify/{commentId}/comment")
     public ResponseEntity<String> modifyComment(
             @PathVariable Long commentId,
-            @RequestBody CommentUpdateRequestDTO updateDto
-            ){
-        communityService.modifyComment(commentId, updateDto.newComment());
+            @RequestBody CommentUpdateRequestDTO updateDto,
+            HttpServletRequest httpRequest
+    ) {
+        Long jwtUserId = jwtUtil.getUserId(httpRequest);
+
+        if (jwtUserId == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_USER);
+        }
+
+        // ✅ 본인 검증을 위해 userId 전달
+        communityService.modifyComment(commentId, updateDto.newComment(), jwtUserId);
+
         return ResponseEntity.ok("댓글 수정 완료");
     }
 }
