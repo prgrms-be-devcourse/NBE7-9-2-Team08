@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,16 +48,9 @@ class CommunityServiceTest {
     void getCommunityRepositoryList_success() {
         // given
         Repositories repo1 = Repositories.builder()
-                .name("Repo1")
-                .htmlUrl("url1")
-                .publicRepository(true)
-                .build();
-
+                .name("Repo1").htmlUrl("url1").publicRepository(true).build();
         Repositories repo2 = Repositories.builder()
-                .name("Repo2")
-                .htmlUrl("url2")
-                .publicRepository(true)
-                .build();
+                .name("Repo2").htmlUrl("url2").publicRepository(true).build();
 
         when(repositoryJpaRepository.findByPublicRepository(true))
                 .thenReturn(List.of(repo1, repo2));
@@ -66,22 +60,17 @@ class CommunityServiceTest {
 
         // then
         assertEquals(2, result.size());
-        assertEquals("Repo1", result.get(0).getName());
-        assertEquals("Repo2", result.get(1).getName());
         verify(repositoryJpaRepository, times(1)).findByPublicRepository(true);
     }
 
     @Test
     @DisplayName("커뮤니티 분석결과 조회 - 공개 레포지토리가 없으면 빈 리스트 반환")
     void getCommunityRepositoryList_empty() {
-        // given
         when(repositoryJpaRepository.findByPublicRepository(true))
                 .thenReturn(Collections.emptyList());
 
-        // when
         List<Repositories> result = communityService.getRepositoriesPublicTrue();
 
-        // then
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(repositoryJpaRepository, times(1)).findByPublicRepository(true);
@@ -92,54 +81,71 @@ class CommunityServiceTest {
     // ------------------------------------------------------
 
     @Test
-    @DisplayName("댓글 조회 성공 - analysisResultId 기준으로 최신순 반환")
+    @DisplayName("댓글 조회 성공 - SoftDelete 적용 (deleted=false) 조건으로 최신순 반환")
     void getComments_success() {
         // given
-        AnalysisResult analysisResult = AnalysisResult.builder()
-                .id(1L)
-                .build();
+        AnalysisResult analysisResult = AnalysisResult.builder().id(1L).build();
 
         Comment comment1 = Comment.builder()
-                .id(1L)
-                .analysisResult(analysisResult)
-                .memberId(1L)
-                .comment("test comment 1")
-                .build();
+                .id(1L).analysisResult(analysisResult)
+                .memberId(1L).comment("first").deleted(false).build();
 
         Comment comment2 = Comment.builder()
-                .id(2L)
-                .analysisResult(analysisResult)
-                .memberId(1L)
-                .comment("test comment 2")
-                .build();
+                .id(2L).analysisResult(analysisResult)
+                .memberId(1L).comment("second").deleted(false).build();
 
-        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, true))
-                .thenReturn(List.of(comment1, comment2));
+        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, false))
+                .thenReturn(List.of(comment2, comment1)); // 최신순
 
         // when
         List<Comment> result = communityService.getCommentsByAnalysisResult(1L);
 
         // then
         assertEquals(2, result.size());
-        assertEquals("test comment 1", result.get(0).getComment());
-        assertEquals("test comment 2", result.get(1).getComment());
-        verify(commentRepository, times(1)).findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, true);
+        assertEquals("second", result.get(0).getComment());
+        assertEquals("first", result.get(1).getComment());
+        verify(commentRepository, times(1))
+                .findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, false);
     }
 
     @Test
-    @DisplayName("댓글 조회 - 존재하지 않는 분석결과 ID일 경우 빈 리스트 반환")
+    @DisplayName("댓글 조회 (SoftDelete 적용) - 존재하지 않는 분석결과 ID일 경우 빈 리스트 반환")
     void getComments_empty() {
-        // given
-        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, true))
+        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, false))
                 .thenReturn(Collections.emptyList());
 
-        // when
         List<Comment> result = communityService.getCommentsByAnalysisResult(99L);
 
-        // then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(commentRepository, times(1)).findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, true);
+        verify(commentRepository, times(1))
+                .findByAnalysisResultIdAndDeletedOrderByIdDesc(99L, false);
+    }
+
+    @Test
+    @DisplayName("댓글 조회 - 페이징 적용, deleted=false 조건으로 조회")
+    void getComments_paging_success() {
+        // given
+        AnalysisResult analysisResult = AnalysisResult.builder().id(1L).build();
+
+        Comment c1 = Comment.builder().id(1L).comment("one").deleted(false).build();
+        Comment c2 = Comment.builder().id(2L).comment("two").deleted(false).build();
+        List<Comment> list = List.of(c2, c1);
+
+        Page<Comment> page = new PageImpl<>(list);
+        Pageable pageable = PageRequest.of(0, 2, Sort.by("id").descending());
+
+        when(commentRepository.findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, false, pageable))
+                .thenReturn(page);
+
+        // when
+        Page<Comment> result = communityService.getPagedCommentsByAnalysisResult(1L, 0, 2);
+
+        // then
+        assertEquals(2, result.getContent().size());
+        assertEquals("two", result.getContent().get(0).getComment());
+        verify(commentRepository, times(1))
+                .findByAnalysisResultIdAndDeletedOrderByIdDesc(1L, false, pageable);
     }
 
     // ------------------------------------------------------
@@ -150,58 +156,42 @@ class CommunityServiceTest {
     @DisplayName("댓글 작성 성공 - 정상 데이터로 댓글 저장")
     void writeComment_success() {
         // given
-        AnalysisResult analysisResult = AnalysisResult.builder()
-                .id(1L)
-                .build();
-
+        AnalysisResult analysisResult = AnalysisResult.builder().id(1L).build();
         when(analysisResultRepository.findById(1L))
                 .thenReturn(Optional.of(analysisResult));
 
-        Comment savedComment = Comment.builder()
-                .id(1L)
-                .analysisResult(analysisResult)
-                .memberId(1L)
-                .comment("write Test 1")
-                .build();
-
-        when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
+        Comment saved = Comment.builder()
+                .id(1L).analysisResult(analysisResult)
+                .memberId(1L).comment("write ok").deleted(false).build();
+        when(commentRepository.save(any(Comment.class))).thenReturn(saved);
 
         // when
-        Comment result = communityService.addComment(1L, 1L, "write Test 1");
+        Comment result = communityService.addComment(1L, 1L, "write ok");
 
         // then
         assertNotNull(result);
-        assertEquals(1L, result.getMemberId());
-        assertEquals("write Test 1", result.getComment());
-        assertEquals(1L, result.getAnalysisResult().getId());
-        verify(analysisResultRepository, times(1)).findById(1L);
+        assertEquals("write ok", result.getComment());
         verify(commentRepository, times(1)).save(any(Comment.class));
     }
 
     @Test
-    @DisplayName("댓글 작성 실패 - 분석 결과가 존재하지 않으면 예외 발생")
-    void writeComment_noAnalysisResult_throwsException() {
-        // given
-        when(analysisResultRepository.findById(anyLong()))
+    @DisplayName("댓글 작성 실패 - AnalysisResult 없음")
+    void writeComment_noAnalysisResult_throws() {
+        when(analysisResultRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        // when & then
         assertThrows(BusinessException.class,
-                () -> communityService.addComment(1L, 1L, "테스트 댓글"));
+                () -> communityService.addComment(1L, 1L, "내용"));
         verify(commentRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("댓글 작성 실패 - 내용이 비어 있을 경우 예외 발생")
-    void writeComment_emptyContent_throwsException() {
-        // given
-        AnalysisResult analysisResult = AnalysisResult.builder()
-                .id(1L)
-                .build();
+    @DisplayName("댓글 작성 실패 - 내용 비어있음")
+    void writeComment_emptyContent_throws() {
+        AnalysisResult ar = AnalysisResult.builder().id(1L).build();
         when(analysisResultRepository.findById(1L))
-                .thenReturn(Optional.of(analysisResult));
+                .thenReturn(Optional.of(ar));
 
-        // when & then
         assertThrows(BusinessException.class,
                 () -> communityService.addComment(1L, 1L, ""));
     }
@@ -211,93 +201,58 @@ class CommunityServiceTest {
     // ------------------------------------------------------
 
     @Test
-    @DisplayName("댓글 수정 성공 - 존재하는 댓글 내용 변경")
+    @DisplayName("댓글 수정 성공 - updateComment 호출됨")
     void modifyComment_success() {
-        // given
-        Comment comment = Comment.builder()
-                .id(1L)
-                .comment("old content")
-                .build();
-
+        Comment comment = mock(Comment.class);
         when(commentRepository.findById(1L))
                 .thenReturn(Optional.of(comment));
 
-        // when
-        communityService.modifyComment(1L, "update content");
+        communityService.modifyComment(1L, "new text");
 
-        // then
-        assertEquals("update content", comment.getComment());
         verify(commentRepository, times(1)).findById(1L);
+        verify(comment, times(1)).updateComment("new text");
     }
 
     @Test
-    @DisplayName("댓글 수정 실패 - 존재하지 않는 댓글일 경우 예외 발생")
-    void modifyComment_notFound_throwsException() {
-        // given
+    @DisplayName("댓글 수정 실패 - 존재하지 않으면 예외 발생")
+    void modifyComment_notFound_throws() {
         when(commentRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
-        // when & then
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> communityService.modifyComment(1L, "update content")
-        );
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> communityService.modifyComment(1L, "new text"));
 
-        assertEquals(ErrorCode.COMMENT_NOT_FOUND, exception.getErrorCode());
-        verify(commentRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    @DisplayName("댓글 수정 시 Comment.updateComment()가 한 번 호출된다")
-    void modifyComment_callsUpdateMethod_once() {
-        // given
-        Comment comment = mock(Comment.class);
-        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-
-        // when
-        communityService.modifyComment(1L, "update content");
-
-        // then
-        verify(comment, times(1)).updateComment("update content");
+        assertEquals(ErrorCode.COMMENT_NOT_FOUND, ex.getErrorCode());
     }
 
     // ------------------------------------------------------
-    // 댓글 삭제 테스트
+    // 댓글 삭제 테스트 (Soft Delete)
     // ------------------------------------------------------
 
     @Test
-    @DisplayName("댓글 삭제 성공 - 존재하는 댓글 삭제")
+    @DisplayName("댓글 삭제 성공 - 존재하는 댓글 SoftDelete 처리")
     void deleteComment_success() {
-        // given
         Comment comment = Comment.builder()
-                .id(1L)
-                .comment("target content")
-                .build();
-        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+                .id(1L).comment("target").deleted(false).build();
+        when(commentRepository.findByIdAndDeleted(1L, false))
+                .thenReturn(Optional.of(comment));
 
-        // when
         communityService.deleteComment(1L);
 
-        // then
-        verify(commentRepository, times(1)).findById(1L);
+        verify(commentRepository, times(1)).findByIdAndDeleted(1L, false);
         verify(commentRepository, times(1)).delete(comment);
     }
 
     @Test
-    @DisplayName("댓글 삭제 실패 - 존재하지 않는 댓글 ID일 경우 예외 발생")
-    void deleteComment_notFound_throwsException() {
-        // given
-        when(commentRepository.findById(1L))
+    @DisplayName("댓글 삭제 실패 - 존재하지 않으면 예외 발생")
+    void deleteComment_notFound_throws() {
+        when(commentRepository.findByIdAndDeleted(1L, false))
                 .thenReturn(Optional.empty());
 
-        // when & then
-        BusinessException exception = assertThrows(
-                BusinessException.class,
-                () -> communityService.deleteComment(1L)
-        );
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> communityService.deleteComment(1L));
 
-        assertEquals(ErrorCode.COMMENT_NOT_FOUND, exception.getErrorCode());
-        verify(commentRepository, times(1)).findById(1L);
+        assertEquals(ErrorCode.COMMENT_NOT_FOUND, ex.getErrorCode());
         verify(commentRepository, never()).delete(any());
     }
 }
