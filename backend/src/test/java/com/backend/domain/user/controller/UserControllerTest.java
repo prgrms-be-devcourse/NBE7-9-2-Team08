@@ -2,6 +2,7 @@ package com.backend.domain.user.controller;
 
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.service.UserService;
+import com.backend.domain.user.util.RedisUtil;
 import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -28,6 +31,15 @@ class UserControllerTest {
         JavaMailSender javaMailSender() {
             // 모든 send(...)가 doNothing()인 목 객체
             return mock(JavaMailSender.class);
+        }
+
+        @Bean @Primary
+        RedisUtil redisUtil() {
+            RedisUtil mock = mock(RedisUtil.class);
+            // 모든 이메일에 대해 인증 통과로 처리
+            when(mock.getData(anyString())).thenReturn("verified");
+            when(mock.deleteData(anyString())).thenReturn(true);
+            return mock;
         }
     }
 
