@@ -117,7 +117,7 @@ public class AnalysisService {
 
     // 특정 Repository의 모든 분석 결과 조회 (최신순)
     public List<AnalysisResult> getAnalysisResultList(Long repositoryId){
-        return analysisResultRepository.findAnalysisResultByRepositoriesId(repositoryId);
+        return analysisResultRepository.findAnalysisResultByRepositoriesIdOrderByCreateDateDesc(repositoryId);
     }
 
     // 분석 결과 ID로 단건 조회
@@ -139,7 +139,7 @@ public class AnalysisService {
 
         // 3. 분석 결과 조회
         List<AnalysisResult> analysisResults =
-                analysisResultRepository.findAnalysisResultByRepositoriesId(repositoryId);
+                analysisResultRepository.findAnalysisResultByRepositoriesIdOrderByCreateDateDesc(repositoryId);
 
         // 4. DTO 변환
         List<HistoryResponseDto.AnalysisVersionDto> versions = new ArrayList<>();

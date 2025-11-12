@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface AnalysisResultRepository extends JpaRepository <AnalysisResult, Long>{
-    List<AnalysisResult> findAnalysisResultByRepositoriesId(Long repositoryId);
+    List<AnalysisResult> findAnalysisResultByRepositoriesIdOrderByCreateDateDesc(Long repositoryId);
     long countByRepositoriesId(Long repositoryId);
     List<AnalysisResult> findByRepositoriesId(Long repositoriedId);
     Optional<AnalysisResult> findTopByRepositoriesIdOrderByCreateDateDesc(Long repositoryId);

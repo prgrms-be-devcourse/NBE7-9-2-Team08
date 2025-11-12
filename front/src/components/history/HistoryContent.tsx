@@ -187,7 +187,7 @@ export default function HistoryContent({ memberId, name }: HistoryContentProps) 
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>{formatRelativeTimeKST(repo.createDate)}</span>
+                        <span>{formatRelativeTimeKST(repo.latestAnalysisDate ?? repo.createDate)}</span>
                       </div>
                     </div>
 
