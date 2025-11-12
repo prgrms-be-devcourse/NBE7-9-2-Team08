@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import type { RepositoryItem } from '@/types/community';
+import type { RepositoryItem } from '@/types/community'
 import { useRouter } from 'next/navigation'
-import { formatDistanceToNow } from "date-fns/formatDistanceToNow"
-import { ko } from "date-fns/locale"
+import { formatDistanceToNow } from 'date-fns' // ✅ 수정
+import { ko } from 'date-fns/locale'
 import { formatRelativeTimeKST } from '@/lib/utils/formatDate'
-import { Github, ExternalLink } from "lucide-react"
+import { Github, ExternalLink } from 'lucide-react'
 
 export default function RepositoryCard({ item }: { item: RepositoryItem }) {
-  const router = useRouter();
-  const relativeTime = formatRelativeTimeKST(item.createDate);
+  const router = useRouter()
+  const relativeTime = formatRelativeTimeKST(item.createDate)
 
   return (
     <article className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 hover:shadow-md transition-all duration-200">
@@ -17,17 +17,17 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
       <div className="flex items-center mb-3">
         {item.userImage ? (
           <img
-            src={item.userImage || "/userInit.png"} // ✅ public 기준 절대경로
+            src={item.userImage || '/userInit.png'}
             alt={item.userName}
             className="w-10 h-10 rounded-full mr-3"
             onError={(e) => {
-              e.currentTarget.onerror = null // 무한 루프 방지
-              e.currentTarget.src = "/userInit.png" // ✅ fallback도 절대경로
+              e.currentTarget.onerror = null
+              e.currentTarget.src = '/userInit.png'
             }}
           />
         ) : (
           <img
-            src="/userInit.png" // ✅ 기본 이미지
+            src="/userInit.png"
             alt="기본 프로필"
             className="w-10 h-10 rounded-full mr-3"
           />
@@ -47,7 +47,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-primary hover:underline flex items-center gap-1"
-          onClick={(e) => e.stopPropagation()} // 부모 클릭 이벤트 방지
+          onClick={(e) => e.stopPropagation()}
         >
           {item.repositoryName}
           <ExternalLink className="h-3 w-3" />
@@ -67,7 +67,7 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
 
       {/* 언어 태그 */}
       <div className="mt-3 flex flex-wrap gap-2">
-        {item.language.map((lang, idx) => (
+        {item.language?.map((lang, idx) => ( // ✅ null-safe
           <span
             key={idx}
             className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full font-medium"
@@ -79,7 +79,6 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
 
       {/* 하단 */}
       <div className="flex justify-between items-center mt-4 text-gray-500 text-sm">
-
         <button
           className="border px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-100"
           type="button"
@@ -89,5 +88,5 @@ export default function RepositoryCard({ item }: { item: RepositoryItem }) {
         </button>
       </div>
     </article>
-  );
+  )
 }
