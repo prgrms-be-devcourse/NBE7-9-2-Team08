@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class RefreshTokenUtil {
+    private final RedisUtil redisUtil;
+
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -36,17 +40,23 @@ public class RefreshTokenUtil {
     public String createToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(Claims.SUBJECT, userId.toString()); // Claims.SUBJECT = "sub"이다.
-        claims.put(Claims.ID, UUID.randomUUID().toString()); //Claims.ID = "jti"
+        String jti = UUID.randomUUID().toString();
+        claims.put(Claims.ID, jti); //Claims.ID = "jti"
 
         Date now = new Date();
         System.out.println("현재 시간 : " + now.toString());
         Date expiration = new Date(now.getTime() + refreshTokenMilliSeconds);
         System.out.println("만료 시간 : " + expiration.toString());
-        return Jwts.builder()
+
+        String refreshToken = Jwts.builder()
                 .claims(claims)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+
+        redisUtil.setData(jti, refreshToken,  refreshTokenMilliSeconds/1000);
+
+        return refreshToken;
     }
 }
