@@ -1,6 +1,8 @@
 package com.backend.domain.repository.repository;
 
 import com.backend.domain.repository.entity.Repositories;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +18,5 @@ public interface RepositoryJpaRepository extends JpaRepository<Repositories, Lon
     List<Repositories> findByUserId(Long userId);
 
     List<Repositories> findByPublicRepository(boolean b);
+    Page<Repositories> findByPublicRepositoryTrue(Pageable pageable);
 }

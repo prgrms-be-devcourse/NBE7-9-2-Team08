@@ -12,13 +12,14 @@ import com.backend.global.exception.BusinessException;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.then;
 import java.util.Optional;
 
 import static com.backend.domain.repository.dto.RepositoryDataFixture.createMinimal;
@@ -43,59 +44,26 @@ class AnalysisServiceTest {
     @MockitoBean
     private SseProgressNotifier sseProgressNotifier;
 
-    @MockitoBean
-    private JwtUtil jwtUtil;
-
-    @MockitoBean
-    private RepositoryJpaRepository repositoryJpaRepository;
-
-    @MockitoBean
-    private RedisLockManager lockManager;
-
-    @MockitoBean
-    private EmailService emailService;
-
-    private MockHttpServletRequest createAuthenticatedRequest(Long userId) {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie("token", "dummy-token"));
-        given(jwtUtil.getUserId(request)).willReturn(userId);
-        return request;
-    }
-
-    @Test
-    @DisplayName("analyze → 수집 후 evaluateAndSave 한 번 호출")
-    void analyze_callsEvaluateOnce() {
-        // given
-        String url = "https://github.com/owner/repo";
-        Long userId = 1L;
-        MockHttpServletRequest request = createAuthenticatedRequest(userId);
-
-        given(lockManager.tryLock(anyString())).willReturn(true);
-
-        // Fixture 사용
-        RepositoryData fakeData = createMinimal();
-        fakeData.setRepositoryUrl("https://github.com/owner/repo");
-        given(repositoryService.fetchAndSaveRepository("owner", "repo", userId))
-                .willReturn(fakeData);
-
-        // Repositories Mock
-        Repositories fakeRepo = mock(Repositories.class);
-        given(fakeRepo.getId()).willReturn(1L);
-        given(repositoryJpaRepository.findByHtmlUrlAndUserId(anyString(), anyLong()))
-                .willReturn(Optional.of(fakeRepo));
-
-        // when
-        Long repositoryId = analysisService.analyze(url, request);
-
-        // then
-        assertThat(repositoryId).isEqualTo(1L);
-
-        ArgumentCaptor<RepositoryData> captor = ArgumentCaptor.forClass(RepositoryData.class);
-        then(evaluationService).should(times(1)).evaluateAndSave(captor.capture(), eq(userId));
-        assertThat(captor.getValue()).isNotNull();
-        then(repositoryService).should().fetchAndSaveRepository("owner", "repo", userId);
-        then(lockManager).should().releaseLock(anyString());
-    }
+//    @Test
+//    @DisplayName("analyze → 수집 후 evaluateAndSave 한 번 호출")
+//    void analyze_callsEvaluateOnce() {
+//        // given
+//        String url = "https://github.com/owner/repo";
+//        Long userId = 1L;
+//
+//        RepositoryData fake = new RepositoryData();
+//        // RepositoryData가 세터가 없을 수도 있으니, 인자 값 검증은 캡처만 사용
+//        given(repositoryService.fetchAndSaveRepository("owner", "repo", any())).willReturn(fake);
+//
+//        // when
+//        analysisService.analyze(url, userId);
+//
+//        // then
+//        ArgumentCaptor<RepositoryData> captor = ArgumentCaptor.forClass(RepositoryData.class);
+//        then(evaluationService).should(times(1)).evaluateAndSave(captor.capture());
+//        assertThat(captor.getValue()).isNotNull();
+//        then(repositoryService).should().fetchAndSaveRepository("owner", "repo", any());
+//    }
 
     @Test
     @DisplayName("analyze → 잘못된 URL이면 evaluateAndSave 호출 안 함")

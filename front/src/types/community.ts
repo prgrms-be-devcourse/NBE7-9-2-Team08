@@ -1,6 +1,6 @@
-// community 도메인 타입
+// community/types.ts
 
-// 공개 상태 repository 목록 조회
+// ✅ Repository 항목
 export interface RepositoryItem {
   userName: string
   userImage: string | null
@@ -10,17 +10,34 @@ export interface RepositoryItem {
   description: string
   language: string[]
   totalScore: number
-  createDate: string // LocalDateTime → string
+  createDate: string
   viewingStatus: boolean
   htmlUrl: string
 }
 
-
-// comment 목록 조회
+// ✅ 댓글 타입
 export interface Comment {
-  id: number
+  commentId: number
   memberId: number
   name: string
   comment: string
   createDate: string
+  deleted?: boolean
+}
+
+// ✅ 페이지네이션 응답
+export interface PageResponse<T> {
+  content: T[]
+  pageable: {
+    pageNumber: number
+    pageSize: number
+    offset: number
+    paged: boolean
+    unpaged: boolean
+  }
+  totalPages: number
+  totalElements: number
+  last: boolean
+  first: boolean
+  empty: boolean
 }

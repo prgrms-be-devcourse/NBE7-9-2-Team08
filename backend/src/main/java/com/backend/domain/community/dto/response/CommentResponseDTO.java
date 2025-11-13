@@ -1,22 +1,25 @@
 package com.backend.domain.community.dto.response;
 
 import com.backend.domain.community.entity.Comment;
-import com.backend.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 
-public record CommentWriteResponseDto(
-        Long id,
+public record CommentResponseDTO(
+        Long commentId,
         Long memberId,
+        String name,
         String comment,
-        LocalDateTime createDate
-){
-    public CommentWriteResponseDto(Comment comment) {
+        LocalDateTime createDate,
+        boolean deleted
+) {
+    public CommentResponseDTO(Comment comment, String userName) {
         this(
                 comment.getId(),
                 comment.getMemberId(),
+                userName,
                 comment.getComment(),
-                comment.getCreateDate()
+                comment.getCreateDate(),
+                comment.isDeleted()
         );
     }
 }
