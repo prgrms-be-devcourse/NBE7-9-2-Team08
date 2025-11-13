@@ -6,6 +6,7 @@ import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.backend.domain.repository.dto.RepositoryDataFixture.createMinimal;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -27,16 +32,19 @@ class EvaluationServiceIntegrationTest {
     @Autowired private RepositoryJpaRepository repositoryJpaRepository;
     @Autowired private AnalysisResultRepository analysisResultRepository;
     @Autowired private ScoreRepository scoreRepository;
+    @Autowired EntityManager em;
 
     @MockitoBean
     private AiService aiService; // OpenAI 호출만 목킹
 
     private String repoUrl;
+    private Long userId;
 
     @BeforeEach
     void seed() {
         // 1) 유저 시드
         User user = userRepository.save(new User("tester@example.com", "pw", "tester"));
+        userId = user.getId();
 
         // 2) Repositories 시드 (evaluation이 repo를 찾을 때 htmlUrl로 매칭)
         repoUrl = "https://github.com/test-owner/test-repo";

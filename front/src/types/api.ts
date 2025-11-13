@@ -70,6 +70,7 @@ export interface ApiResponse<T> {
     USER_NOT_FOUND: 'A004',
     FORBIDDEN: 'A005',
     ANALYSIS_IN_PROGRESS: 'A006',
+    ANALYSIS_FAIL: 'A007',
     
     // Repository 도메인
     GITHUB_REPO_NOT_FOUND: 'G001',

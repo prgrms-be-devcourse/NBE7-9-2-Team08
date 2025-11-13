@@ -1,9 +1,8 @@
 package com.backend.domain.repository.service;
 
-import com.backend.domain.analysis.entity.AnalysisResult;
-import com.backend.domain.analysis.repository.AnalysisResultRepository;
 import com.backend.domain.analysis.service.SseProgressNotifier;
 import com.backend.domain.repository.dto.response.RepositoryData;
+import com.backend.domain.repository.dto.response.RepositoryResponse;
 import com.backend.domain.repository.dto.response.github.*;
 import com.backend.domain.repository.entity.Language;
 import com.backend.domain.repository.entity.Repositories;
@@ -14,8 +13,10 @@ import com.backend.domain.repository.service.fetcher.GitHubDataFetcher;
 import com.backend.domain.repository.service.mapper.*;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import com.backend.domain.user.util.JwtUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RepositoryService {
 
-    // TODO: 임시 - 인증/인가 기능 구현 후 실제 로그인한 사용자로 대체 필요
     private final UserRepository userRepository;
-
     private final GitHubDataFetcher gitHubDataFetcher;
     private final RepositoriesMapper repositoriesMapper;
     private final RepositoryInfoMapper repositoryInfoMapper;
@@ -49,8 +48,8 @@ public class RepositoryService {
     private final PullRequestInfoMapper pullRequestInfoMapper;
     private final RepositoryJpaRepository repositoryJpaRepository;
     private final SseProgressNotifier sseProgressNotifier;
-    private final AnalysisResultRepository analysisResultRepository;
     private final RepositoryLanguageRepository repositoryLanguageRepository;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public RepositoryData fetchAndSaveRepository(String owner, String repo, Long userId) {
@@ -71,40 +70,38 @@ public class RepositoryService {
 
         try {
             // 1. 기본 정보 수집 및 매핑 + Repositories 테이블 저장
-            sseProgressNotifier.notify(userId, "status", "GitHub 연결 중");
+            safeSendSse(userId, "status", "GitHub 연결 중");
             RepoResponse repoInfo = gitHubDataFetcher.fetchRepositoryInfo(owner, repo);
-
             validateRepositorySize(repoInfo.size());
-
             repositoryInfoMapper.mapBasicInfo(data, repoInfo);
 
             // 2. 커밋 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "커밋 히스토리 분석");
+            safeSendSse(userId, "status", "커밋 히스토리 분석");
             ZonedDateTime ninetyDaysAgoUtc = ZonedDateTime.now(ZoneOffset.UTC).minus(90, ChronoUnit.DAYS);
             String sinceParam = ninetyDaysAgoUtc.format(DateTimeFormatter.ISO_INSTANT);
             List<CommitResponse> commits = gitHubDataFetcher.fetchCommitInfo(owner, repo, sinceParam);
             commitInfoMapper.mapCommitInfo(data, commits);
 
             // 3. README 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "문서화 품질 분석");
+            safeSendSse(userId, "status", "문서화 품질 분석");
             String readme = gitHubDataFetcher.fetchReadmeContent(owner, repo).orElse("");
             readmeInfoMapper.mapReadmeInfo(data, readme);
 
             // 4. 보안 관리 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "보안 구성 분석");
+            safeSendSse(userId, "status", "보안 구성 분석");
             TreeResponse tree = gitHubDataFetcher.fetchRepositoryTreeInfo(owner, repo, repoInfo.defaultBranch()).orElse(null);
             securityInfoMapper.mapSecurityInfo(data, tree);
 
             // 5. 테스트 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "테스트 구성 분석");
+            safeSendSse(userId, "status", "테스트 구성 분석");
             testInfoMapper.mapTestInfo(data, tree);
 
             // 6. CI/CD 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "CI/CD 설정 분석");
+            safeSendSse(userId, "status", "CI/CD 설정 분석");
             cicdInfoMapper.mapCicdInfo(data, tree);
 
             // 7. 커뮤니티 활성도 데이터 수집 및 매핑
-            sseProgressNotifier.notify(userId, "status", "커뮤니티 활동 분석");
+            safeSendSse(userId, "status", "커뮤니티 활동 분석");
             List<IssueResponse> issues = gitHubDataFetcher.fetchIssueInfo(owner, repo);
             issueInfoMapper.mapIssueInfo(data, issues);
             List<PullRequestResponse> prs = gitHubDataFetcher.fetchPullRequestInfo(owner, repo);
@@ -115,33 +112,42 @@ public class RepositoryService {
 
             return data;
         } catch (BusinessException e) {
-            sseProgressNotifier.notify(userId, "error", "❌ " + e.getErrorCode().getMessage());
+            safeSendSse(userId, "error", "❌ " + e.getErrorCode().getMessage());
             throw e;
 
         } catch (Exception e) {
-            sseProgressNotifier.notify(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
+            safeSendSse(userId, "error", "❌ Repository 데이터 수집 실패: " + e.getMessage());
             throw e;
+        }
+    }
+
+    // SSE 전송 헬퍼 메서드
+    private void safeSendSse(Long userId, String event, String message) {
+        try {
+            sseProgressNotifier.notify(userId, event, message);
+        } catch (Exception e) {
+            log.warn("SSE 전송 실패 (분석은 계속): userId={}, event={}, error={}",
+                    userId, event, e.getMessage());
         }
     }
 
     /* Repository Entity를 DB에 저장하거나 기존 데이터 업데이트
     * 같은 htmlUrl + userId 조합이 존재하면 업데이트, 없으면 신규 데이터 저장 */
-    private Repositories saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo, Long userId) {
+    private void saveOrUpdateRepository(RepoResponse repoInfo, String owner, String repo, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Map<String, Integer> languagesData = gitHubDataFetcher.fetchLanguages(owner, repo);
 
-        return repositoryJpaRepository.findByHtmlUrlAndUserId(repoInfo.htmlUrl(), userId)
-                .map(existing -> {
+        repositoryJpaRepository.findByHtmlUrlAndUserId(repoInfo.htmlUrl(), userId)
+                .ifPresentOrElse(existing -> {
                     existing.updateFrom(repoInfo);
                     existing.updateLanguagesFrom(languagesData);
-                    return existing;
-                })
-                .orElseGet(() -> {
+                },
+                () -> {
                     Repositories newRepo = repositoriesMapper.toEntity(repoInfo, user);
                     newRepo.updateLanguagesFrom(languagesData);
-                    return repositoryJpaRepository.save(newRepo);
+                    repositoryJpaRepository.save(newRepo);
                 });
     }
 
@@ -153,22 +159,6 @@ public class RepositoryService {
     // Repository ID로 단건 조회
     public Optional<Repositories> findById(Long repositoriesId) {
         return repositoryJpaRepository.findById(repositoriesId);
-    }
-
-    // AnalysisResult를 list로 반환
-    public List<AnalysisResult> getAnalysisResultList(Long RepositoriesId) {
-        List<AnalysisResult> resultsList = analysisResultRepository.findAnalysisResultByRepositoriesId(RepositoriesId);
-        // 정렬해서 반환
-        resultsList.sort((a, b) -> b.getCreateDate().compareTo(a.getCreateDate()));
-        return resultsList;
-    }
-
-    // repository 사용 언어 반환
-    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
-        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
-                .stream()
-                .map(RepositoryLanguage::getLanguage)
-                .toList();
     }
 
     // 저장소 크기 검증
@@ -183,5 +173,27 @@ public class RepositoryService {
             log.warn("저장소 크기 초과: {}KB (제한: {}KB)", sizeInKb, MAX_SIZE_KB);
             throw new BusinessException(ErrorCode.GITHUB_REPO_TOO_LARGE);
         }
+    }
+
+    // repository 사용 언어 반환
+    public List<Language> getLanguageByRepositoriesId(Long repositoriesId) {
+        return repositoryLanguageRepository.findByRepositories_Id(repositoriesId)
+                .stream()
+                .map(RepositoryLanguage::getLanguage)
+                .toList();
+    }
+
+    // 사용자 분석 결과 조회
+    @Transactional(readOnly = true)
+    public List<RepositoryResponse> getUserRepositories(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserId(request);
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return findRepositoryByUser(userId)
+                .stream()
+                .map(RepositoryResponse::new)
+                .toList();
     }
 }

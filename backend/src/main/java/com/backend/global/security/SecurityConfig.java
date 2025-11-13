@@ -50,7 +50,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/api/analysis/stream/**",
-                                "/api/analysis/**",
+                                "/api/analysis/repositories/{repositoriesId}",
+                                "/api/analysis/repositories/{repositoryId}/results/{analysisId}",
                                 "/api/repositories/**",
                                 "/api/ai/complete/**",
                                 "/api/community/**"

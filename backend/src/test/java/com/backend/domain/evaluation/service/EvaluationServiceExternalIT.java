@@ -38,6 +38,7 @@ class EvaluationServiceExternalIT {
     @Autowired private Environment env;                // ★ Spring Environment 주입
 
     private String repoUrl;
+    private Long userId = 1L;
 
     @BeforeEach
     void seed() {

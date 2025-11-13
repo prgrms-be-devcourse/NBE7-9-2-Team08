@@ -8,6 +8,7 @@ import type {
   RepositoryResponse,
   HistoryResponseDto,
   AnalysisResultResponseDto,
+  RepositoryComparisonResponse
 } from "@/types/analysis"
 
 // ===== Analysis API =====
@@ -78,9 +79,15 @@ export const analysisApi = {
   ): Promise<void> =>  // ✅ ApiResponse 제거
     http.put(`/analysis/${userId}/repositories/${repositoryId}/public`),
 
+  /** ⚖️ 비교 기능용 Repository 목록 조회
+    *  GET /api/analysis/comparison
+  */
+  getRepositoriesForComparison: (): Promise<RepositoryComparisonResponse[]> =>
+    http.get(`/analysis/comparison`),
+
   /** 📡 SSE: 분석 진행 현황 구독 (쿠키 기반 인증용) */
   connectStream: (userId: number) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
     const controller = new AbortController()
   
     fetchEventSource(`${baseUrl}/api/analysis/stream/${userId}`, {
