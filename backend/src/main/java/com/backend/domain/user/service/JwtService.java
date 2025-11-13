@@ -4,6 +4,7 @@ import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
 import com.backend.domain.user.util.JwtUtil;
 import com.backend.domain.user.util.RedisUtil;
+import com.backend.domain.user.util.RefreshTokenUtil;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import jakarta.validation.constraints.Email;
@@ -12,6 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class JwtService {
@@ -19,15 +24,16 @@ public class JwtService {
     private final JwtUtil jwtUtil;
     private final RedisUtil redisUtil;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenUtil refreshTokenUtil;
 
-    public String login(@NotBlank(message = "이메일은 필수 입력값 입니다.") @Email(message = "이메일 형식이 아닙니다.") String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password) {
+    public List<String> login(@NotBlank(message = "이메일은 필수 입력값 입니다.") @Email(message = "이메일 형식이 아닙니다.") String email, @NotBlank(message = "비밀번호는 필수 입력값 입니다.") String password) {
         User user = userRepository.findByEmail(email).orElseThrow(()->new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
         //비밀번호 체크
         checkPassword(email, password);
 
         if(checkPassword(email, password)) {
-            //email에 대응하는 비밀번호가 맞다면 jwt토큰 발급
-            return jwtUtil.createToken(user.getEmail(), user.getName(), user.getId());
+            //email에 대응하는 비밀번호가 맞다면 jwt, refreshToken 발급
+            return Arrays.asList(jwtUtil.createToken(user.getEmail(), user.getName(), user.getId()), refreshTokenUtil.createToken(user.getId()));
         }else{
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }

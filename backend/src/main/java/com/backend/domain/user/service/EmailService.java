@@ -42,7 +42,6 @@ public class EmailService {
         //이미 회원가입된 email이면 예외 발생
         boolean existsByEmail = userRepository.existsByEmail(email);
         if(existsByEmail){
-            System.out.println("이미 회원가입된 이메일 입니다.");
             throw new BusinessException(ErrorCode.ALREADY_REGISTERED_EMAIL);
         }
 
