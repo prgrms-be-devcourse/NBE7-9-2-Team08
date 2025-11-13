@@ -1,22 +1,38 @@
 package com.backend.domain.analysis.service;
 
-import com.backend.domain.analysis.lock.InMemoryLockManager;
+import com.backend.domain.analysis.lock.RedisLockManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class InMemoryLockManagerTest {
+@SpringBootTest
+class RedisLockManagerTest {
 
-    private InMemoryLockManager lockManager;
+    @Autowired
+    private RedisLockManager lockManager;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @BeforeEach
     void setUp() {
-        lockManager = new InMemoryLockManager();
+        // 테스트 전 Redis 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushDb();
+    }
+
+    @AfterEach
+    void tearDown() {
+        // 테스트 후 Redis 정리
+        redisTemplate.getConnectionFactory().getConnection().flushDb();
     }
 
     @DisplayName("같은 url이 동시에 여러 요청이 들어오면 하나만 락 획득")
@@ -68,28 +84,57 @@ class InMemoryLockManagerTest {
         assertThat(lock2).isTrue();
     }
 
-    @DisplayName("오래된 락 제거")
+    @DisplayName("Redis TTL로 자동 만료 확인")
     @Test
-    void testCleanExpiredLocksDoesNotCrash() {
+    void testLockAutoExpiration() throws InterruptedException {
         String key = "user3:repo3";
 
-        lockManager.tryLock(key);
-        lockManager.cleanExpiredLocks();
-
-        assertThat(lockManager.tryLock(key)).isFalse();
-        lockManager.releaseLock(key);
+        // 락 획득
         assertThat(lockManager.tryLock(key)).isTrue();
+
+        // 동일 키로 재시도 - 실패
+        assertThat(lockManager.tryLock(key)).isFalse();
+
+        // Redis TTL 확인 (약 300초 남아있어야 함)
+        Long ttl = redisTemplate.getExpire("analysis:lock:" + key, TimeUnit.SECONDS);
+        assertThat(ttl).isBetween(295L, 300L);
     }
 
     @DisplayName("타임스탬프 갱신")
     @Test
-    void testRefreshLockDoesNotThrow() {
+    void testRefreshLock() throws InterruptedException {
         String key = "user4:repo4";
 
         lockManager.tryLock(key);
+
+        // 잠시 대기 후 TTL 감소 확인
+        Thread.sleep(3000);
+        Long ttlBefore = redisTemplate.getExpire("analysis:lock:" + key, TimeUnit.SECONDS);
+
+        // 락 갱신
         lockManager.refreshLock(key);
+        Long ttlAfter = redisTemplate.getExpire("analysis:lock:" + key, TimeUnit.SECONDS);
+
+        // 갱신 후 TTL이 다시 늘어났는지 확인
+        assertThat(ttlAfter).isGreaterThan(ttlBefore);
+        assertThat(ttlAfter).isBetween(295L, 300L);
+    }
+
+    @DisplayName("락 해제 후 재획득 가능")
+    @Test
+    void testLockReleaseAndReacquire() {
+        String key = "user5:repo5";
+
+        // 첫 번째 락 획득
+        assertThat(lockManager.tryLock(key)).isTrue();
+
+        // 해제 전 재시도 - 실패
+        assertThat(lockManager.tryLock(key)).isFalse();
+
+        // 락 해제
         lockManager.releaseLock(key);
 
+        // 재획득 - 성공
         assertThat(lockManager.tryLock(key)).isTrue();
     }
 }

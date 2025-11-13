@@ -32,9 +32,9 @@ export interface HistoryResponseDto {
 // 분석 버전(히스토리) 단일 항목 DTO
 export interface AnalysisVersionDto {
     analysisId: number
-    analysisDate: string        // ISO 8601 문자열 (LocalDateTime → string)
+    analysisDate: string
     totalScore: number
-    versionLabel: string        // 예: "v3 (2025-10-21)"
+    versionLabel: string 
 }
 
 // 특정 분석 결과의 상세 정보 응답 DTO
@@ -49,4 +49,27 @@ export interface AnalysisResultResponseDto {
     improvements: string
     createDate: string
 }
+
+// 비교를 위한 최신 분석 결과 응답 DTO
+export interface RepositoryComparisonResponse {
+    repositoryId: number
+    name: string
+    htmlUrl: string
+    languages: string[]
+    latestAnalysis: RepositoryAnalysisInfo
+  }
+  
+  export interface RepositoryAnalysisInfo {
+    analysisId: number
+    analyzedAt: string
+    scores: RepositoryCategoryScores
+  }
+  
+  export interface RepositoryCategoryScores {
+    readme: number
+    test: number
+    commit: number
+    cicd: number
+    total: number
+  }
   

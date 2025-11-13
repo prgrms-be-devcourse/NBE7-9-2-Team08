@@ -2,7 +2,7 @@
 export interface RepositoryResponse {
   id: number
   name: string
-  description: string
+  description: string | null
   htmlUrl: string
   publicRepository: boolean
   mainBranch: string

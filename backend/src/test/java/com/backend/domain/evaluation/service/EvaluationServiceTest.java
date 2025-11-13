@@ -8,17 +8,20 @@ import com.backend.domain.repository.entity.Repositories;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
 import com.backend.domain.user.entity.User;
 import com.backend.domain.user.repository.UserRepository;
+import com.backend.domain.user.service.EmailService;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
+import static com.backend.domain.repository.dto.RepositoryDataFixture.createMinimal;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -29,9 +32,13 @@ class EvaluationServiceTest {
     @Autowired private RepositoryJpaRepository repositoryJpaRepository;
     @Autowired private AnalysisResultRepository analysisResultRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired EntityManager em;
 
     @MockitoBean
     private AiService aiService; // 실제 OpenAI 호출 막고 고정 JSON 사용
+
+    @MockitoBean
+    private EmailService emailService;
 
     @Test
     @DisplayName("evaluateAndSave(RepositoryData) → AnalysisResult & Score 저장")
@@ -52,7 +59,7 @@ class EvaluationServiceTest {
         repositoryJpaRepository.save(repo);
 
         // 2) RepositoryData (서비스 입력값)
-        RepositoryData data = new RepositoryData();
+        RepositoryData data = createMinimal();
         data.setRepositoryName("hello");
         data.setRepositoryUrl(url);
         data.setDescription("desc");
@@ -70,7 +77,9 @@ class EvaluationServiceTest {
                 .willReturn(new AiDto.CompleteResponse(json));
 
         // 4) 실행
-        Long id = evaluationService.evaluateAndSave(data);
+        Long id = evaluationService.evaluateAndSave(data, user.getId());
+        em.flush();
+        em.clear();
 
         // 5) 검증
         AnalysisResult ar = analysisResultRepository.findById(id).orElseThrow();

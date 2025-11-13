@@ -13,3 +13,4 @@ export async function fetchHistory(memberId: number): Promise<RepositoryResponse
   const result = await res.json();
   return result.data;
 }
+

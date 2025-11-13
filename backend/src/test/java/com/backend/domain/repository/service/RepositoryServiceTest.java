@@ -2,13 +2,16 @@ package com.backend.domain.repository.service;
 
 import com.backend.domain.repository.dto.response.RepositoryData;
 import com.backend.domain.repository.repository.RepositoryJpaRepository;
+import com.backend.domain.user.repository.UserRepository;
 import com.backend.global.exception.BusinessException;
 import com.backend.global.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import com.backend.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,13 +28,28 @@ class RepositoryServiceTest {
     @Autowired
     private RepositoryJpaRepository repositoryJpaRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = new User(
+                "test" + System.currentTimeMillis() + "@test.com",
+                "password123",
+                "Test User"
+        );
+        testUser = userRepository.save(testUser);
+    }
+
     @Test
     @DisplayName("README, TEST, CI/CD가 없어도 RepositoryData 수집은 정상적으로 완료된다")
     void testRepositoryWithoutSomeFeatures1() {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team01";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -41,7 +59,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -51,7 +69,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team02";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -61,7 +79,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -71,7 +89,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team3";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -81,7 +99,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -91,7 +109,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team04";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -101,7 +119,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -111,7 +129,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team05";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -121,7 +139,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -131,7 +149,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team06";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -141,7 +159,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -151,7 +169,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team07";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -161,7 +179,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -171,7 +189,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team08";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -181,7 +199,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -191,7 +209,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team9";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -201,7 +219,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -211,7 +229,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team10";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -221,7 +239,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -231,7 +249,7 @@ class RepositoryServiceTest {
         // given
         String owner = "Hyeseung-OH";
         String repo = "test";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -241,7 +259,7 @@ class RepositoryServiceTest {
         log.info("📦 수집된 RepositoryData {}:", data);
 
         // Repositories 저장 확인
-        var repoEntity = repositoryJpaRepository.findByHtmlUrl(data.getRepositoryUrl());
+        var repoEntity = repositoryJpaRepository.findByHtmlUrlAndUserId(data.getRepositoryUrl(), userId);
         assertThat(repoEntity).isPresent();
     }
 
@@ -251,7 +269,7 @@ class RepositoryServiceTest {
         // given
         String owner = "spring-projects";
         String repo = "spring-boot";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -271,7 +289,7 @@ class RepositoryServiceTest {
         // given
         String owner = "facebook";
         String repo = "react";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when & then
         assertThatThrownBy(() -> repositoryService.fetchAndSaveRepository(owner, repo, userId))
@@ -288,7 +306,7 @@ class RepositoryServiceTest {
         // given - 실제로는 GitHub가 허용하는 특수문자만 가능 (-, _, .)
         String owner = "day8";
         String repo = "re-frame";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when
         RepositoryData data = repositoryService.fetchAndSaveRepository(owner, repo, userId);
@@ -303,7 +321,7 @@ class RepositoryServiceTest {
         // given
         String owner = "prgrms-be-devcourse";
         String repo = "NBE7-9-2-Team0";
-        Long userId = 1L;
+        Long userId = testUser.getId();
 
         // when & then
         assertThatThrownBy(() -> repositoryService.fetchAndSaveRepository(owner, repo, userId))

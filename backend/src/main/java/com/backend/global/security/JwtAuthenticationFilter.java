@@ -57,7 +57,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 커뮤니티 관련 API
                 new ExcludedRequest("/api/community/**", null),
 
-                new ExcludedRequest("/api/analysis/**", null),
+                new ExcludedRequest("/api/analysis/repositories/{repositoriesId}", "GET"),
+                new ExcludedRequest("/api/analysis/repositories/{repositoryId}/results/{analysisId}", "GET"),
+                new ExcludedRequest("/api/analysis/stream/**", "GET"),
                 new ExcludedRequest("/api/repositories/**", null),
                 new ExcludedRequest("/api/ai/complete/**", null)
         );

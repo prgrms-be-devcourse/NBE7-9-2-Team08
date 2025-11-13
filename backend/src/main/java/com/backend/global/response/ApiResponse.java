@@ -21,14 +21,14 @@ public class ApiResponse <T> {
     }
 
     public static <T> ApiResponse<T> error(ResponseCode code) {
-        return new ApiResponse<>(code.getCode(), code.getMessage(), null);
+        return new ApiResponse<>(code.name(), code.getMessage(), null);
     }
 
     public static <T> ApiResponse<T> error(ResponseCode code, String message) {
-        return new ApiResponse<>(code.getCode(), message, null);
+        return new ApiResponse<>(code.name(), message, null);
     }
 
     public static <T> ApiResponse<T> error(ErrorCode code) {
-        return new ApiResponse<>(code.getCode(), code.getMessage(), null);
+        return new ApiResponse<>(code.name(), code.getMessage(), null);
     }
 }

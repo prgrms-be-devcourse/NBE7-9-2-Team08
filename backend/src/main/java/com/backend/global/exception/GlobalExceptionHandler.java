@@ -2,6 +2,7 @@ package com.backend.global.exception;
 
 import com.backend.global.response.ApiResponse;
 import com.backend.global.response.ResponseCode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -68,12 +69,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, errorCode.getStatus());
     }
 
+    @ExceptionHandler({IOException.class, org.apache.catalina.connector.ClientAbortException.class})
+    public void handleClientAbort(Exception ex) {
+        log.warn("⚠️ SSE 연결 종료로 인한 IOException 무시: {}", ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception ex, HttpServletRequest request) {
+        String acceptHeader = request.getHeader("Accept");
+
+        if (acceptHeader != null && acceptHeader.contains("text/event-stream")) {
+            log.warn("⚠️ SSE 요청 중 발생한 예외 무시: {}", ex.getMessage());
+            return ResponseEntity.ok().build();
+        }
+
         log.error("Unexpected exception occurred", ex);
-
         ApiResponse<Void> response = ApiResponse.error(ErrorCode.INTERNAL_ERROR);
-
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
